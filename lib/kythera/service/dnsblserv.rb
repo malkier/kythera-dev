@@ -7,9 +7,7 @@
 # Rights to this code are documented in doc/license.txt
 #
 
-require 'kythera'
-
-require 'resolv'
+%w(kythera resolv).each { |lib| require lib }
 
 # Provides a DNSBL-checking service
 class DNSBLService < Service
