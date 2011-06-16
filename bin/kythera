@@ -159,12 +159,12 @@ configure do
     #
     dnsbl_service do
         # The EFnetRBL is huge and very accurate
-        blacklist 'rbl.efnetrbl.org'
+        blacklist :EFNetRBL, 'rbl.efnetrbl.org'
 
         # The SwiftBL is good and very well managed
-        blacklist 'dnsbl.swiftbl.org'
+        blacklist :SwiftBL, 'dnsbl.swiftbl.org'
 
         # The DroneBL is good, but not as well managed as SwiftBL
-        blacklist 'dnsbl.dronebl.org'
+        blacklist :DroneBL, 'dnsbl.dronebl.org'
     end
 end

@@ -77,21 +77,20 @@ class DNSBLService < Service
         return if @bursting
 
         # Reverse their IP bits
-        m  = Resolv::IPv4::Regex.match(user.ip)
-        ip = "#{m[4]}.#{m[3]}.#{m[2]}.#{m[1]}"
+        m    = Resolv::IPv4::Regex.match(user.ip)
+        ip   = "#{m[4]}.#{m[3]}.#{m[2]}.#{m[1]}"
 
         # Go through each list and check the IP
-        @config.blacklists.each do |address|
-            check_addr = "#{ip}.#{address}"
-
-            log.debug "dnsbl checking: #{check_addr}"
+        @config.blacklists.each do |name, url|
+            addr = "#{ip}.#{url}"
+            log.debug "dnsbl checking: #{name} -> #{user.ip}"
 
             begin
-                Resolv.getaddress(check_addr)
+                Resolv.getaddress(addr)
             rescue Resolv::ResolvError
                 next
             else
-                log.debug "dnsbl positive: #{check_addr}"
+                log.debug "dnsbl positive: #{name} <- #{user.ip}"
                 # XXX - set the kline!
 
                 # We don't need to check other lists since it's positive
@@ -129,8 +128,8 @@ module DNSBLService::Configuration::Methods
 
     private
 
-    def blacklist(address)
-        self.blacklists ||= []
-        self.blacklists << address
+    def blacklist(name, url)
+        self.blacklists ||= {}
+        self.blacklists[name] = url
     end
 end
