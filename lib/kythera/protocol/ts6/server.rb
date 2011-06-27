@@ -25,6 +25,6 @@ class Server
 
         @@servers[sid] = self
 
-        log.debug "new server initialized: #{@sid}"
+        log.debug "new server initialized: #{sid}"
     end
 end
