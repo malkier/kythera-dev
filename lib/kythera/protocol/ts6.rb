@@ -42,7 +42,7 @@ module Protocol::TS6
     # @param [String] host user's hostname
     # @param [String] real user's realname / gecos
     #
-    def introduce_user(nick, user, host, real, modes)
+    def introduce_user(nick, user, host, real, modes = '')
         send_uid(nick, user, host, real, modes)
     end
 
