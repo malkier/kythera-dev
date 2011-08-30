@@ -138,8 +138,10 @@ module Kythera::Configuration
         begin
             require "kythera/service/#{name}"
         rescue LoadError
-            puts "kythera: couldn't load service: #{name} (ignored)"
-            return
+            unless Service.services_classes.find { |s| s::NAME == name }
+                puts "kythera: couldn't load service: #{name} (ignored)"
+                return
+            end
         end
 
         # Find the Service's class
