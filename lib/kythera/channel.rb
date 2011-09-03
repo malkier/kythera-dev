@@ -70,7 +70,7 @@ class Channel
         @modes  = []
 
         # Keyed by nickname by default
-        @members = {}
+        @members = IRCHash.new
 
         @@channels[name] = self
 
