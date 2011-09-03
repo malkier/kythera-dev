@@ -25,7 +25,7 @@ class Channel
         @modes     = []
 
         # Keyed by UID
-        @members = {}
+        @members = IRCHash.new
 
         $log.error "new channel #{@name} already exists!" if @@channels[name]
 
