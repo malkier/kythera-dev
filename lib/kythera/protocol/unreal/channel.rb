@@ -60,7 +60,7 @@ class Channel
         @modes     = []
 
         # Keyed by nick
-        @members = {}
+        @members = IRCHash.new
 
         $log.error "new channel #{@name} already exists!" if @@channels[name]
 
