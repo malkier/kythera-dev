@@ -30,7 +30,7 @@ class Channel
                        't' => :topic_lock }
 
     # A list of all channels. The key is the channel name by default
-    @@channels = {}
+    @@channels = IRCHash.new
 
     # Attribute reader for `@@channels`
     #
@@ -70,7 +70,7 @@ class Channel
         @modes  = []
 
         # Keyed by nickname by default
-        @members = {}
+        @members = IRCHash.new
 
         @@channels[name] = self
 
