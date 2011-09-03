@@ -14,9 +14,6 @@ class User
     # The user's timestamp
     attr_reader :timestamp
 
-    # The user's modes
-    attr_accessor :modes
-
     # Unreal's user modes
     @@user_modes = { 'A' => :server_admin,
                      'a' => :services_admin,
@@ -47,7 +44,8 @@ class User
                      'z' => :ssl }
 
     # Creates a new user and adds it to the list keyed by nick
-    def initialize(server, nick, user, host, real, ts)
+    def initialize(server, nick, user, host, real, umodes, ts,
+                       vhost=nil, cloakhost=nil)
         @server    = server
         @nickname  = nick
         @username  = user
@@ -56,9 +54,13 @@ class User
         @timestamp = ts
         @modes     = []
 
+        @vhost     = vhost     || host
+        @cloakhost = cloakhost || host
+
         @status_modes = {}
 
-        $log.error "new user replacing user with same nick!" if @@users[nick]
+        # Do our user modes
+        parse_modes(umodes)
 
         @@users[nick] = self
 
@@ -73,14 +75,5 @@ class User
     #
     def operator?
         @modes.include?(:global_oper)
-    end
-
-    # Sets the User's hostname for things like CHGHOST
-    #
-    # @param [String] host the hostname to use
-    #
-    def hostname=(host)
-        $log.debug "changing #{@nickname}'s host from #{@hostname} to #{host}"
-        @hostname = host
     end
 end

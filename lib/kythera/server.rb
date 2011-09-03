@@ -31,8 +31,17 @@ class Server
     attr_reader :users
 
     # Creates a new server. Should be patched by the protocol module.
-    def initialize
-        @users = []
+    def initialize(name)
+        @name   = name
+        @users  = []
+
+        if @@servers[name]
+            $log.error "new server replacing server with same name!"
+        end
+
+        @@servers[name] = self
+
+        $log.debug "new server initialized: #{@name}"
     end
 
     public
@@ -43,7 +52,7 @@ class Server
     #
     def add_user(user)
         @users << user
-        $log.debug "user joined #{@name}: #{user.nickname}"
+        $log.debug "user joined #{@name}: #{user}"
     end
 
     # Deletes a User as a member
@@ -52,6 +61,6 @@ class Server
     #
     def delete_user(user)
         @users.delete(user)
-        $log.debug "user left #{@name}: #{user.nickname} (#{@users.length})"
+        $log.debug "user left #{@name}: #{user} (#{@users.length})"
     end
 end
