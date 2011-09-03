@@ -26,7 +26,7 @@ class Kythera
         debug    = false
         willfork = RUBY_PLATFORM =~ /win32/i ? false : true
         wd       = Dir.getwd
-        @uplink  = nil
+        $uplink  = nil
 
         # Do command-line options
         opts = OptionParser.new
@@ -106,10 +106,10 @@ class Kythera
     def main_loop
         loop do
             # If it's true we're connectED, if it's nil we're connectING
-            connect until @uplink and @uplink.connected?
+            connect until $uplink and $uplink.connected?
 
             # Only check for writable if we have data waiting to be written
-            writefd = [@uplink.socket] if @uplink.need_write?
+            writefd = [$uplink.socket] if $uplink.need_write?
 
             # Ruby's threads suck. In theory, the timers should
             # manage themselves in separate threads. Unfortunately,
@@ -121,7 +121,7 @@ class Kythera
             timeout = 60 if timeout < 0 # Less than zero means no timers
 
             # Wait up to 60 seconds for our socket to become readable/writable
-            ret = IO.select([@uplink.socket], writefd, [], timeout)
+            ret = IO.select([$uplink.socket], writefd, [], timeout)
 
             # This means select timed out and there's no activity on the socket
             next unless ret
@@ -142,23 +142,23 @@ class Kythera
         # Reset Services, as they're instantiated upon connection
         Service.services.clear
 
-        if @uplink
+        if $uplink
            $log.debug "current uplink failed, trying next"
 
-            curruli  = $config.uplinks.find_index(@uplink.config)
+            curruli  = $config.uplinks.find_index($uplink.config)
             curruli += 1
             curruli  = 0 if curruli > ($config.uplinks.length - 1)
 
             $eventq = EventQueue.new
-            @uplink = Uplink.new($config.uplinks[curruli])
+            $uplink = Uplink.new($config.uplinks[curruli])
 
             sleep $config.me.reconnect_time
         else
             $eventq = EventQueue.new
-            @uplink = Uplink.new($config.uplinks[0])
+            $uplink = Uplink.new($config.uplinks[0])
         end
 
-        @uplink.connect
+        $uplink.connect
     end
 
     # Checks to see if we're running as root
@@ -228,5 +228,29 @@ class Kythera
         $log.close if $log
         File.delete 'var/kythera.pid'
         exit!
+    end
+end
+
+class String
+    # Downcase a nick using the config's casemapping
+    # RFC 1459 says that `[]\~` is uppercase for `{}|^`, respectively, because
+    # of some Scandinavian characters.
+    def irc_downcase
+        if $uplink.config.casemapping == :rfc1459
+            downcase.tr('[]\\~', '{}|^')
+        else
+            downcase
+        end
+    end
+end
+
+# IRCHash is a Hash that downcases the keys
+class IRCHash < Hash
+    def [](key)
+        super(key.irc_downcase)
+    end
+
+    def []=(key, value)
+        super(key.irc_downcase, value)
     end
 end
