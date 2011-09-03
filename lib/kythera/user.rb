@@ -11,7 +11,7 @@ require 'kythera'
 # This is just a base class. All protocol module should monkeypatch this.
 class User
     # A list of all users. The protocol module should decide what the key is.
-    @@users = {}
+    @@users = IRCHash.new
 
     # Attribute reader for `@@users`
     #
@@ -66,9 +66,14 @@ class User
 
     public
 
+    # Our user's origin. Should be patched by the protocol module.
+    def origin
+        @nickname
+    end
+
     # String representation is just `@nickname`
     def to_s
-        "#{@nickname}"
+        @nickname
     end
 
     # Is this user an IRC operator?
@@ -161,5 +166,16 @@ class User
         end
 
         @status_modes[channel] = []
+    end
+
+    # Are we on this channel?
+    #
+    # @param [Channel] channel the Channel to check for this User
+    # @return [Boolean] true or false
+    #
+    def is_on?(channel)
+        channel = Channel.channels[channel] if channel.kind_of?(String)
+
+        channel.members[origin]
     end
 end

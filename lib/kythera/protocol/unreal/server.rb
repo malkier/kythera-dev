@@ -11,7 +11,7 @@ require 'kythera'
 
 # This reopens the base Server class in `kythera/server.rb`
 class Server
-    # Creates a new Server and adds it to the list keyed by numeric
+    # Creates a new Server and adds it to the list keyed by name
     def initialize(name)
         @name   = name
         @users  = []
