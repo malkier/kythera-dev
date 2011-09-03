@@ -75,14 +75,4 @@ module Protocol::InspIRCd
     def send_pong(dest)
         raw ":#{@config.sid} PONG #{@config.sid} :#{dest}"
     end
-
-    # :source PRIVMSG target :message
-    def send_privmsg(source, target, message)
-        raw ":#{source} PRIVMSG #{target} :#{message}"
-    end
-
-    # :source NOTICE target :message
-    def send_notice(source, target, message)
-        raw ":#{source} NOTICE #{target} :#{message}"
-    end
 end
