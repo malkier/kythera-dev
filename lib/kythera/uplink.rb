@@ -8,6 +8,8 @@
 
 require 'kythera'
 
+$uplink = nil
+
 # Represents the interface to the remote IRC server
 class Uplink
     # The configuration information
