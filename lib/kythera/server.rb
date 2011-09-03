@@ -11,7 +11,7 @@ require 'kythera'
 # This is just a base class. All protocol module should monkeypatch this.
 class Server
     # A list of all servers. The protocol module should decide what the key is.
-    @@servers = {}
+    @@servers = IRCHash.new
 
     # Attribute reader for `@@servers`
     #
