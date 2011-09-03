@@ -86,7 +86,10 @@ module Protocol::Unreal
     #   parv[4] -> hostname
     #   parv[5] -> server
     #   parv[6] -> servicestamp
-    #   parv[7] -> realname
+    #   parv[7] -> usermodes
+    #   parv[8] -> virtualhost
+    #   parv[9] -> cloakhost
+    #   parv[10] -> realname
     #
     def irc_nick(origin, parv)
         if origin
@@ -95,7 +98,7 @@ module Protocol::Unreal
                 return
             end
 
-            $log.debug "nick change: #{user.nickname} -> #{parv[0]}"
+            $log.debug "nick change: #{user} -> #{parv[0]}"
 
             user.nickname = parv[0]
         else
@@ -106,25 +109,10 @@ module Protocol::Unreal
                 return
             end
 
-            u = User.new(s, p[0], p[3], p[4], p[7], p[2])
+            u = User.new(s, p[0], p[3], p[4], p[7], p[7], p[2], p[9], p[10])
 
             s.add_user(u)
         end
-    end
-
-    # Handles an incoming QUIT
-    #
-    # parv[0] -> quit message
-    #
-    def irc_quit(origin, parv)
-        unless user = User.users.delete(origin)
-            $log.error "received QUIT for unknown nick: #{origin}"
-            return
-        end
-
-        user.server.delete_user(user)
-
-        $log.debug "user quit: #{user.nickname}"
     end
 
     # Handles an incoming SJOIN (channel burst)
@@ -142,7 +130,7 @@ module Protocol::Unreal
         if channel = Channel.channels[parv[1]]
             if their_ts < channel.timestamp
                 # Remove our status modes, channel modes, and bans
-                channel.members.each { |u| u.clear_status_modes(channel) }
+                channel.members.each_value { |u| u.clear_status_modes(channel) }
                 channel.clear_modes
                 channel.timestamp = their_ts
             end
@@ -166,17 +154,7 @@ module Protocol::Unreal
         # See benchmark/theory/multiprefix_parsing.rb
         #
         members.each do |nick|
-            if nick[0].chr == '&'
-                next
-            end
-
-            if nick[0].chr == '"'
-                next
-            end
-
-            if nick[0].chr == "'"
-                next
-            end
+            next if %(&"').include? nick[0].chr
 
             owner = admin = op = halfop = voice = false
 
@@ -241,44 +219,6 @@ module Protocol::Unreal
         end
     end
 
-    # Handles an incoming JOIN (non-burst channel join)
-    #
-    # parv[0] -> channel name
-    #
-    def irc_join(origin, parv)
-        user, channel = find_user_and_channel(origin, parv[0], :JOIN)
-        return unless user and channel
-
-        # Add them to the channel
-        channel.add_user(user)
-    end
-
-    # Handles an incoming PART
-    #
-    # parv[0] -> channel name
-    #
-    def irc_part(origin, parv)
-        user, channel = find_user_and_channel(origin, parv[0], :PART)
-
-        return unless user and channel
-
-        channel.delete_user(user)
-    end
-
-    # Handles an incoming KICK
-    #
-    # parv[0] -> channel name
-    # parv[1] -> nick of kicked user
-    # parv[2] -> kick reason
-    #
-    def irc_kick(origin, parv)
-        user, channel = find_user_and_channel(parv[1], parv[0], :KICK)
-
-        return unless user and channel
-
-        channel.delete_user(user)
-    end
-
     # Handles an incoming MODE
     #
     # parv[0]  -> target
@@ -290,11 +230,8 @@ module Protocol::Unreal
         if user = User.users[parv[0]]
             user.parse_modes(parv[1])
         else
-            user, channel = find_user_and_channel(origin, parv[0], :MODE)
-            unless user and channel
-                channel = Channel.channels[parv[0]]
-                return unless channel
-            end
+            channel = Channel.channels[parv[0]]
+            return unless channel
 
             modes  = parv[1]
             params = parv[GET_MODES_PARAMS]
@@ -303,50 +240,9 @@ module Protocol::Unreal
         end
     end
 
-    # Handles an incoming PRIVMSG
-    #
-    # parv[0] -> target
-    # parv[1] -> message
-    #
-    def irc_privmsg(origin, parv)
-        return if parv[0][0].chr == '#'
-
-        # Look up the sending user
-        user = User.users[origin]
-
-        # Which one of our clients was it sent to?
-        srv = Service.services.find do |s|
-            s.user.nickname.downcase == parv[0].downcase if s.respond_to?(:user)
-        end
-
-        # Send it to the service (if we found one)
-        srv.send(:irc_privmsg, user, parv[1].split(' ')) if srv
-    end
-
-    # Handles an incoming SETHOST
-    #
-    # parv[0] -> new vhost
-    #
-    def irc_sethost(origin, parv)
-        user = User.users[origin]
-
-        user.hostname = parv[0]
-    end
-
-    # Handles an incoming CHGHOST
-    #
-    # parv[0] -> target
-    # parv[1] -> new vhost
-    #
-    def irc_chghost(origin, parv)
-        user = User.users[parv[0]]
-
-        user.hostname = parv[1]
-    end
-
     # Handles an incoming EOS (end of synch)
     def irc_eos(origin, parv)
-        if $state[:bursting]
+        if $state[:bursting] && origin == @config.name
             delta = Time.now - $state[:bursting]
             $state[:bursting] = false
 

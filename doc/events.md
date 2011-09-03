@@ -111,3 +111,9 @@ List of Events
     * params:
       * mode symbol
       * a `User` object
+
+  * nickname_changed
+    * a user has changed their nickname
+    * params:
+      * a `User` object, with the old nick
+      * the new nick
