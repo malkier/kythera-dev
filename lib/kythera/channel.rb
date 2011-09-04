@@ -207,7 +207,7 @@ class Channel
     # @param [String] target the user this mode applies to
     #
     def parse_status_mode(action, mode, target)
-        unless user = User.users[target]
+        unless user = $users[target]
             $log.warn "cannot parse a status mode for an unknown user"
             $log.warn "#{target} -> #{mode} (#{self})"
 

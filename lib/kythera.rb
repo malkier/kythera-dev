@@ -180,7 +180,7 @@ module Kythera::Configuration
         $state[:ext_cfg] ||= {}
 
         # Find the Extension's class
-        ext = Extension.extensions.find { |e| e::NAME == name }
+        ext = $extensions.find { |e| e::NAME == name }
 
         unless ext
             puts "kythera: unknown extension configuration: #{name} (ignored)"

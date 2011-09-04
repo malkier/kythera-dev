@@ -8,33 +8,25 @@
 
 require 'kythera'
 
+# A list of all extension classes
+$extensions = []
+
 # This is the base class for an extension. All extensions must subclass this.
 # For the full documentation see `doc/extensions.md`
 #
 class Extension
-    # A list of all extension classes
-    @@extensions = []
-
-    # Attribute reader for `@@extensions`
-    #
-    # @return [Array] a list of all extensions
-    #
-    def self.extensions
-        @@extensions
-    end
-
     # Detect when we are subclassed
     #
     # @param [Class] klass the class that subclasses us
     #
     def self.inherited(klass)
-        @@extensions << klass
+        $extensions << klass
     end
 
     # Verify loaded extensions work with our version
     def self.verify_and_load
         # Remove the incompatible ones
-        @@extensions.delete_if do |klass|
+        $extensions.delete_if do |klass|
             kyver = Gem::Requirement.new(klass::KYTHERA_VERSION)
 
             unless kyver.satisfied_by?(Gem::Version.new(Kythera::VERSION))
@@ -53,7 +45,7 @@ class Extension
         end
 
         # Check to see if the dependencies are satisfied
-        @@extensions.each do |klass|
+        $extensions.each do |klass|
             kn = klass::NAME
 
             klass::DEPENDENCIES.each do |n, reqs|
@@ -68,7 +60,7 @@ class Extension
         end
 
         # Load the ones that passed verification
-        @@extensions.each do |klass|
+        $extensions.each do |klass|
             # Does this extension have a configuration block?
             if $state[:ext_cfg] and $state[:ext_cfg][klass::NAME.to_sym]
                 klass.initialize($state[:ext_cfg][klass::NAME.to_sym])

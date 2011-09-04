@@ -139,8 +139,10 @@ class Kythera
         # Clear all non-persistent Timers
         Timer.stop
 
-        # Reset Services, as they're instantiated upon connection
-        Service.services.clear
+        # Reset all the things that are uplink-dependent
+        $users.clear
+        $channels.clear
+        $services.clear
 
         if $uplink
            $log.debug "current uplink failed, trying next"
