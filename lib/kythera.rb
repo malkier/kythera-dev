@@ -143,7 +143,7 @@ module Kythera::Configuration
         end
 
         # Find the Service's class
-        srv = $services_classes.find { |s| s::NAME == name }
+        srv = Service.services_classes.find { |s| s::NAME == name }
 
         begin
             # Find the Service's configuration methods
