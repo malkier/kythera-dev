@@ -249,13 +249,9 @@ module Protocol::TS6
                 uid   = uid[REMOVE_FIRST]
             end
 
-            unless user = User.users[uid]
-                # Maybe it's a nickname?
-                user = User.users.values.find { |u| u.nickname == uid }
-                unless user
-                    $log.error "got non-existant UID in SJOIN: #{uid}"
-                    next
-                end
+            unless user = User.users[user.origin]
+                $log.error "got non-existant UID in SJOIN: #{uid}"
+                next
             end
 
             channel.add_user(user)
