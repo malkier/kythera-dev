@@ -109,6 +109,11 @@ configure do
         #bind '204.152.222.180'
         #bind '10.0.1.30', 55101
 
+        # The server ID we should send to the uplink. If you're using `ts6`
+        # above, this must be set. The format is [0-9][A-Z0-9][A-Z0-9].
+        #
+        sid '0X0'
+
         # The password we send to the uplink upon connection.
         send_password :send_linkage
 
@@ -124,11 +129,6 @@ configure do
         # For InspIRCd this is `inspircd`
         #
         protocol :ts6
-
-        # The server ID we should send to the uplink. If you're using `ts6`
-        # above, this must be set. The format is [0-9][A-Z0-9][A-Z0-9].
-        #
-        sid '0X0'
 
         # This is sort of a technical setting. The original IRC protocol
         # was designed in Finland and had a slight quirk with the mapping
