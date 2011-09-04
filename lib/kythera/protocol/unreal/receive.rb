@@ -90,7 +90,7 @@ module Protocol::Unreal
     #
     def irc_nick(origin, parv)
         if origin
-            unless user = User.users[origin]
+            unless user = $users[origin]
                 $log.error "got nick change for non-existant nick: #{origin}"
                 return
             end
@@ -117,7 +117,7 @@ module Protocol::Unreal
     # parv[0] -> quit message
     #
     def irc_quit(origin, parv)
-        unless user = User.users.delete(origin)
+        unless user = $users.delete(origin)
             $log.error "received QUIT for unknown nick: #{origin}"
             return
         end
@@ -139,7 +139,7 @@ module Protocol::Unreal
         their_ts = parv[0].to_i
 
         # Do we already have this channel?
-        if channel = Channel.channels[parv[1]]
+        if channel = $channels[parv[1]]
             if their_ts < channel.timestamp
                 # Remove our status modes, channel modes, and bans
                 channel.members.each { |u| u.clear_status_modes(channel) }
@@ -205,7 +205,7 @@ module Protocol::Unreal
                 nick  = nick[REMOVE_FIRST]
             end
 
-            unless user = User.users[nick]
+            unless user = $users[nick]
                 $log.error "got non-existant nick in SJOIN: #{nick}"
                 next
             end
@@ -287,12 +287,12 @@ module Protocol::Unreal
     # parv[-1] -> timestamp if origin is a server
     #
     def irc_mode(origin, parv)
-        if user = User.users[parv[0]]
+        if user = $users[parv[0]]
             user.parse_modes(parv[1])
         else
             user, channel = find_user_and_channel(origin, parv[0], :MODE)
             unless user and channel
-                channel = Channel.channels[parv[0]]
+                channel = $channels[parv[0]]
                 return unless channel
             end
 
@@ -312,10 +312,10 @@ module Protocol::Unreal
         return if parv[0][0].chr == '#'
 
         # Look up the sending user
-        user = User.users[origin]
+        user = $users[origin]
 
         # Which one of our clients was it sent to?
-        srv = Service.services.find do |s|
+        srv = $services.find do |s|
             s.user.nickname.downcase == parv[0].downcase if s.respond_to?(:user)
         end
 
@@ -328,7 +328,7 @@ module Protocol::Unreal
     # parv[0] -> new vhost
     #
     def irc_sethost(origin, parv)
-        user = User.users[origin]
+        user = $users[origin]
 
         user.hostname = parv[0]
     end
@@ -339,7 +339,7 @@ module Protocol::Unreal
     # parv[1] -> new vhost
     #
     def irc_chghost(origin, parv)
-        user = User.users[parv[0]]
+        user = $users[parv[0]]
 
         user.hostname = parv[1]
     end

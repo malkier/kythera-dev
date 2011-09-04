@@ -135,7 +135,7 @@ module Protocol::TS6
         end
 
         # Remove all their users to comply with CAPAB QS
-        server.users.each { |u| User.users.delete u.uid }
+        server.users.each { |u| $users.delete u.uid }
 
         $log.debug "server leaving: #{parv[0]}"
     end
@@ -173,7 +173,7 @@ module Protocol::TS6
     def irc_nick(origin, parv)
         return unless parv.length == 2 # We don't want TS5 introductions
 
-        unless user = User.users[origin]
+        unless user = $users[origin]
             $log.error "got nick change for non-existant UID: #{origin}"
             return
         end
@@ -188,7 +188,7 @@ module Protocol::TS6
     # parv[0] -> quit message
     #
     def irc_quit(origin, parv)
-        unless user = User.users.delete(origin)
+        unless user = $users.delete(origin)
             $log.error "received QUIT for unknown UID: #{origin}"
             return
         end
@@ -210,7 +210,7 @@ module Protocol::TS6
         their_ts = parv[0].to_i
 
         # Do we already have this channel?
-        if channel = Channel.channels[parv[1]]
+        if channel = $channels[parv[1]]
             if their_ts < channel.timestamp
                 # Remove our status modes, channel modes, and bans
                 channel.members.each { |u| u.clear_status_modes(channel) }
@@ -249,7 +249,7 @@ module Protocol::TS6
                 uid   = uid[REMOVE_FIRST]
             end
 
-            unless user = User.users[user.origin]
+            unless user = $users[user.origin]
                 $log.error "got non-existant UID in SJOIN: #{uid}"
                 next
             end
@@ -331,7 +331,7 @@ module Protocol::TS6
             user, channel = find_user_and_channel(origin, parv[1], :TMODE)
             return unless user and channel
         else
-            channel = Channel.channels[parv[1]]
+            channel = $channels[parv[1]]
             return unless channel
         end
 
@@ -347,7 +347,7 @@ module Protocol::TS6
     # parv[1] -> mode string
     #
     def irc_mode(origin, parv)
-        unless user = User.users[parv[0]]
+        unless user = $users[parv[0]]
             $log.debug "Got MODE message for unknown UID: #{parv[0]}"
             return
         end
@@ -364,10 +364,10 @@ module Protocol::TS6
         return if parv[0][0].chr == '#'
 
         # Look up the sending user
-        user = User.users[origin]
+        user = $users[origin]
 
         # Which one of our clients was it sent to?
-        srv = Service.services.find do |s|
+        srv = $services.find do |s|
             s.user.uid == parv[0] if s.respond_to?(:user)
         end
 

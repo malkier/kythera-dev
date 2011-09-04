@@ -55,12 +55,12 @@ class User
 
         @status_modes = {}
 
-        $log.error "new user replacing user with same UID!" if @@users[uid]
+        $log.error "new user replacing user with same UID!" if $users[uid]
 
         # Do our user modes
         parse_modes(umodes)
 
-        @@users[uid] = self
+        $users[uid] = self
 
         $log.debug "new user: #{nick}!#{user}@#{host} (#{real}) [#{uid}]"
 

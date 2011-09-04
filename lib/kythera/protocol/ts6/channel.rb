@@ -25,11 +25,11 @@ class Channel
         @modes     = []
 
         # Keyed by UID
-        @members = IRCHash.new
+        @members = {}
 
-        $log.error "new channel #{@name} already exists!" if @@channels[name]
+        $log.error "new channel #{@name} already exists!" if $channels[name]
 
-        @@channels[name] = self
+        $channels[name] = self
 
         $log.debug "new channel: #{@name} (#{timestamp})"
 
@@ -64,7 +64,7 @@ class Channel
         $eventq.post(:user_parted_channel, user, self)
 
         if @members.length == 0
-            @@channels.delete @name
+            $channels.delete @name
 
             $log.debug "removing empty channel #{@name}"
 

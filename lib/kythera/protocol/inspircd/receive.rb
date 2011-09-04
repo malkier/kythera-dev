@@ -133,7 +133,7 @@ module Protocol::InspIRCd
         their_ts = parv[1].to_i
 
         # Do we already have this channel?
-        if channel = Channel.channels[parv[0]]
+        if channel = $channels[parv[0]]
             if their_ts < channel.timestamp
                 # Remove our status modes, channel modes, and bans
                 channel.members.each { |u| u.clear_status_modes(channel) }
@@ -161,9 +161,9 @@ module Protocol::InspIRCd
 
             modes = modes.split('')
 
-            unless user = User.users[uid]
+            unless user = $users[uid]
                 # Maybe it's a nickname?
-                user = User.users.values.find { |u| u.nickname == uid }
+                user = $users.values.find { |u| u.nickname == uid }
                 unless user
                     $log.error "got non-existant UID in SJOIN: #{uid}"
                     next
@@ -228,10 +228,10 @@ module Protocol::InspIRCd
         return if parv[0][0].chr == '#'
 
         # Look up the sending user
-        user = User.users[origin]
+        user = $users[origin]
 
         # Which one of our clients was it sent to?
-        srv = Service.services.find do |s|
+        srv = $services.find do |s|
             s.user.uid == parv[0] if s.respond_to?(:user)
         end
 
@@ -251,13 +251,13 @@ module Protocol::InspIRCd
             user, channel = find_user_and_channel(origin, parv[0], :FMODE)
             return unless user and channel
         else
-            if channel = Channel.channels[parv[0]]
+            if channel = $channels[parv[0]]
                 params = parv[GET_MODES_PARAMS]
                 modes  = params.delete_at(0)
 
                 channel.parse_modes(modes, params)
             else
-                unless user = User.users[parv[0]]
+                unless user = $users[parv[0]]
                     $log.debug "Got FMODE message for unknown UID: #{parv[0]}"
                     return
                 end

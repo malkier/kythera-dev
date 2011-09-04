@@ -80,7 +80,7 @@ module Protocol::Unreal
     #
     def join(user, channel)
         if channel.kind_of?(String)
-            if chanobj = Channel.channels[channel]
+            if chanobj = $channels[channel]
                 channel = chanobj
             else
                 # This is a nonexistant channel
@@ -111,11 +111,11 @@ module Protocol::Unreal
 
     # Finds a User and Channel or errors
     def find_user_and_channel(nick, name, command)
-        unless user = User.users[nick]
+        unless user = $users[nick]
             $log.error "got non-existant nick in #{command}: #{nick}"
         end
 
-        unless channel = Channel.channels[name]
+        unless channel = $channels[name]
             $log.error "got non-existant channel in #{command}: #{name}"
         end
 

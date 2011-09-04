@@ -143,7 +143,7 @@ module Kythera::Configuration
         end
 
         # Find the Service's class
-        srv = Service.services_classes.find { |s| s::NAME == name }
+        srv = $services_classes.find { |s| s::NAME == name }
 
         begin
             # Find the Service's configuration methods
@@ -330,6 +330,10 @@ module Kythera::Configuration::Uplink
         self.bind_port = port.to_i
     end
 
+    def sid(sid)
+        self.sid = sid.to_s
+    end
+
     def send_password(password)
         self.send_password = password.to_s
     end
@@ -343,7 +347,7 @@ module Kythera::Configuration::Uplink
     end
 
     def protocol(protocol)
-        self.protocol = protocol
+        self.protocol = protocol.to_sym
 
         # Check to see if they specified a valid protocol
         begin
@@ -355,10 +359,6 @@ module Kythera::Configuration::Uplink
         proto = Protocol.find(protocol)
 
         raise "invalid protocol `#{protocol}` for uplink `#{name}`" unless proto
-    end
-
-    def sid(sid)
-        self.sid = sid.to_s
     end
 
     def casemapping(mapping)

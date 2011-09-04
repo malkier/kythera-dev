@@ -74,7 +74,7 @@ module Protocol::TS6
     #
     def join(user, channel)
         if channel.kind_of?(String)
-            if chanobj = Channel.channels[channel]
+            if chanobj = $channels[channel]
                 channel = chanobj
             else
                 # This is a nonexistant channel
@@ -105,11 +105,11 @@ module Protocol::TS6
 
     # Finds a User and Channel or errors
     def find_user_and_channel(uid, name, command)
-        unless user = User.users[uid]
+        unless user = $users[uid]
             $log.error "got non-existant UID in #{command}: #{uid}"
         end
 
-        unless channel = Channel.channels[name]
+        unless channel = $channels[name]
             $log.error "got non-existant channel in #{command}: #{name}"
         end
 
