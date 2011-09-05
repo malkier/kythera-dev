@@ -82,5 +82,15 @@ Sequel.migration do
             # Add a unique constraint on the three columns
             unique [:channel_id, :user_id, :flag]
         end
+
+        create_table :extensions do
+            String  :name
+            Integer :version, :null => false
+
+            Integer :min_kythera_version
+            Integer :max_kythera_version
+
+            primary_key [:name]
+        end
     end
 end
