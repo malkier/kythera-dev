@@ -30,14 +30,14 @@ class Channel
                        't' => :topic_lock }
 
     # A list of all channels. The key is the channel name by default
-    @@channels = IRCHash.new
+    $channels = IRCHash.new
 
-    # Attribute reader for `@@channels`
+    # Attribute reader for `$channels`
     #
     # @return [Hash] a list of all Channels
     #
     def self.channels
-        @@channels
+        $channels
     end
 
     # Attribute reader for `@@status_modes`
@@ -72,7 +72,7 @@ class Channel
         # Keyed by nickname by default
         @members = IRCHash.new
 
-        @@channels[name] = self
+        $channels[name] = self
 
         $log.debug "new channel: #{@name}"
 
@@ -186,7 +186,7 @@ class Channel
         $eventq.post(:user_parted_channel, user, self)
 
         if @members.length == 0
-            @@channels.delete @name
+            $channels.delete @name
 
             $log.debug "removing empty channel #{self}"
 

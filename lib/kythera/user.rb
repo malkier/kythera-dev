@@ -11,14 +11,14 @@ require 'kythera'
 # This is just a base class. All protocol module should monkeypatch this.
 class User
     # A list of all users. The protocol module should decide what the key is.
-    @@users = IRCHash.new
+    $users = IRCHash.new
 
-    # Attribute reader for `@@users`
+    # Attribute reader for `$users`
     #
     # @return [Hash] a list of all Users
     #
     def self.users
-        @@users
+        $users
     end
 
     # Standard IRC user modes
@@ -61,7 +61,7 @@ class User
         # Do our user modes
         parse_modes(umodes)
 
-        @@users[nick] = self
+        $users[nick] = self
     end
 
     public
