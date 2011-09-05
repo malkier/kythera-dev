@@ -58,9 +58,9 @@ class User
 
         @status_modes = {}
 
-        $log.error "new user replacing user with same nick!" if @@users[nick]
+        $log.error "new user replacing user with same nick!" if $users[nick]
 
-        @@users[nick] = self
+        $users[nick] = self
 
         $log.debug "new user: #{nick}!#{user}@#{host} (#{real})"
 

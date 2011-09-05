@@ -30,6 +30,31 @@ DEPENDENCIES.each do |name, reqs|
     end
 end
 
+# Define `irc_downcase` in String
+class String
+    # Downcase a nick using the config's casemapping
+    # RFC 1459 says that `[]\~` is uppercase for `{}|^`, respectively, because
+    # of some Scandinavian characters.
+    def irc_downcase
+        if $uplink.config.casemapping == :rfc1459
+            downcase.tr('[]\\~', '{}|^')
+        else
+            downcase
+        end
+    end
+end
+
+# A Hash that irc_downcases the keys automatically
+class IRCHash < Hash
+    def [](key)
+        super(key.irc_downcase)
+    end
+
+    def []=(key, value)
+        super(key.irc_downcase, value)
+    end
+end
+
 # Require all the Ruby stdlib stuff we need
 require 'logger'
 require 'optparse'

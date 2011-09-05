@@ -8,6 +8,9 @@
 
 require 'kythera'
 
+# A list of all instantiated services
+$services = []
+
 # This is the base class for a service. All services modules must subclass this.
 # For the full documentation see `doc/extensions.md`
 #
@@ -15,23 +18,12 @@ class Service
     # A list of all services classes
     @@services_classes = []
 
-    # A list of all instantiated services
-    @@services = []
-
     # Attribute reader for `@@services_classes`
     #
     # @return [Array] a list of all services classes
     #
     def self.services_classes
         @@services_classes
-    end
-
-    # Attribute reader for `@@services`
-    #
-    # @return [Array] a list of all services
-    #
-    def self.services
-        @@services
     end
 
     # Detect when we are subclassed
@@ -51,7 +43,7 @@ class Service
             next unless srv.verify_configuration
 
             s = srv.new(uplink)
-            @@services << s
+            $services << s
         end
     end
 

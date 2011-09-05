@@ -232,27 +232,3 @@ class Kythera
         exit!
     end
 end
-
-class String
-    # Downcase a nick using the config's casemapping
-    # RFC 1459 says that `[]\~` is uppercase for `{}|^`, respectively, because
-    # of some Scandinavian characters.
-    def irc_downcase
-        if $uplink.config.casemapping == :rfc1459
-            downcase.tr('[]\\~', '{}|^')
-        else
-            downcase
-        end
-    end
-end
-
-# IRCHash is a Hash that downcases the keys
-class IRCHash < Hash
-    def [](key)
-        super(key.irc_downcase)
-    end
-
-    def []=(key, value)
-        super(key.irc_downcase, value)
-    end
-end
