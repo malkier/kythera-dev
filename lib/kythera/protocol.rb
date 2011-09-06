@@ -62,7 +62,7 @@ module Protocol
     #
     def join(user, channel)
         if channel.kind_of?(String)
-            if chanobj = Channel.channels[channel]
+            if chanobj = $channels[channel]
                 channel = chanobj
             else
                 # This is a nonexistant channel
@@ -87,7 +87,7 @@ module Protocol
     #
     def part(user, channel, reason = 'leaving')
         if channel.kind_of?(String)
-            return unless channel = Channel.channels[channel]
+            return unless channel = $channels[channel]
         end
 
         return unless @user.is_on?(channel)
@@ -114,7 +114,7 @@ module Protocol
     #
     def topic(user, channel, topic)
         if channel.kind_of?(String)
-            return unless channel = Channel.channels[channel]
+            return unless channel = $channels[channel]
         end
 
         send_topic(user.origin, channel.name, topic)
@@ -124,11 +124,11 @@ module Protocol
 
     # Finds a User and Channel or errors
     def find_user_and_channel(origin, name, command)
-        unless user = User.users[origin]
+        unless user = $users[origin]
             $log.error "got non-existant user in #{command}: #{origin}"
         end
 
-        unless channel = Channel.channels[name]
+        unless channel = $channels[name]
             $log.error "got non-existant channel in #{command}: #{name}"
         end
 

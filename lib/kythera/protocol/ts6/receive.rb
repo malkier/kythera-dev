@@ -236,9 +236,9 @@ module Protocol::TS6
             end
 
 
-            unless user = User.users[uid]
+            unless user = $users[uid]
                 # Maybe it's a nickname?
-                user = User.users.values.find { |u| u.nickname == uid }
+                user = $users.values.find { |u| u.nickname == uid }
 
                 unless user
                     $log.error "got non-existant UID in SJOIN: #{uid}"

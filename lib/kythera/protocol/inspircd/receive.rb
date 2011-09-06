@@ -231,7 +231,7 @@ module Protocol::InspIRCd
     def irc_nick(origin, parv)
         return unless parv.length == 2 # We don't want TS5 introductions
 
-        unless user = User.users[origin]
+        unless user = $users[origin]
             $log.error "got nick change for non-existant UID: #{origin}"
             return
         end

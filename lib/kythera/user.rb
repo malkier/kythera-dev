@@ -174,7 +174,7 @@ class User
     # @return [Boolean] true or false
     #
     def is_on?(channel)
-        channel = Channel.channels[channel] if channel.kind_of?(String)
+        channel = $channels[channel] if channel.kind_of?(String)
 
         channel.members[origin]
     end

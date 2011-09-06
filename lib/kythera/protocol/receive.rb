@@ -39,7 +39,7 @@ module Protocol
     # parv[0] -> quit message
     #
     def irc_quit(origin, parv)
-        unless user = User.users.delete(origin)
+        unless user = $users.delete(origin)
             $log.error "received QUIT for unknown user: #{origin}"
             return
         end
@@ -59,7 +59,7 @@ module Protocol
         return if parv[0][0].chr == '#'
 
         # Look up the sending user
-        user = User.users[origin]
+        user = $users[origin]
 
         # Which one of our clients was it sent to?
         srv = Service.services.find do |s|
