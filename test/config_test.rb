@@ -6,7 +6,7 @@
 # Rights to this code are documented in doc/license.txt
 #
 
-require 'teststrap'
+require File.expand_path('teststrap', File.dirname(__FILE__))
 
 context :configuration do
     setup do
@@ -51,8 +51,9 @@ context :configuration do
     context :uplinks do
        setup do
            configure_test do
-               uplink 'unit.tester.uplink', 6667 do
+               uplink '127.0.0.1', 6667 do
                    priority 1
+                   name 'kythera.test.uplink'
                    sid '0X0'
                    send_password :unit_tester
                    receive_password :unit_tester
@@ -71,12 +72,13 @@ context :configuration do
        asserts_topic.kind_of Array
        asserts(:length).equals 1
 
-       context 'first uplink' do
+       context :element do
            setup { $config.uplinks.first }
 
            denies(:nil?)
-           asserts(:host).equals 'unit.tester.uplink'
+           asserts(:host).equals '127.0.0.1'
            asserts(:port).equals 6667
+           asserts(:name).equals 'kythera.test.uplink'
            asserts(:priority).equals 1
            asserts(:sid).equals '0X0'
            asserts(:send_password).equals 'unit_tester'
