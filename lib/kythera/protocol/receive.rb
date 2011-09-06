@@ -62,7 +62,7 @@ module Protocol
         user = $users[origin]
 
         # Which one of our clients was it sent to?
-        srv = Service.services.find do |s|
+        srv = $services.find do |s|
             if s.respond_to?(:user)
                 s.user.origin.irc_downcase == parv[0].irc_downcase
             end
