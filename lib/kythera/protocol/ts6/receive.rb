@@ -320,27 +320,4 @@ module Protocol::TS6
 
         user.parse_modes(parv[1])
     end
-<<<<<<< HEAD
-
-    # Handles an incoming PRIVMSG
-    #
-    # parv[0] -> target
-    # parv[1] -> message
-    #
-    def irc_privmsg(origin, parv)
-        return if parv[0][0].chr == '#'
-
-        # Look up the sending user
-        user = $users[origin]
-
-        # Which one of our clients was it sent to?
-        srv = $services.find do |s|
-            s.user.uid == parv[0] if s.respond_to?(:user)
-        end
-
-        # Send it to the service (if we found one)
-        srv.send(:irc_privmsg, user, parv[1].split(' ')) if srv
-    end
-=======
->>>>>>> 5448a37... Add a shit ton of DRY
 end
