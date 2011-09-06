@@ -48,7 +48,6 @@ class Channel
         @@status_modes
     end
 
-
     # The channel name, including prefix
     attr_reader :name
 
@@ -83,7 +82,7 @@ class Channel
 
     # String representation is just `@name`
     def to_s
-        "#{@name}"
+        @name
     end
 
     # Parses a mode string and updates channel state
@@ -165,9 +164,9 @@ class Channel
     # @param [User] user the User to add
     #
     def add_user(user)
-        @members[user.nickname] = user
+        @members[user.origin] = user
 
-        $log.debug "user joined #{self}: #{user.nickname}"
+        $log.debug "user joined #{self}: #{user} (#{@members.length})"
 
         $eventq.post(:user_joined_channel, user, self)
     end
@@ -177,11 +176,11 @@ class Channel
     # @param [User] user User object to delete
     #
     def delete_user(user)
-        @members.delete user.nickname
+        @members.delete user.origin
 
         user.status_modes.delete(self)
 
-        $log.debug "user parted #{self}: #{user.nickname} (#{@members.length})"
+        $log.debug "user parted #{self}: #{user} (#{@members.length})"
 
         $eventq.post(:user_parted_channel, user, self)
 

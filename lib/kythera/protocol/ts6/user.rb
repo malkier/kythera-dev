@@ -51,4 +51,9 @@ class User
 
         $eventq.post(:user_added, self)
     end
+
+    # Our user's origin
+    def origin
+        @uid
+    end
 end

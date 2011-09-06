@@ -17,21 +17,9 @@ require 'kythera/protocol/unreal/user'
 
 # Implements Unreal protocol-specific methods
 module Protocol::Unreal
-    # Removes the first character of the string
-    REMOVE_FIRST = 1 .. -1
-
-    # Special constant for grabbing mode params
-    GET_MODES_PARAMS = 2 ... -1
+    include Protocol
 
     public
-
-    # Sends a string straight to the uplink
-    #
-    # @param [String] string message to send
-    #
-    def raw(string)
-        @sendq << string
-    end
 
     # Introduces a pseudo-client to the network
     #
@@ -41,36 +29,8 @@ module Protocol::Unreal
     # @param [String] real user's realname / gecos
     #
     def introduce_user(nick, user, host, real, modes = '')
-        # Always mark our pseudoclients as services bots
-        modes = "+S#{modes}"
-
-        u = send_nick(nick, user, host, real)
-        u.parse_modes(modes)
-
-        send_mode(nick, nick, modes)
-
-        u
-    end
-
-    # Sends a PRIVMSG to a user
-    #
-    # @param [User] origin the user that's sending the message
-    # @param target either a User or a Channel or a String
-    # @param [String] message the message to send
-    #
-    def privmsg(origin, target, message)
-        target = target.nickname if target.kind_of?(User)
-        send_privmsg(origin.nickname, target, message)
-    end
-
-    # Sends a NOTICE to a user
-    #
-    # @param [User] origin the user that's sending the notice
-    # @param [User] user the User to send the notice to
-    # @param [String] message the message to send
-    #
-    def notice(origin, user, message)
-        send_notice(origin.nickname, user.nickname, message)
+        modes += 'S' unless modes.include? 'S'
+        send_nick(nick, user, host, real, modes)
     end
 
     # Makes one of our clients join a channel
@@ -84,7 +44,7 @@ module Protocol::Unreal
                 channel = chanobj
             else
                 # This is a nonexistant channel
-                channel = Channel.new(channel, Time.now.to_i)
+                channel = Channel.new(channel)
             end
         end
 
@@ -94,31 +54,6 @@ module Protocol::Unreal
 
         user.add_status_mode(channel, :operator)
 
-        $eventq.post(:mode_added_on_channel,
-                    :operator, user, channel)
-    end
-
-    # Makes one of our clients send a QUIT
-    #
-    # @param [User] user which client to quit
-    # @param [String] reason quit reason if any
-    #
-    def quit(user, reason = 'signed off')
-        send_quit(user.nick, reason)
-    end
-
-    private
-
-    # Finds a User and Channel or errors
-    def find_user_and_channel(nick, name, command)
-        unless user = $users[nick]
-            $log.error "got non-existant nick in #{command}: #{nick}"
-        end
-
-        unless channel = $channels[name]
-            $log.error "got non-existant channel in #{command}: #{name}"
-        end
-
-        [user, channel]
+        $eventq.post(:mode_added_on_channel, :operator, user, channel)
     end
 end

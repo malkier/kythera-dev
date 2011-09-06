@@ -178,24 +178,10 @@ module Protocol::TS6
             return
         end
 
-        $log.debug "nick change: #{user.nickname} -> #{parv[0]} [#{origin}]"
+        $eventq.post(:nickname_changed, user, parv[0])
+        $log.debug "nick change: #{user} -> #{parv[0]} [#{origin}]"
 
         user.nickname = parv[0]
-    end
-
-    # Handles an incoming QUIT
-    #
-    # parv[0] -> quit message
-    #
-    def irc_quit(origin, parv)
-        unless user = $users.delete(origin)
-            $log.error "received QUIT for unknown UID: #{origin}"
-            return
-        end
-
-        user.server.delete_user(user)
-
-        $log.debug "user quit: #{user.nickname} [#{user.uid}]"
     end
 
     # Handles an incoming SJOIN (channel burst)
@@ -213,7 +199,7 @@ module Protocol::TS6
         if channel = $channels[parv[1]]
             if their_ts < channel.timestamp
                 # Remove our status modes, channel modes, and bans
-                channel.members.each { |u| u.clear_status_modes(channel) }
+                channel.members.each_value { |u| u.clear_status_modes(channel) }
                 channel.clear_modes
                 channel.timestamp = their_ts
             end
@@ -250,9 +236,9 @@ module Protocol::TS6
             end
 
 
-            unless user = User.users[uid]
+            unless user = $users[uid]
                 # Maybe it's a nickname?
-                user = User.users.values.find { |u| u.nickname == uid }
+                user = $users.values.find { |u| u.nickname == uid }
 
                 unless user
                     $log.error "got non-existant UID in SJOIN: #{uid}"
@@ -300,32 +286,6 @@ module Protocol::TS6
        channel.add_user(user)
     end
 
-    # Handles an incoming PART
-    #
-    # parv[0] -> channel name
-    #
-    def irc_part(origin, parv)
-        user, channel = find_user_and_channel(origin, parv[0], :PART)
-
-        return unless user and channel
-
-        channel.delete_user(user)
-    end
-
-    # Handles an incoming KICK
-    #
-    # parv[0] -> channel name
-    # parv[1] -> UID of kicked user
-    # parv[2] -> kick reason
-    #
-    def irc_kick(origin, parv)
-        user, channel = find_user_and_channel(parv[1], parv[0], :KICK)
-
-        return unless user and channel
-
-        channel.delete_user(user)
-    end
-
     # Handles an incoming TMODE
     #
     # parv[0] -> timestamp
@@ -359,25 +319,5 @@ module Protocol::TS6
         end
 
         user.parse_modes(parv[1])
-    end
-
-    # Handles an incoming PRIVMSG
-    #
-    # parv[0] -> target
-    # parv[1] -> message
-    #
-    def irc_privmsg(origin, parv)
-        return if parv[0][0].chr == '#'
-
-        # Look up the sending user
-        user = $users[origin]
-
-        # Which one of our clients was it sent to?
-        srv = $services.find do |s|
-            s.user.uid == parv[0] if s.respond_to?(:user)
-        end
-
-        # Send it to the service (if we found one)
-        srv.send(:irc_privmsg, user, parv[1].split(' ')) if srv
     end
 end
