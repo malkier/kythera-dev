@@ -115,6 +115,18 @@ def configure(&block)
     Kythera.new
 end
 
+# Same as above, but used for unit tests, and so doesn't run the app
+def configure_test(&block)
+    unless $config
+        $state  = {}
+        $config = Object.new
+
+        $config.extend(Kythera::Configuration)
+    end
+
+    $config.instance_eval(&block)
+end
+
 # Contains all of the application-wide stuff
 class Kythera
     # For backwards-incompatible changes
@@ -150,6 +162,11 @@ module Kythera::Configuration
     # Reports an error about an unknown directive
     def method_missing(meth, *args, &block)
        puts "kythera: unknown configuration directive '#{meth}' (ignored)"
+    end
+
+    # Prevent configuration from calling `Kythera.new`
+    def dry_run
+        self.dry_run = true
     end
 
     # Load a service and parse its configuration
@@ -368,7 +385,7 @@ module Kythera::Configuration::Uplink
     end
 
     def network(name)
-        self.network = name
+        self.network = name.to_s
     end
 
     def protocol(protocol)
