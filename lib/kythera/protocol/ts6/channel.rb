@@ -19,13 +19,13 @@ class Channel
     attr_reader :timestamp
 
     # Creates a new channel and adds it to the list keyed by name
-    def initialize(name, timestamp)
+    def initialize(name, timestamp=nil)
         @name      = name
-        @timestamp = timestamp.to_i
+        @timestamp = (timestamp || Time.now).to_i
         @modes     = []
 
         # Keyed by UID
-        @members = {}
+        @members = IRCHash.new
 
         $log.error "new channel #{@name} already exists!" if $channels[name]
 
@@ -37,40 +37,6 @@ class Channel
     end
 
     public
-
-    # Adds a User as a member
-    #
-    # @param [User] user the User to add
-    #
-    def add_user(user)
-        @members[user.uid] = user
-
-        $log.debug "user joined #{@name}: #{user.nickname}"
-
-        $eventq.post(:user_joined_channel, user, self)
-    end
-
-    # Deletes a User as a member
-    #
-    # @param [User] user User object to delete
-    #
-    def delete_user(user)
-        @members.delete user.uid
-
-        user.status_modes.delete(self)
-
-        $log.debug "user parted #{@name}: #{user.nickname} (#{@members.length})"
-
-        $eventq.post(:user_parted_channel, user, self)
-
-        if @members.length == 0
-            $channels.delete @name
-
-            $log.debug "removing empty channel #{@name}"
-
-            $eventq.post(:channel_deleted, self)
-        end
-    end
 
     # Writer for `@timestamp`
     #

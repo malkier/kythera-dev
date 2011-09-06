@@ -136,7 +136,7 @@ module Protocol::InspIRCd
         if channel = $channels[parv[0]]
             if their_ts < channel.timestamp
                 # Remove our status modes, channel modes, and bans
-                channel.members.each { |u| u.clear_status_modes(channel) }
+                channel.members.each_value { |u| u.clear_status_modes(channel) }
                 channel.clear_modes
                 channel.timestamp = their_ts
             end
@@ -165,7 +165,7 @@ module Protocol::InspIRCd
                 # Maybe it's a nickname?
                 user = $users.values.find { |u| u.nickname == uid }
                 unless user
-                    $log.error "got non-existant UID in SJOIN: #{uid}"
+                    $log.error "got non-existant UID in FJOIN: #{uid}"
                     next
                 end
             end
@@ -191,52 +191,6 @@ module Protocol::InspIRCd
     #
     def irc_ping(origin, parv)
         send_pong(parv[0])
-    end
-
-    # Handles an incoming PART
-    #
-    # parv[0] -> channel name
-    #
-    def irc_part(origin, parv)
-        user, channel = find_user_and_channel(origin, parv[0], :PART)
-
-        return unless user and channel
-
-        channel.delete_user(user)
-    end
-
-    # Handles an incoming KICK
-    #
-    # parv[0] -> channel name
-    # parv[1] -> UID of kicked user
-    # parv[2] -> kick reason
-    #
-    def irc_kick(origin, parv)
-        user, channel = find_user_and_channel(parv[1], parv[0], :KICK)
-
-        return unless user and channel
-
-        channel.delete_user(user)
-    end
-
-    # Handles an incoming PRIVMSG
-    #
-    # parv[0] -> target
-    # parv[1] -> message
-    #
-    def irc_privmsg(origin, parv)
-        return if parv[0][0].chr == '#'
-
-        # Look up the sending user
-        user = $users[origin]
-
-        # Which one of our clients was it sent to?
-        srv = $services.find do |s|
-            s.user.uid == parv[0] if s.respond_to?(:user)
-        end
-
-        # Send it to the service (if we found one)
-        srv.send(:irc_privmsg, user, parv[1].split(' ')) if srv
     end
 
     # Handles an incoming FMODE
@@ -267,5 +221,24 @@ module Protocol::InspIRCd
                 user.parse_modes(params[0])
             end
         end
+    end
+
+    # Handles an incoming NICK
+    #
+    # parv[0] -> new nickname
+    # parv[1] -> ts
+    #
+    def irc_nick(origin, parv)
+        return unless parv.length == 2 # We don't want TS5 introductions
+
+        unless user = User.users[origin]
+            $log.error "got nick change for non-existant UID: #{origin}"
+            return
+        end
+
+        $eventq.post(:nickname_changed, user, parv[0])
+        $log.debug "nick change: #{user} -> #{parv[0]} [#{origin}]"
+
+        user.nickname = parv[0]
     end
 end

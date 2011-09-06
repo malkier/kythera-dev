@@ -387,6 +387,6 @@ module Kythera::Configuration::Uplink
     end
 
     def casemapping(mapping)
-        self.casemapping = mapping
+        self.casemapping = mapping.to_sym
     end
 end
