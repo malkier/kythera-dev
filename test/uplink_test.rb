@@ -16,9 +16,8 @@ context :uplink do
 
   denies(:nil?)
 
-  hookup { topic.instance_variable_set(:@recvq, BURST) }
-
   context :recvq do
+    hookup { topic.instance_variable_set(:@recvq, [PASS, UID]) }
     setup { topic.instance_variable_get(:@recvq) }
 
     asserts_topic.kind_of Array
