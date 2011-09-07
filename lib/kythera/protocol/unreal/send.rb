@@ -19,7 +19,6 @@ module Protocol::Unreal
         send_protoctl
         send_server
         send_netinfo
-        send_eos
     end
 
     # PASS :link password

@@ -27,6 +27,14 @@ module Protocol::Unreal
         end
     end
 
+    # Handles an incoming PROTOCTL
+    #
+    # parv[0] -> protocol options
+    #
+    def irc_protoctl
+        $eventq.post(:start_of_burst, Time.now)
+    end
+
     # Handles an incoming SERVER (server introduction)
     #
     # without origin
@@ -243,6 +251,8 @@ module Protocol::Unreal
     # Handles an incoming EOS (end of synch)
     def irc_eos(origin, parv)
         if $state[:bursting] && origin == @config.name
+            send_eos
+
             delta = Time.now - $state[:bursting]
             $state[:bursting] = false
 
