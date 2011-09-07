@@ -9,83 +9,60 @@
 require File.expand_path('teststrap', File.dirname(__FILE__))
 
 context :configuration do
-    setup do
-        configure_test do
-        end
-
-        $config
+  setup do
+    configure_test do
     end
 
-    denies(:nil?)
+    $config
+  end
 
-    context :daemon do
-       setup do
-           configure_test do
-               daemon do
-                   name 'kythera.test'
-                   description 'kythera unit tester'
-                   admin :rakaur, 'rakaur@malkier.net'
-                   logging :none
-                   unsafe_extensions :die
-                   reconnect_time 10
-                   verify_emails false
-                   mailer '/usr/sbin/sendmail'
-               end
-           end
+  denies_topic.nil
 
-           $config.me
-       end
+  context :daemon do
+   setup do
+     $_daemon_block.call
+     $config.me
+   end
 
-       denies(:nil?)
-       asserts(:name).equals 'kythera.test'
-       asserts(:description).equals 'kythera unit tester'
-       asserts(:admin_name).equals 'rakaur'
-       asserts(:admin_email).equals 'rakaur@malkier.net'
-       asserts(:logging).equals :none
-       asserts(:unsafe_extensions).equals :die
-       asserts(:reconnect_time).equals 10
-       denies(:verify_emails)
-       asserts(:mailer).equals '/usr/sbin/sendmail'
-    end
+   denies_topic.nil
+   asserts(:name)             .equals 'kythera.test'
+   asserts(:description)      .equals 'kythera unit tester'
+   asserts(:admin_name)       .equals 'rakaur'
+   asserts(:admin_email)      .equals 'rakaur@malkier.net'
+   asserts(:logging)          .equals :none
+   asserts(:unsafe_extensions).equals :die
+   asserts(:reconnect_time)   .equals 10
+   asserts(:mailer)           .equals '/usr/sbin/sendmail'
 
-    context :uplinks do
-       setup do
-           configure_test do
-               uplink '127.0.0.1', 6667 do
-                   priority 1
-                   name 'kythera.test.uplink'
-                   sid '0X0'
-                   send_password :unit_tester
-                   receive_password :unit_tester
-                   network :testing
-                   protocol :ts6
-                   casemapping :rfc1459
-               end
-           end
+   denies(:verify_emails)
+  end
 
-           $config.uplinks
-       end
+  context :uplinks do
+   setup do
+     $_uplink_block.call
+     $config.uplinks
+   end
 
-       denies(:nil?)
-       denies(:empty?)
+   denies_topic.nil
+   denies_topic.empty
 
-       asserts_topic.kind_of Array
-       asserts(:length).equals 1
+   asserts_topic.kind_of Array
+   asserts_topic.size 1
 
-       context :element do
-           setup { $config.uplinks.first }
+   context :element do
+     setup { $config.uplinks.first }
 
-           denies(:nil?)
-           asserts(:host).equals '127.0.0.1'
-           asserts(:port).equals 6667
-           asserts(:name).equals 'kythera.test.uplink'
-           asserts(:priority).equals 1
-           asserts(:sid).equals '0X0'
-           asserts(:send_password).equals 'unit_tester'
-           asserts(:receive_password).equals 'unit_tester'
-           asserts(:network).equals 'testing'
-           asserts(:protocol).equals :ts6
-           asserts(:casemapping).equals :rfc1459
-       end
-    end
+     denies_topic.nil
+     asserts(:host)            .equals '127.0.0.1'
+     asserts(:port)            .equals 6667
+     asserts(:name)            .equals 'kythera.test.uplink'
+     asserts(:priority)        .equals 1
+     asserts(:sid)             .equals '0X0'
+     asserts(:send_password)   .equals 'unit_tester'
+     asserts(:receive_password).equals 'unit_tester'
+     asserts(:network)         .equals 'testing'
+     asserts(:protocol)        .equals :ts6
+     asserts(:casemapping)     .equals :rfc1459
+   end
+  end
 end

@@ -35,7 +35,7 @@ class User
         @ip        = ip
         @realname  = real
         @uid       = uid
-        @timestamp = ts
+        @timestamp = ts.to_i
         @modes     = []
 
         @status_modes = {}

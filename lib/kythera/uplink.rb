@@ -222,5 +222,7 @@ class Uplink
             # Fire off an event for extensions, etc
             $eventq.post(cmd, origin, parv)
         end
+
+        true
     end
 end
