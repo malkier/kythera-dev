@@ -43,7 +43,9 @@ module Protocol::InspIRCd
 
     def send_burst
         raw ":#{@config.sid} BURST #{Time.now.to_i}"
-        # we don't have anything to burst, so don't send anything
+    end
+
+    def send_endburst
         raw ":#{@config.sid} ENDBURST"
     end
 

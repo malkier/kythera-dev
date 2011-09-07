@@ -60,21 +60,15 @@ class DNSBLService < Service
 
         $log.info "DNSBL Service loaded (version #{VERSION})"
 
-        # We don't check users while we're bursting
-        @bursting = true
-
         # Listen for user connections
         $eventq.handle(:user_added) { |user| queue_user(user) }
-
-        # Enable BL checking after the burst is done
-        $eventq.handle(:end_of_burst) { @bursting = false }
     end
 
     private
 
     # Add the user to our to-be-checked queue
     def queue_user(user)
-        return if @bursting
+        return $state[:bursting]
 
         # Calculate our time delay for this check
         time = (@needs_checking * @config.delay) + @config.delay
@@ -86,7 +80,7 @@ class DNSBLService < Service
 
     # Does the actual DNSBL lookup
     def check_user(user)
-        return if @bursting
+        return if $state[:bursting]
         return if user.operator? # Don't scan opers
 
         # Reverse their IP bits

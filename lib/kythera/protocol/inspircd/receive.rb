@@ -64,6 +64,7 @@ module Protocol::InspIRCd
     def irc_capab(origin, parv)
         if parv[0] == "END"
             send_burst
+            $eventq.post(:start_of_burst, Time.now)
         end
     end
 
@@ -86,6 +87,8 @@ module Protocol::InspIRCd
 
     # Handles an incoming ENDBURST
     def irc_endburst(origin, parv)
+        send_endburst
+
         if $state[:bursting]
             delta = Time.now - $state[:bursting]
             $state[:bursting] = false

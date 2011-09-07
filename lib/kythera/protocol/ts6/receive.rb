@@ -20,14 +20,16 @@ module Protocol::TS6
     # parv[3] -> sid of remote server
     #
     def irc_pass(origin, parv)
-        # Start the burst timer
-        $state[:bursting] = Time.now
-
         if parv[0] != @config.receive_password
             $log.error "incorrect password received from `#{@config.name}`"
             self.dead = true
         else
             Server.new(parv[3])
+
+            # Start the burst timer
+            $state[:bursting] = Time.now
+
+            $eventq.post(:start_of_burst, Time.now)
         end
     end
 

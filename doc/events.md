@@ -31,6 +31,11 @@ List of Events
     * params:
       * _none_
 
+  * start\_of\_burst
+    * the service is starting to receive/send the connection burst
+    * params:
+      * A `Time` object representing the time the burst began
+
   * end\_of\_burst
     * the service has finished processing the connection burst
     * params:

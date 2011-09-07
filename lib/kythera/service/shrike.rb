@@ -56,8 +56,8 @@ class Shrike < Service
 
         $log.info "Shrike Service loaded (version #{VERSION})"
 
-        # Join our configuration channel
-        $eventq.handle(:end_of_burst) do
+        # Introduce our user in the burst
+        $eventq.handle(:start_of_burst) do
             if @uplink.config.protocol == :ts6
                 modes = 'oD'
             else
@@ -68,7 +68,10 @@ class Shrike < Service
             @user = @uplink.introduce_user(@config.nickname, @config.username,
                                            @config.hostname, @config.realname,
                                            modes)
+        end
 
+        # Join our configuration channel
+        $eventq.handle(:end_of_burst) do
             @uplink.join(@user, @config.channel) if @config.channel
         end
     end
