@@ -11,15 +11,9 @@ This application is free but copyrighted software; see doc/license.txt.
 To start the program, edit the configuration options in `bin/kythera` to
 your satisfaction and run `./bin/kythera` at your terminal. Good luck!
 
-For best results, run this application using [Rubinius][]. The initial footprint
-is higher, but Rubinius shines with long-running processes. The longer it runs,
-the faster and better it gets. Although the application should run swimmingly
-using Ruby MRI 1.8.7 or Ruby MRI 1.9.2, give Rubinius a shot.
+More information and code repositories can be found on [GitHub][].
 
-More information and code repositories can be found on [Github][].
-
-[rubinius]: http://rubini.us/
-[github]: http://github.com/rakaur/kythera/
+[github]: http://github.com/malkier/kythera/
 
 --------------------------------------------------------------------------------
 
@@ -31,7 +25,7 @@ for it if you know Ruby.
 
 Ruby also brings us to my next point. Many people have told me that IRC services
 must be implemented in C in order to have any hope of keeping up with medium-
-to large-sized networks. I disagree. I actually spend a good amount of time
+to large-sized networks. I disagree. I actually spent a good amount of time
 benchmarking various Ruby implementations to make sure this wasn't a silly
 project. Having [previously implemented][shrike] services in C myself, I think
 I'm quite qualified to judge the situation. In most cases, Ruby was reasonably
@@ -92,7 +86,7 @@ contributors from time to time, and this will be indicated in SCM commits.
     
 ## Contact and Support ##
 
-I'm not promising and fast and hard support, but I'll try to do my best. This
+I'm not promising any hard and fast support, but I'll try to do my best. This
 is a hobby and I've enjoyed it, but I have a real life with a real job and
 a real family. I cannot devote major quantities of time to this.
 
@@ -101,7 +95,7 @@ real-time you can try to catch me on IRC at `irc.malkier.net` in `#malkier`.
 I'm also available on XMPP at `rakaur@malkier.net`.
 
 If you have a bug feel free to drop by IRC or what have you, but I'm probably
-just going to ask you to file an [issue][] on [Github][]. Please provide any
+just going to ask you to file an [issue][] on [GitHub][]. Please provide any
 output you have, such as a backtrace. Please provide the steps anyone can take
 to reproduce this problem. Feature requests are welcome and can be filed in
 the same manner.

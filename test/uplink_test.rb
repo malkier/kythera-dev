@@ -17,11 +17,15 @@ context :uplink do
   denies(:nil?)
 
   context :recvq do
-    hookup { topic.instance_variable_set(:@recvq, [PASS, UID]) }
+    hookup do
+      fp    = File.expand_path('protocol/ts6_burst.txt', File.dirname(__FILE__))
+      burst = File.readlines(fp)
+      topic.instance_variable_set(:@recvq, burst)
+    end
     setup { topic.instance_variable_get(:@recvq) }
 
     asserts_topic.kind_of Array
     denies_topic.empty
-    asserts_topic.size 2
+    asserts_topic.size 215
   end
 end

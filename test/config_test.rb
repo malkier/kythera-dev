@@ -29,7 +29,7 @@ context :configuration do
    asserts(:description)      .equals 'kythera unit tester'
    asserts(:admin_name)       .equals 'rakaur'
    asserts(:admin_email)      .equals 'rakaur@malkier.net'
-   asserts(:logging)          .equals :none
+   asserts(:logging)          .equals :debug
    asserts(:unsafe_extensions).equals :die
    asserts(:reconnect_time)   .equals 10
    asserts(:mailer)           .equals '/usr/sbin/sendmail'
@@ -55,7 +55,7 @@ context :configuration do
      denies_topic.nil
      asserts(:host)            .equals '127.0.0.1'
      asserts(:port)            .equals 6667
-     asserts(:name)            .equals 'kythera.test.uplink'
+     asserts(:name)            .equals 'test.server.com'
      asserts(:priority)        .equals 1
      asserts(:sid)             .equals '0X0'
      asserts(:send_password)   .equals 'unit_tester'

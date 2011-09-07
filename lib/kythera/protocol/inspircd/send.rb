@@ -41,10 +41,12 @@ module Protocol::InspIRCd
         raw str
     end
 
+    # :<sid> BURST <ts>
     def send_burst
         raw ":#{@config.sid} BURST #{Time.now.to_i}"
     end
 
+    # :<sid> ENDBURST
     def send_endburst
         raw ":#{@config.sid} ENDBURST"
     end

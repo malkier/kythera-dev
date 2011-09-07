@@ -61,6 +61,10 @@ module Protocol::InspIRCd
         $eventq.post(:server_added, server)
     end
 
+    # Handles an incoming CAPAB
+    #
+    # We only care about it if parv[0] is 'END'
+    #
     def irc_capab(origin, parv)
         if parv[0] == "END"
             send_burst

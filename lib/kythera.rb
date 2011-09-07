@@ -46,10 +46,19 @@ end
 
 # A Hash that irc_downcases the keys automatically
 class IRCHash < Hash
+    # Look up a member, but downcase the key first
+    #
+    # @param [Object] key the value's key
+    #
     def [](key)
         super(key.irc_downcase)
     end
 
+    # Set a member, but downcase the key first
+    #
+    # @param [Object] key the value's key
+    # @param [Object] value the value
+    #
     def []=(key, value)
         super(key.irc_downcase, value)
     end

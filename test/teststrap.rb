@@ -15,17 +15,20 @@ require 'riot'
 #require 'riot/rr'
 
 # For all tests
+$config = nil
 $log    = Log::NilLogger.instance
 $eventq = EventQueue.new
 
 # These are defined here for easy use in setup blocks
 $_daemon_block = proc do
+  next if $config and $config.me
+
   configure_test do
     daemon do
       name              'kythera.test'
       description       'kythera unit tester'
       admin             :rakaur, 'rakaur@malkier.net'
-      logging           :none
+      logging           :debug
       unsafe_extensions :die
       reconnect_time    10
       verify_emails     false
@@ -40,7 +43,7 @@ $_uplink_block = proc do
   configure_test do
     uplink '127.0.0.1', 6667 do
       priority         1
-      name             'kythera.test.uplink'
+      name             'test.server.com'
       sid              '0X0'
       send_password    :unit_tester
       receive_password :unit_tester
@@ -50,8 +53,3 @@ $_uplink_block = proc do
     end
   end
 end
-
-PASS  = 'PASS unit_tester TS 6 :0XX'
-UID   = ':0XX UID rakaur 1 1307151136 +aiow rakaur malkier.net 69.162.167.45 0XXAAAAAE :Eric Will'
-
-BURST = [PASS, UID]
