@@ -16,11 +16,11 @@ class Server
         @name   = name
         @users  = []
 
-        if @@servers[name]
+        if $servers[name]
             $log.error "new server replacing server with same name!"
         end
 
-        @@servers[name] = self
+        $servers[name] = self
 
         $log.debug "new server initialized: #{@name}"
     end

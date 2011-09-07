@@ -8,19 +8,11 @@
 
 require 'kythera'
 
+# A list of all servers. The protocol module should decide what the key is.
+$servers = IRCHash.new
+
 # This is just a base class. All protocol module should monkeypatch this.
 class Server
-    # A list of all servers. The protocol module should decide what the key is.
-    @@servers = IRCHash.new
-
-    # Attribute reader for `@@servers`
-    #
-    # @return [Hash] a list of all Servers
-    #
-    def self.servers
-        @@servers
-    end
-
     # The server's name
     attr_accessor :name
 
@@ -35,11 +27,11 @@ class Server
         @name   = name
         @users  = []
 
-        if @@servers[name]
+        if $servers[name]
             $log.error "new server replacing server with same name!"
         end
 
-        @@servers[name] = self
+        $servers[name] = self
 
         $log.debug "new server initialized: #{@name}"
     end

@@ -42,6 +42,6 @@ context :irc do
     end
   end
 
-  asserts('has one server') { Server.servers.length == 1 }
+  asserts('has one server') { $servers.length == 1 }
   asserts('has one user')   { $users.length == 1 }
 end

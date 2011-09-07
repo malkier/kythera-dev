@@ -52,7 +52,7 @@ module Protocol::TS6
         end
 
         # No origin means we're handshaking, so this must be our uplink
-        server = Server.servers.values.first
+        server = $servers.values.first
 
         # Make sure their name matches what we expect
         unless parv[0] == @config.name
@@ -131,7 +131,7 @@ module Protocol::TS6
     # parv[1] -> server's uplink's name
     #
     def irc_squit(origin, parv)
-        unless server = Server.servers.delete(parv[0])
+        unless server = $servers.delete(parv[0])
             $log.error "received SQUIT for unknown SID: #{parv[0]}"
             return
         end
@@ -157,7 +157,7 @@ module Protocol::TS6
     def irc_uid(origin, parv)
         p = parv
 
-        unless s = Server.servers[origin]
+        unless s = $servers[origin]
             $log.error "got UID from unknown SID: #{origin}"
             return
         end

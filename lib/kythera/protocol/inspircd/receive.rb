@@ -114,7 +114,7 @@ module Protocol::InspIRCd
     def irc_uid(origin, parv)
         p = parv
 
-        unless s = Server.servers[origin]
+        unless s = $servers[origin]
             $log.error "got UID from unknown SID: #{origin}"
             return
         end

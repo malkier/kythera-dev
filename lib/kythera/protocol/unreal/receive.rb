@@ -112,7 +112,7 @@ module Protocol::Unreal
         else
             p = parv
 
-            unless s = Server.servers[p[5]]
+            unless s = $servers[p[5]]
                 $log.error "received NICK from unknown server: #{parv[5]}"
                 return
             end
