@@ -166,6 +166,11 @@ module Protocol::Unreal
 
             owner = admin = op = halfop = voice = false
 
+            if nick[0].chr == '@'
+                op   = true
+                nick = nick[REMOVE_FIRST]
+            end
+
             if nick[0].chr == '*'
                 owner = true
                 nick  = nick[REMOVE_FIRST]
@@ -174,11 +179,6 @@ module Protocol::Unreal
             if nick[0].chr == '~'
                 admin = true
                 nick  = nick[REMOVE_FIRST]
-            end
-
-            if nick[0].chr == '@'
-                op   = true
-                nick = nick[REMOVE_FIRST]
             end
 
             if nick[0].chr == '%'
