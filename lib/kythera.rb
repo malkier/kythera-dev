@@ -7,8 +7,8 @@
 #
 
 # Check for latest RubyGems version
-unless Gem::VERSION >= '1.8.6'
-    puts "kythera: depends on rubygems >= 1.8.6"
+unless Gem::VERSION >= '1.8.0'
+    puts "kythera: depends on rubygems >= 1.8.0"
     puts "kythera: gem update --system"
     abort
 end
@@ -145,7 +145,7 @@ class Kythera
     V_MINOR = 1
 
     # For minor changes and bugfixes
-    V_PATCH = 0
+    V_PATCH = 1
 
     # A String representation of the version number
     VERSION = "#{V_MAJOR}.#{V_MINOR}.#{V_PATCH}"
