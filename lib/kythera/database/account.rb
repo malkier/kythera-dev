@@ -19,6 +19,62 @@ module Database
     class Account < Sequel::Model
         one_to_many :account_fields
 
+        @@resolvers = []
+        @@unregistrars = []
+
+        def self.register_resolver(&block)
+            @@resolvers << block
+        end
+
+        def self.before_unregister(&block)
+            @@unregistrars << block
+        end
+
+        def self.resolve(acct_to_resolve)
+            begin
+                resolve!(acct_to_resolve)
+            rescue ResolveError
+                nil
+            end
+        end
+
+        def self.resolve!(acct_to_resolve)
+            return self if acct_to_resolve.kind_of?(self)
+
+            if acct_to_resolve.kind_of?(Integer)
+                account = Account[acct_to_resolve] rescue nil
+                return account if account
+            end
+
+            account = Account[:login => acct_to_resolve.to_s].first rescue nil
+            return acct if acct
+
+            @@resolvers.each do |resolver|
+                account = resolver.call(acct_to_resolve) rescue nil
+                return account if account
+            end
+
+            raise ResolveError, acct_to_resolve
+        end
+
+        def self.drop(login, password, verification)
+            begin
+                self.drop!(login, password, verification)
+            rescue NoSuchLoginError, PasswordMismatchError
+                nil
+            end
+        end
+
+        def self.drop!(login, password, verification)
+            raise PasswordMismatchError unless password == verification
+
+            account = identify!(login, password)
+            @@unregistrars.each { |unregistrar| unregistrar.call(account) }
+
+            account.account_fields.delete
+            account.delete
+        end
+
         def self.register(login, password, verification)
             begin
                 register!(login, password, verification)
