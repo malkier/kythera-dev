@@ -1,8 +1,0 @@
-h2. Authors
-
-|_. role |_. nickname |_. realname |_. email |
-|Lead Developer|rakaur|Eric Will|rakaur@malkier.net|
-|Developer|sycobuny|Stephen Belcher|sycobuny@malkier.net|
-|Developer|andrew|Andrew Herbig|goforit7arh@gmail.com|
-|Contributor|xiphias|Michael Rodriguez|xiphias@khaydarin.net|
-|Tester|rintaun|Matt Lanigan|rintaun@projectxero.net|
