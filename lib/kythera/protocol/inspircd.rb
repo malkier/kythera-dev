@@ -19,9 +19,6 @@ require 'kythera/protocol/inspircd/user'
 module Protocol::InspIRCd
     include Protocol
 
-    # Special constant for grabbing mode params
-    GET_MODES_PARAMS = 2 .. -1
-
     # The current UID for Services
     @@current_uid = 'AAAAAA'
 

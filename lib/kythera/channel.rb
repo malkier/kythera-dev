@@ -120,10 +120,19 @@ class Channel
                 @key  = action == :add ? param : nil
 
             # Has a param when +, doesn't when -
-            elsif c == 'l'
-                mode   = :limited
+            elsif @@param_modes.include?(c)
+                mode   = @@param_modes[c]
                 param  = params.shift
-                @limit = action == :add ? param : 0
+
+                if action == :add
+                    instance_variable_set("@#{mode}", param)
+
+                    Channel.class_exec do
+                        attr_reader mode.to_sym
+                    end
+                else
+                    instance_variable_set("@#{mode}", nil)
+                end
 
             # The rest, no param
             elsif @@bool_modes.include?(c)

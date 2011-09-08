@@ -12,7 +12,7 @@ require 'kythera'
 # This reopens the base User class in `kythera/user.rb`
 class User
     # The user's timestamp
-    attr_reader :timestamp
+    attr_reader :timestamp, :vhost, :cloakhost
 
     # Unreal's user modes
     @@user_modes = { 'A' => :server_admin,
@@ -51,7 +51,7 @@ class User
         @username  = user
         @hostname  = host
         @realname  = real
-        @timestamp = ts
+        @timestamp = ts.to_i
         @modes     = []
 
         @vhost     = vhost     || host
@@ -75,5 +75,10 @@ class User
     #
     def operator?
         @modes.include?(:global_oper)
+    end
+
+    # Our user's origin
+    def origin
+        @nickname
     end
 end

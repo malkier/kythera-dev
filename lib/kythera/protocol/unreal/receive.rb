@@ -31,7 +31,7 @@ module Protocol::Unreal
     #
     # parv[0] -> protocol options
     #
-    def irc_protoctl
+    def irc_protoctl(origin, parv)
         $eventq.post(:start_of_burst, Time.now)
     end
 
@@ -117,7 +117,7 @@ module Protocol::Unreal
                 return
             end
 
-            u = User.new(s, p[0], p[3], p[4], p[7], p[7], p[2], p[9], p[10])
+            u = User.new(s, p[0], p[3], p[4], p[10], p[7], p[2], p[8], p[9])
 
             s.add_user(u)
         end
@@ -148,7 +148,7 @@ module Protocol::Unreal
 
         # Parse channel modes
         if their_ts <= channel.timestamp
-            modes_and_params = parv[GET_MODES_PARAMS]
+            modes_and_params = parv[GET_JOIN_MODE_PARAMS]
             modes  = modes_and_params[0]
             params = modes_and_params[REMOVE_FIRST]
 
@@ -162,7 +162,7 @@ module Protocol::Unreal
         # See benchmark/theory/multiprefix_parsing.rb
         #
         members.each do |nick|
-            next if %(&"').include? nick[0].chr
+            next if %(&"').include?(nick[0].chr)
 
             owner = admin = op = halfop = voice = false
 
@@ -242,7 +242,7 @@ module Protocol::Unreal
             return unless channel
 
             modes  = parv[1]
-            params = parv[GET_MODES_PARAMS]
+            params = parv[GET_MODE_PARAMS]
 
             channel.parse_modes(modes, params)
         end

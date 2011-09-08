@@ -211,7 +211,7 @@ module Protocol::TS6
 
         # Parse channel modes
         if their_ts <= channel.timestamp
-            modes_and_params = parv[GET_MODES_PARAMS]
+            modes_and_params = parv[GET_JOIN_MODE_PARAMS]
             modes  = modes_and_params[0]
             params = modes_and_params[REMOVE_FIRST]
 
@@ -303,7 +303,7 @@ module Protocol::TS6
             return unless channel
         end
 
-        params = parv[GET_MODES_PARAMS]
+        params = parv[GET_MODE_PARAMS]
         modes  = params.delete_at(0)
 
         channel.parse_modes(modes, params)
