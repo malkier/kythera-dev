@@ -1,8 +1,8 @@
-Kythera is a set of services for TSora-based IRC networks. Kythera is
-extremely extensible and is not limited to providing a specific set of
-services such as `NickServ`, `ChanServ` vs. Undernet-style `X`, etc. You can
-configure the service to offer pretty much anything you want. If it's not there,
-you can easily add support for it if you know Ruby.
+Kythera is a set of services for IRC networks. Kythera is extremely extensible
+and is not limited to providing a specific set of services such as `NickServ`,
+`ChanServ` vs. Undernet-style `X`, etc. You can configure the service to offer
+pretty much anything you want. If it's not there, you can easily add support for
+it if you know Ruby.
 
 Ruby also brings us to my next point. Many people have told me that IRC services
 must be implemented in C in order to have any hope of keeping up with medium-
