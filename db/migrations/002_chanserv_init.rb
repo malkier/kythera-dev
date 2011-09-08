@@ -1,6 +1,6 @@
 #
 # kythera: services for IRC networks
-# db/migrations/001_start.rb: create the database
+# db/migrations/002_chanserv_init.rb: create the chanserv database
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
 # Copyright (c) 2011 Stephen Belcher <sycobuny@malkier.net>

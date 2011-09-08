@@ -12,16 +12,19 @@ require 'kythera'
 module Database
     class Account
         one_to_many :chanserv_channel_founders,
-                    :class_name => Database::ChanServ::Channel,
+                    :class_name => ChanServ::Channel,
                     :foreign_key => :founder_id
         one_to_many :chanserv_channel_successors,
-                    :class_name => Database::ChanServ::Channel,
+                    :class_name => ChanServ::Channel,
                     :foreign_key => :successor_id
         one_to_many :chanserv_privileges,
-                    :class_name => Database::ChanServ::Privilege
+                    :class_name => ChanServ::Privilege
     end
 
     module ChanServ
+        class Error < Exception; end
+        class ChannelExistsError < Error; end
+
         class Channel < Sequel::Model(:chanserv_channels)
             BOOL_FLAGS  = [:hold, :secure, :verbose, :neverop]
             VALUE_FLAGS = [:key, :mode_list, :topic]
@@ -37,17 +40,17 @@ module Database
             def self.register(account, name)
                 account = Database::Account.resolve(account)
                 channel = Channel[:name => name]
-                return nil if channel
+                raise ChannelExistsError if channel
 
                 channel = Channel.new
-                channel.name = name
+                channel.name    = name
                 channel.founder = account
 
                 channel.save
             end
 
             def set_successor(account)
-                account = Database::Account.resolve(account)
+                account = Account.resolve(account)
                 update(:successor_id => account.id)
             end
 
@@ -67,11 +70,14 @@ module Database
             end
 
             def grant_privilege(account, privilege, value = nil)
-                account = Database::Account.resolve(account)
-                if (privobj = privileges.where(:account_id => account.id, :privilege => privilege).first)
-                    privobj.update(:value => value)
+                account = Account.resolve(account)
+                where = {:account => account, :privilege => privilege.to_s}
+                fields = where.merge(:value => value.to_s)
+
+                if (privobj = privileges.where(where).first)
+                    privobj.update(fields)
                 else
-                    privileges.insert(:account_id => account.id, :privilege => privilege, :value => value)
+                    privileges.insert(fields)
                 end
 
                 objectify(value, :privilege)
@@ -79,12 +85,15 @@ module Database
 
             def revoke_privilege(account, privilege, value = nil)
                 account = Database::Account.resolve(account)
-                privileges.where(:account_id => account.id, :privilege => privilege).delete
+                where   = {:account => account, :privilege => privilege.to_s}
+                privileges.where(where).delete
             end
 
             def privilege_value(account, privilege)
-                account = Database::Account.resolve(account)
-                privobj = privileges.where(:account_id => account.id, :privilege => privilege).first
+                account = Account.resolve(account)
+                where   = {:account => account, :privilege => privilege.to_s}
+
+                privobj = privileges.where(where).first
                 privobj ? objectify(privobj.value, :privilege) : nil
             end
 
@@ -97,8 +106,15 @@ module Database
             #######
 
             def objectify(value, type)
-                bool, value = (type == :flag) ? [BOOL_FLAGS, VALUE_FLAGS] : [BOOL_PRIVS, VALUE_PRIVS]
-                bool.include?(type) ? (value == 'true' ? true : false) : value.to_s
+                test_bool = false
+
+                if type == :flag
+                    test_bool = BOOL_FLAGS.include?(type)
+                else
+                    test_bool = BOOL_PRIVS.include?(type)
+                end
+
+                test_bool ? (value.to_s == 'true' ? true : false) : value.to_s
             end
         end
 
@@ -111,19 +127,16 @@ module Database
             many_to_one :channel, :class_name => Database::ChanServ::Channel
         end
 
-        Database::Account.before_unregister do |account|
-            Privilege.where(:account_id => account.id).delete
+        Account.before_unregister do |account|
+            Privilege.where(:account => account).delete
 
-            Channel.where(:successor_id => account.id).update(:successor_id => nil)
-            Channel.filter do
-                founder_id   == account.id and
-                successor_id != nil
-            end.update(:founder_id => :successor_id, :successor_id => nil)
-            to_delete = Channel.filter do
-                founder_id   == account.id and
-                successor_id == nil
-            end
+            Channel.where(:successor => account).update(:successor => nil)
+            Channel.filter do |row|
+                row.founder_id    == account.id and
+                row.succcessor_id != nil
+            end.update(:founder => :successor, :successor => nil)
 
+            to_delete = Channel.where(:founder => account, :successor => nil)
             ids = to_delete.collect { |channel| channel.id }
             Privilege.where(:channel_id => ids).delete
             to_delete.delete
