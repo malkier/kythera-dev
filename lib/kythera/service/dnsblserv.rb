@@ -23,7 +23,7 @@ class DNSBLService < Service
     V_MINOR = 0
 
     # Minor changes and bugfixes
-    V_PATCH = 1
+    V_PATCH = 2
 
     # String representation of our version..
     VERSION = "#{V_MAJOR}.#{V_MINOR}.#{V_PATCH}"
