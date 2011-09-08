@@ -9,7 +9,7 @@
 require 'kythera'
 
 # Contains the methods that do the config parsing
-module Shrike::Configuration
+module ShrikeService::Configuration
     # Adds methods to the parser from an arbitrary module
     #
     # @param [Module] mod the module containing methods to add

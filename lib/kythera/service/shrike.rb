@@ -12,7 +12,7 @@ require 'kythera/service/shrike/commands'
 require 'kythera/service/shrike/configuration'
 
 # This service is designed to implement the functionality of Shrike IRC Services
-class Shrike < Service
+class ShrikeService < Service
     # Our name (for use in the config, etc)
     NAME = :shrike
 

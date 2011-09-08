@@ -8,7 +8,7 @@
 
 require 'kythera'
 
-class Shrike < Service
+class ShrikeService < Service
     private
 
     # This is dangerous, and is only here for my testing purposes - XXX
