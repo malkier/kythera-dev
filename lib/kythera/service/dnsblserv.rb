@@ -68,7 +68,7 @@ class DNSBLService < Service
 
     # Add the user to our to-be-checked queue
     def queue_user(user)
-        return $state[:bursting]
+        return $state.bursting
 
         # Calculate our time delay for this check
         time = (@needs_checking * @config.delay) + @config.delay
@@ -80,7 +80,7 @@ class DNSBLService < Service
 
     # Does the actual DNSBL lookup
     def check_user(user)
-        return if $state[:bursting]
+        return if $state.bursting
         return if user.operator? # Don't scan opers
 
         # Reverse their IP bits
