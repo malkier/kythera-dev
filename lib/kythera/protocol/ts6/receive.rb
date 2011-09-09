@@ -27,7 +27,7 @@ module Protocol::TS6
             Server.new(parv[3])
 
             # Start the burst timer
-            $state[:bursting] = Time.now
+            $state.bursting = Time.now
 
             $eventq.post(:start_of_burst, Time.now)
         end
@@ -102,9 +102,9 @@ module Protocol::TS6
     def irc_ping(origin, parv)
         send_pong(parv[0])
 
-        if $state[:bursting]
-            delta = Time.now - $state[:bursting]
-            $state[:bursting] = false
+        if $state.bursting
+            delta = Time.now - $state.bursting
+            $state.bursting = false
 
             $eventq.post(:end_of_burst, delta)
         end
@@ -236,7 +236,6 @@ module Protocol::TS6
                 voice = true
                 uid   = uid[REMOVE_FIRST]
             end
-
 
             unless user = $users[uid]
                 # Maybe it's a nickname?

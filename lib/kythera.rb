@@ -97,8 +97,7 @@ Dir.glob(['extensions/**/extension.rb']) { |filepath| require filepath }
 #
 def configure(&block)
     # This is for storing random application states
-    $state = {}
-
+    $state  = OpenStruct.new
     $config = Object.new
 
     class << $config
@@ -127,7 +126,7 @@ end
 # Same as above, but used for unit tests, and so doesn't run the app
 def configure_test(&block)
     unless $config
-        $state  = {}
+        $state  = OpenStruct.new
         $config = Object.new
 
         $config.extend(Kythera::Configuration)
@@ -228,7 +227,7 @@ module Kythera::Configuration
     # @param [Symbol] name the name of the extension
     #
     def extension(name, &block)
-        $state[:ext_cfg] ||= {}
+        $state.ext_cfg ||= {}
 
         # Find the Extension's class
         ext = $extensions.find { |e| e::NAME == name }
@@ -247,8 +246,8 @@ module Kythera::Configuration
                 ext_config.extend(ext_config_parser)
                 ext_config.instance_eval(&block)
 
-                # Store it in $state[:ext_cfg]
-                $state[:ext_cfg][ext::NAME] = ext_config
+                # Store it in $state.ext_cfg
+                $state.ext_cfg[ext::NAME] = ext_config
             end
         end
     end

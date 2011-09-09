@@ -19,7 +19,7 @@ module Protocol::Unreal
     #
     def irc_pass(origin, parv)
         # Start the burst timer
-        $state[:bursting] = Time.now
+        $state.bursting = Time.now
 
         if parv[0] != @config.receive_password.to_s
             $log.error "incorrect password received from `#{@config.name}`"
@@ -250,11 +250,11 @@ module Protocol::Unreal
 
     # Handles an incoming EOS (end of synch)
     def irc_eos(origin, parv)
-        if $state[:bursting] && origin == @config.name
+        if $state.bursting && origin == @config.name
             send_eos
 
-            delta = Time.now - $state[:bursting]
-            $state[:bursting] = false
+            delta = Time.now - $state.bursting
+            $state.bursting = false
 
             $eventq.post(:end_of_burst, delta)
         end
