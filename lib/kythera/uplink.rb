@@ -181,6 +181,7 @@ class Uplink
     NO_COL = 1 .. -1
 
     # Because String#split treats ' ' as /\s/ for some reason
+    # XXX - This sucks; it slows down the parser by quite a lot
     RE_SPACE = / /
 
     # Parses incoming IRC data and sends it off to protocol-specific handlers
