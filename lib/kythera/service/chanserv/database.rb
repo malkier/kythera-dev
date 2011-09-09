@@ -11,34 +11,35 @@ require 'kythera'
 
 module Database
     class Account
-        one_to_many :chanserv_channel_founders,
-                    :class_name => ChanServ::Channel,
+        one_to_many :chanserv_founder_channels,
+                    :class_name => ChannelService::Channel,
                     :foreign_key => :founder_id
-        one_to_many :chanserv_channel_successors,
-                    :class_name => ChanServ::Channel,
+        one_to_many :chanserv_successor_channels,
+                    :class_name => ChannelService::Channel,
                     :foreign_key => :successor_id
         one_to_many :chanserv_privileges,
-                    :class_name => ChanServ::Privilege
+                    :class_name => ChannelService::Privilege
     end
 
-    module ChanServ
+    module ChannelService
         class Error < Exception; end
         class ChannelExistsError < Error; end
 
         class Channel < Sequel::Model(:chanserv_channels)
+            # XXX clear this out, this is stepping on the service's toes
             BOOL_FLAGS  = [:hold, :secure, :verbose, :neverop]
             VALUE_FLAGS = [:key, :mode_list, :topic]
 
             BOOL_PRIVS  = [:aop, :sop, :vop]
             VALUE_PRIVS = []
 
-            many_to_one :founder,    :class_name => Database::Account
-            many_to_one :successor,  :class_name => Database::Account
-            one_to_many :privileges, :class_name => Database::ChanServ::Privilege
-            one_to_many :flags,      :class_name => Database::ChanServ::Flag
+            many_to_one :founder,    :class_name => Account
+            many_to_one :successor,  :class_name => Account
+            one_to_many :privileges
+            one_to_many :flags
 
             def self.register(account, name)
-                account = Database::Account.resolve(account)
+                account = Account.resolve(account)
                 channel = Channel[:name => name]
                 raise ChannelExistsError if channel
 
@@ -47,6 +48,10 @@ module Database
                 channel.founder = account
 
                 channel.save
+            end
+
+            def self.drop(account, name)
+                account = Account.resolve(account)
             end
 
             def set_successor(account)
@@ -119,21 +124,25 @@ module Database
         end
 
         class Flag < Sequel::Model(:chanserv_flags)
-            many_to_one :channel, :class_name => Database::ChanServ::Channel
+            many_to_one :channel
         end
 
         class Privilege < Sequel::Model(:chanserv_privileges)
-            many_to_one :account, :class_name => Database::Account
-            many_to_one :channel, :class_name => Database::ChanServ::Channel
+            many_to_one :account
+            many_to_one :channel
         end
 
-        Account.before_unregister do |account|
+        class Helper < Account::Helper
+            # XXX fill in account.chanserv.methods
+        end
+
+        Account.before_drop do |account|
             Privilege.where(:account => account).delete
 
             Channel.where(:successor => account).update(:successor => nil)
-            Channel.filter do |row|
-                row.founder_id    == account.id and
-                row.succcessor_id != nil
+            Channel.filter do
+                {:founder_id => account.id} &
+                ~({:succcessor_id => nil})
             end.update(:founder => :successor, :successor => nil)
 
             to_delete = Channel.where(:founder => account, :successor => nil)
@@ -141,5 +150,7 @@ module Database
             Privilege.where(:channel_id => ids).delete
             to_delete.delete
         end
+
+        Account.helper [:chanserv, :cs], Helper
     end
 end
