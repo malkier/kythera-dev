@@ -20,14 +20,32 @@ module Database
         one_to_many :account_fields
 
         @@resolvers = []
-        @@unregistrars = []
+        @@droppers  = []
+        @@users     = {}
+
+        def intialize(*args)
+            super
+
+            @@users[id] ||= []
+            @helpers = {}
+        end
 
         def self.register_resolver(&block)
             @@resolvers << block
         end
 
-        def self.before_unregister(&block)
-            @@unregistrars << block
+        def self.before_drop(&block)
+            @@droppers << block
+        end
+
+        def self.helper(aliases, klass)
+            aliases = *aliases
+            prime_alias = aliases.shift.to_sym
+
+            define_method(prime_alias) do
+                @helpers[prime_alias] ||= klass.new(self)
+            end
+            aliases.each { |a| define_method(a.to_sym) { prime_alias } }
         end
 
         def self.resolve(acct_to_resolve)
@@ -57,35 +75,34 @@ module Database
             raise ResolveError, acct_to_resolve
         end
 
-        def self.drop(login, password, verification)
+        def self.drop(login, password)
             begin
-                self.drop!(login, password, verification)
+                self.drop!(login, password)
             rescue NoSuchLoginError, PasswordMismatchError
                 nil
             end
         end
 
-        def self.drop!(login, password, verification)
-            raise PasswordMismatchError unless password == verification
-
-            account = identify!(login, password)
-            @@unregistrars.each { |unregistrar| unregistrar.call(account) }
+        def self.drop!(login, password)
+            account = resolve!(login)
+            account.authenticate!(login, password)
+            @@droppers.each { |dropper| dropper.call(account) }
+            @@users.delete(account.id)
 
             account.account_fields.delete
             account.delete
         end
 
-        def self.register(login, password, verification)
+        def self.register(login, password)
             begin
-                register!(login, password, verification)
-            rescue LoginExistsError, PasswordMismatchError
+                register!(login, password)
+            rescue LoginExistsError
                 nil
             end
         end
 
-        def self.register!(login, password, verification)
+        def self.register!(login, password)
             raise LoginExistsError unless self.where(:login => login).empty?
-            raise PasswordMismatchError unless password == verification
 
             now  = Time.now
             salt = SecureRandom.base64(256)
@@ -196,7 +213,7 @@ module Database
             end
         end
 
-        def keys
+        def field_list
             account_fields.collect { |field| field.key }
         end
 
@@ -205,10 +222,20 @@ module Database
             field.delete
         end
 
+        def users
+            @@users[id]
+        end
+
         class LoginExistsError      < Exception; end
         class PasswordMismatchError < Exception; end
         class BadValidationError    < Exception; end
         class NoSuchLoginError      < Exception; end
+
+        class Helper
+            def initialize(account)
+                @account = account
+            end
+        end
 
         #######
         private
