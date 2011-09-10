@@ -171,13 +171,8 @@ module Protocol::Unreal
                 nick = nick[REMOVE_FIRST]
             end
 
-            if nick[0].chr == '*'
-                owner = true
-                nick  = nick[REMOVE_FIRST]
-            end
-
-            if nick[0].chr == '~'
-                admin = true
+            if nick[0].chr == '+'
+                voice = true
                 nick  = nick[REMOVE_FIRST]
             end
 
@@ -186,8 +181,13 @@ module Protocol::Unreal
                 nick   = nick[REMOVE_FIRST]
             end
 
-            if nick[0].chr == '+'
-                voice = true
+            if nick[0].chr == '*'
+                owner = true
+                nick  = nick[REMOVE_FIRST]
+            end
+
+            if nick[0].chr == '~'
+                admin = true
                 nick  = nick[REMOVE_FIRST]
             end
 
