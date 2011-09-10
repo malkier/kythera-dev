@@ -98,7 +98,7 @@ module Database
             end
 
             def revoke(account, privilege)
-                account = Database::Account.resolve(account)
+                account = Account.resolve(account)
                 fields  = {:account => account, :privilege => privilege.to_s}
 
                 privileges.where(fields).delete

@@ -45,10 +45,25 @@ module Database
                 memo
             end
 
-            def delete_memos(to, *ids)
-                # XXX collapse empty IDs, deal with multi-memo deletes
-                memo = retrieve_memo!(to, ids[0])
-                memo.delete
+            def self.delete_memos(to, *ids)
+                transaction do
+                    to = Account.resolve(to)
+                    ids.collect! { |id| id.to_i }
+
+                    ds = self[:to => to, :id => ids]
+                    raise NoSuchMemoID unless ds.count == ids.length
+
+                    ds.delete
+
+                    min_affected = ids.sort[0]
+                    ds = self[:to => to].filter{ :id > min_affected }
+
+                    x = min_affected
+                    ds.each do |memo|
+                        memo.update(:id => x)
+                        x += 1
+                    end
+                end
             end
 
             def self.read_memo(to, id)
@@ -72,9 +87,10 @@ module Database
             private
             #######
 
-            def self.retrieve_memo!(to, id)
+            def self.retrieve_memo!(to, ids)
                 to = Account.resolve!(to)
-                memo = self[:to => to, :id => id]
+
+                memo = self[:to => to, :id => id].first
                 raise NoSuchMemoID unless memo
 
                 memo
