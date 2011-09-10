@@ -124,7 +124,10 @@ module Database
         end
 
         Account.register_resolver do |acct_to_resolve|
-            Nickname[:nickname => acct_to_resolve.to_s].first
+            nick = Nickname[:nickname => acct_to_resolve.to_s].first
+            return nil unless nick
+
+            nick.account
         end
 
         Account.before_drop do |account|

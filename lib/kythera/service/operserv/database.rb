@@ -24,7 +24,7 @@ module Database
         end
 
         class Helper < Account::Helper
-            OperatorService::PRIVILEGES.each do |privilege|
+            ::OperatorService::PRIVILEGES.each do |privilege|
                 meth = "#{privilege.to_s}?".to_sym
                 define_method(meth) do
                     @account["#{PREFIX}.#{privilege}"]

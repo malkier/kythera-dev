@@ -11,30 +11,23 @@ require 'kythera'
 
 module Database
     class Account
-        one_to_many :chanserv_founder_channels,
-                    :class_name => ChannelService::Channel,
-                    :foreign_key => :founder_id
-        one_to_many :chanserv_successor_channels,
-                    :class_name => ChannelService::Channel,
-                    :foreign_key => :successor_id
         one_to_many :chanserv_privileges,
                     :class_name => ChannelService::Privilege
     end
 
     module ChannelService
+        PREFIX = 'chanserv'
+
         class Error < Exception; end
         class ChannelExistsError < Error; end
 
+        @@succession_handlers = []
+
+        def self.on_succession(&block)
+            @@succession_handlers << block
+        end
+
         class Channel < Sequel::Model(:chanserv_channels)
-            # XXX clear this out, this is stepping on the service's toes
-            BOOL_FLAGS  = [:hold, :secure, :verbose, :neverop]
-            VALUE_FLAGS = [:key, :mode_list, :topic]
-
-            BOOL_PRIVS  = [:aop, :sop, :vop]
-            VALUE_PRIVS = []
-
-            many_to_one :founder,    :class_name => Account
-            many_to_one :successor,  :class_name => Account
             one_to_many :privileges
             one_to_many :flags
 
@@ -44,82 +37,78 @@ module Database
                 raise ChannelExistsError if channel
 
                 channel = Channel.new
-                channel.name    = name
-                channel.founder = account
+                channel.name = name
+                channel.grant(account, :founder)
 
                 channel.save
+
+                channel
             end
 
-            def self.drop(account, name)
-                account = Account.resolve(account)
+            def self.drop(channel)
+                channel = Channel.resolve(channel)
+
+                channel.flags.delete
+                channel.privileges.delete
+                channel.delete
             end
 
-            def set_successor(account)
-                account = Account.resolve(account)
-                update(:successor_id => account.id)
+            def self.resolve(channel)
+                return channel if channel.kind_of?(Channel)
+                return Channel[channel] if channel.kind_of?(Integer)
+                return Channel[:name => channel.to_s].first
             end
 
             def [](flag)
-                flagobj = flags.where(:flag => flag).first
-                flagobj ? objectify(flagobj.value, :flag) : nil
+                flagobj = flags.where(:flag => flag.to_s).first
+                flagobj && flagobj.value
             end
 
             def []=(flag, value)
-                if (flagobj = flags[:flag => flag].first)
-                    flagobj.update(:value => value)
+                if (flagobj = flags[:flag => flag.to_s].first)
+                    flagobj.update(:value => value.to_s)
                 else
-                    flags.insert(:value => value)
+                    flags.insert(:value => value.to_s)
                 end
-
-                objectify(value, :flag)
             end
 
-            def grant_privilege(account, privilege, value = nil)
+            def delete_flag(flag)
+                flags[:flag => flag.to_s].delete
+            end
+
+            def flag_list
+                flags.to_a.collect { |flag| flag.flag }
+            end
+
+            def self.grant(account, privilege)
                 account = Account.resolve(account)
-                where = {:account => account, :privilege => privilege.to_s}
-                fields = where.merge(:value => value.to_s)
-
-                if (privobj = privileges.where(where).first)
-                    privobj.update(fields)
-                else
-                    privileges.insert(fields)
-                end
-
-                objectify(value, :privilege)
+                account["#{PREFIX}.#{privilege}"] = true
             end
 
-            def revoke_privilege(account, privilege, value = nil)
+            def self.revoke(account, privilege)
+                account = Account.resolve(account)
+                account.delete("#{PREFIX}.#{privilege}")
+            end
+
+            def grant(account, privilege)
+                account = Account.resolve(account)
+                fields  = {:account => account, :privilege => privilege.to_s}
+
+                privileges.insert(fields) if privileges.where(fields).empty?
+            end
+
+            def revoke(account, privilege)
                 account = Database::Account.resolve(account)
-                where   = {:account => account, :privilege => privilege.to_s}
-                privileges.where(where).delete
-            end
+                fields  = {:account => account, :privilege => privilege.to_s}
 
-            def privilege_value(account, privilege)
-                account = Account.resolve(account)
-                where   = {:account => account, :privilege => privilege.to_s}
-
-                privobj = privileges.where(where).first
-                privobj ? objectify(privobj.value, :privilege) : nil
+                privileges.where(fields).delete
             end
 
             def has_privilege?(account, privilege)
-                privilege_value(account, privilege) ? true : false
-            end
+                account = Account.resolve(account)
+                fields  = {:account => account, :privilege => privilege.to_s}
 
-            #######
-            private
-            #######
-
-            def objectify(value, type)
-                test_bool = false
-
-                if type == :flag
-                    test_bool = BOOL_FLAGS.include?(type)
-                else
-                    test_bool = BOOL_PRIVS.include?(type)
-                end
-
-                test_bool ? (value.to_s == 'true' ? true : false) : value.to_s
+                ! privileges.where(where).empty?
             end
         end
 
@@ -133,22 +122,78 @@ module Database
         end
 
         class Helper < Account::Helper
-            # XXX fill in account.chanserv.methods
+            ::ChannelService::PRIVILEGES.each do |privilege|
+                meth = "#{privilege.to_s}?".to_sym
+                define_method(meth) do
+                    @account["#{PREFIX}.#{privilege}"]
+                end
+            end
+
+            ::ChannelService::CHANNEL_PRIVILEGES.each do |privilege|
+                meth = "#{privilege.to_s}?".to_sym
+                define_method(meth) do |channel|
+                    channel = Channel.resolve(channel)
+                    channel.has_privilege?(@account, privilege)
+                end
+            end
+
+            def grant(privilege, channel = nil)
+                if channel
+                    channel = Channel.resolve(channel)
+                    channel.grant(@account, privilege)
+                else
+                    Channel.grant(@account, privilege)
+                end
+            end
+
+            def revoke(privilege, channel = nil)
+                if channel
+                    channel = Channel.resolve(channel)
+                    channel.revoke(@account, privilege)
+                else
+                    Channel.revoke(@account, privilege)
+                end
+            end
         end
 
         Account.before_drop do |account|
-            Privilege.where(:account => account).delete
+            ap = Privilege[:account => account]
 
-            Channel.where(:successor => account).update(:successor => nil)
-            Channel.filter do
-                {:founder_id => account.id} &
-                ~({:succcessor_id => nil})
-            end.update(:founder => :successor, :successor => nil)
+            # find the channel ids where this account is the last founder
+            lfc = ap.where(:privilege => 'founder')
+            lfc = lfc.group_by(:channel_id)
+            lfc = lfc.having { {count(:*) => 1} }
+            ids = lfc.all.collect { |privilege| privilege.channel_id }
 
-            to_delete = Channel.where(:founder => account, :successor => nil)
-            ids = to_delete.collect { |channel| channel.id }
-            Privilege.where(:channel_id => ids).delete
-            to_delete.delete
+            # find the successors on all those channels
+            where = {:channel_id => ids, :privilege => 'successor'}
+            succ_privs = Privilege[where]
+
+            # find channel ids where there are no successors
+            drops = Hash(ids.zip([]).flatten)
+            del = succ_privs.group_by(:channel_id)
+            del = del.having { count(:*) > 0 }
+            del.all.collect { |privilege| drops.delete(privilege.channel_id) }
+            drops = drops.keys
+
+            # upgrade successors to founders if the rite of succession has
+            # occured on these channels, and call any handlers that have hooked
+            # in to being alerted about this event
+            succ_privs.update(:privilege => 'founder')
+            succ_privs.eager([:channel, :account]).each do |privilege|
+                @@succession_handlers.each do |handler|
+                    handler.call(privilege.account, privilege.channel)
+                end
+            end
+
+            # drop the channels. drop privs and flags first. don't use
+            # Channel.drop() and iterate cause that could get slow.
+            Privilege[:channel_id => drops].delete
+            Flag[:channel_id => drops].delete
+            Channel[:id => drops].delete
+
+            # drop any remaining privileges on this account
+            ap.delete
         end
 
         Account.helper [:chanserv, :cs], Helper

@@ -12,15 +12,9 @@ Sequel.migration do
         create_table :chanserv_channels do
             primary_key :id
 
-            String  :name,        :null => false, :unique => true
-            Integer :founder_id,  :null => false
-            Integer :successor_id
-
+            String   :name,       :null => false, :unique => true
             DateTime :registered, :null => false
             DateTime :last_activity
-
-            foreign_key [:founder_id], :accounts
-            foreign_key [:successor_id], :accounts
         end
 
         create_table :chanserv_privileges do
