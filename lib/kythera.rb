@@ -73,6 +73,12 @@ require 'socket'
 
 require 'digest/sha2'
 
+begin
+    require 'openssl'
+rescue LoadError
+    puts 'kythera: warning: unable to load OpenSSL'
+end
+
 # Require all of our files here and only here
 require 'kythera/log'
 require 'kythera/channel'
@@ -380,6 +386,14 @@ module Kythera::Configuration::Uplink
         self.bind_port = port.to_i
     end
 
+    def ssl
+        if defined?(OpenSSL)
+            self.ssl = true
+        else
+            puts "kythera: warning: SSL specified but OpenSSL not available"
+        end
+    end
+
     def sid(sid)
         self.sid = sid.to_s
     end
@@ -413,9 +427,5 @@ module Kythera::Configuration::Uplink
 
     def casemapping(mapping)
         self.casemapping = mapping.to_sym
-    end
-
-    def ssl
-        self.ssl = true
     end
 end

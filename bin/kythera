@@ -109,6 +109,10 @@ configure do
         #bind '204.152.222.180'
         #bind '10.0.1.30', 55101
 
+        # Use this to use SSL to encrypt the traffic to and from the uplink.
+        # Use this only if you have configured your IRCd appropriately.
+        #ssl
+
         # The server ID we should send to the uplink. If you're using `ts6`
         # above, this must be set. The format is [0-9][A-Z0-9][A-Z0-9].
         #
@@ -138,9 +142,6 @@ configure do
         # will want "ascii."
         #
         casemapping :rfc1459
-
-        # Do we want to use SSL?
-        ssl
     end
 
     # Still reading... :)
