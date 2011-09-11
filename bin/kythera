@@ -139,21 +139,8 @@ configure do
         #
         casemapping :rfc1459
 
-        # The information we need for TLS/SSL.
-        # If you're like most people you'll need to generate
-        # your own, self-signed certificate rather than pay
-        # an ungodly sum of money to some company. In order to
-        # do this you need to run something along the lines of:
-        #
-        #     openssl req -new -x509 -days 365 -sha1 -newkey rsa:1024 \
-        #                 -nodes -keyout server.key -out server.crt \
-        #                 -subj '/O=Company/OU=Department/CN=xmpp.example.com'
-        #
-        # Use the resulting "server.crt" file for ssl_certificate.
-        # Use the resulting "server.key" file for ssl_private_key.
-        #
-        ssl_certificate 'etc/server.crt'
-        ssl_private_key 'etc/server.key'
+        # Do we want to use SSL?
+        ssl
     end
 
     # Still reading... :)

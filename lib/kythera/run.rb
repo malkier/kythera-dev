@@ -21,34 +21,6 @@ class Kythera
         trap(:INT)  { exit_app }
         trap(:TERM) { exit_app }
 
-        # Set up the SSL stuff
-        $config.uplinks.each do |uplink|
-            next unless uplink.ssl_certfile
-            next unless uplink.ssl_keyfile
-
-            certfile = uplink.ssl_certfile
-            keyfile  = uplink.ssl_keyfile
-
-            begin
-                cert = OpenSSL::X509::Certificate.new(File.read(certfile))
-                pkey = OpenSSL::PKey::RSA.new(File.read(keyfile))
-            rescue Exception => e
-                puts "#{ME}: configuration error: #{e}"
-                abort
-            else
-                ctx      = OpenSSL::SSL::SSLContext.new
-                ctx.cert = cert
-                ctx.key  = pkey
-
-                ctx.verify_mode = OpenSSL::SSL::VERIFY_NONE
-                ctx.options     = OpenSSL::SSL::OP_NO_TICKET
-                ctx.options    |= OpenSSL::SSL::OP_NO_SSLv2
-                ctx.options    |= OpenSSL::SSL::OP_ALL
-
-                uplink.ssl_context = ctx
-            end
-        end
-
         # Some defaults for state
         logging  = true
         debug    = false
