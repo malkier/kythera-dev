@@ -110,6 +110,8 @@ class Uplink
         begin
             @socket = TCPSocket.new(@config.host, @config.port,
                                     @config.bind_host, @config.bind_port)
+
+            start_tls if @config.ssl_context
         rescue Exception => err
             $log.error "connection failed: #{err}"
             self.dead = true
@@ -225,5 +227,13 @@ class Uplink
         end
 
         true
+    end
+
+    def start_tls
+        context = @config.ssl_context
+
+        @socket = OpenSSL::SSL::SSLSocket.new(@socket, context)
+        @socket.sync_close = true
+        @socket.connect
     end
 end

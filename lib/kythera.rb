@@ -414,4 +414,12 @@ module Kythera::Configuration::Uplink
     def casemapping(mapping)
         self.casemapping = mapping.to_sym
     end
+
+    def ssl_certificate(certfile)
+        self.ssl_certfile = certfile.to_s
+    end
+
+    def ssl_private_key(keyfile)
+        self.ssl_keyfile = keyfile.to_s
+    end
 end
