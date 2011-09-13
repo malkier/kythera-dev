@@ -16,6 +16,18 @@ List of Events
     * params:
       * _none_
 
+  * extension\_socket\_readable
+    * there is data on the socket ready to be read
+    * this is raised only for `Extension::Socket`
+    * params:
+      * the socket that is ready
+
+  * extension\_socket\_writable
+    * the socket is ready to be written to
+    * this is raised only for `Extension::Socket`
+    * params:
+      * the socket that is ready
+
   * connected
     * we are connected to the uplink
     * params:

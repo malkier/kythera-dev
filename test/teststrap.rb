@@ -15,12 +15,8 @@ require 'riot'
 #require 'riot/rr'
 
 # For all tests
-$config   = nil
-$log      = Log::NilLogger.instance
-$eventq   = EventQueue.new
-$users    = IRCHash.new
-$channels = IRCHash.new
-$servers  = IRCHash.new
+$config = nil
+$log    = Log::NilLogger.instance
 
 # These are defined here for easy use in setup blocks
 $_daemon_block = proc do

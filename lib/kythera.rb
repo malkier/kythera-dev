@@ -85,6 +85,7 @@ require 'kythera/channel'
 require 'kythera/database'
 require 'kythera/event'
 require 'kythera/extension'
+require 'kythera/extension/socket'
 require 'kythera/protocol'
 require 'kythera/run'
 require 'kythera/securerandom'
@@ -105,6 +106,7 @@ def configure(&block)
     # This is for storing random application states
     $state  = OpenStruct.new
     $config = Object.new
+    $eventq = EventQueue.new
 
     class << $config
         # Adds methods to the parser from an arbitrary module
@@ -134,6 +136,7 @@ def configure_test(&block)
     unless $config
         $state  = OpenStruct.new
         $config = Object.new
+        $eventq = EventQueue.new
 
         $config.extend(Kythera::Configuration)
     end
