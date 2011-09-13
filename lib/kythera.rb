@@ -73,6 +73,12 @@ require 'socket'
 
 require 'digest/sha2'
 
+begin
+    require 'openssl'
+rescue LoadError
+    puts 'kythera: warning: unable to load OpenSSL'
+end
+
 # Require all of our files here and only here
 require 'kythera/log'
 require 'kythera/channel'
@@ -97,8 +103,7 @@ Dir.glob(['extensions/**/extension.rb']) { |filepath| require filepath }
 #
 def configure(&block)
     # This is for storing random application states
-    $state = {}
-
+    $state  = OpenStruct.new
     $config = Object.new
 
     class << $config
@@ -127,7 +132,7 @@ end
 # Same as above, but used for unit tests, and so doesn't run the app
 def configure_test(&block)
     unless $config
-        $state  = {}
+        $state  = OpenStruct.new
         $config = Object.new
 
         $config.extend(Kythera::Configuration)
@@ -145,7 +150,7 @@ class Kythera
     V_MINOR = 1
 
     # For minor changes and bugfixes
-    V_PATCH = 2
+    V_PATCH = 3
 
     # A String representation of the version number
     VERSION = "#{V_MAJOR}.#{V_MINOR}.#{V_PATCH}"
@@ -228,7 +233,7 @@ module Kythera::Configuration
     # @param [Symbol] name the name of the extension
     #
     def extension(name, &block)
-        $state[:ext_cfg] ||= {}
+        $state.ext_cfg ||= {}
 
         # Find the Extension's class
         ext = $extensions.find { |e| e::NAME == name }
@@ -247,8 +252,8 @@ module Kythera::Configuration
                 ext_config.extend(ext_config_parser)
                 ext_config.instance_eval(&block)
 
-                # Store it in $state[:ext_cfg]
-                $state[:ext_cfg][ext::NAME] = ext_config
+                # Store it in $state.ext_cfg
+                $state.ext_cfg[ext::NAME] = ext_config
             end
         end
     end
@@ -379,6 +384,14 @@ module Kythera::Configuration::Uplink
     def bind(host, port = nil)
         self.bind_host = host.to_s
         self.bind_port = port.to_i
+    end
+
+    def ssl
+        if defined?(OpenSSL)
+            self.ssl = true
+        else
+            puts "kythera: warning: SSL specified but OpenSSL not available"
+        end
     end
 
     def sid(sid)

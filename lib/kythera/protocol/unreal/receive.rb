@@ -19,7 +19,7 @@ module Protocol::Unreal
     #
     def irc_pass(origin, parv)
         # Start the burst timer
-        $state[:bursting] = Time.now
+        $state.bursting = Time.now
 
         if parv[0] != @config.receive_password.to_s
             $log.error "incorrect password received from `#{@config.name}`"
@@ -199,6 +199,25 @@ module Protocol::Unreal
             channel.add_user(user)
 
             if their_ts <= channel.timestamp
+                if op
+                  user.add_status_mode(channel, :operator)
+
+                  $eventq.post(:mode_added_on_channel,
+                              :operator, user, channel)
+                end
+
+                if voice
+                    user.add_status_mode(channel, :voice)
+
+                    $eventq.post(:mode_added_on_channel, :voice, user, channel)
+                end
+
+                if halfop
+                    user.add_status_mode(channel, :halfop)
+
+                    $eventq.post(:mode_added_on_channel, :halfop, user, channel)
+                end
+
                 if owner
                     user.add_status_mode(channel, :owner)
 
@@ -209,19 +228,6 @@ module Protocol::Unreal
                     user.add_status_mode(channel, :admin)
 
                     $eventq.post(:mode_added_on_channel, :admin, user, channel)
-                end
-
-                if op
-                    user.add_status_mode(channel, :operator)
-
-                    $eventq.post(:mode_added_on_channel,
-                                :operator, user, channel)
-                end
-
-                if voice
-                    user.add_status_mode(channel, :voice)
-
-                    $eventq.post(:mode_added_on_channel, :voice, user, channel)
                 end
             end
         end
@@ -250,11 +256,11 @@ module Protocol::Unreal
 
     # Handles an incoming EOS (end of synch)
     def irc_eos(origin, parv)
-        if $state[:bursting] && origin == @config.name
+        if $state.bursting && origin == @config.name
             send_eos
 
-            delta = Time.now - $state[:bursting]
-            $state[:bursting] = false
+            delta = Time.now - $state.bursting
+            $state.bursting = false
 
             $eventq.post(:end_of_burst, delta)
         end

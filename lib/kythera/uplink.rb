@@ -40,7 +40,7 @@ class Uplink
 
         # Include the methods for the protocol we're using
         extend Protocol
-        extend Protocol.find(@config.protocol)
+        extend Protocol.find(@config.protocol) if @config.protocol
     end
 
     public
@@ -110,6 +110,8 @@ class Uplink
         begin
             @socket = TCPSocket.new(@config.host, @config.port,
                                     @config.bind_host, @config.bind_port)
+
+            start_tls if @config.ssl
         rescue Exception => err
             $log.error "connection failed: #{err}"
             self.dead = true
@@ -181,6 +183,7 @@ class Uplink
     NO_COL = 1 .. -1
 
     # Because String#split treats ' ' as /\s/ for some reason
+    # XXX - This sucks; it slows down the parser by quite a lot
     RE_SPACE = / /
 
     # Parses incoming IRC data and sends it off to protocol-specific handlers
@@ -224,5 +227,21 @@ class Uplink
         end
 
         true
+    end
+
+    # Set up and connect the SSL socket
+    def start_tls
+        ctx = OpenSSL::SSL::SSLContext.new
+
+        ctx.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        ctx.options     = OpenSSL::SSL::OP_NO_TICKET
+        ctx.options    |= OpenSSL::SSL::OP_NO_SSLv2
+        ctx.options    |= OpenSSL::SSL::OP_ALL
+
+        socket = OpenSSL::SSL::SSLSocket.new(@socket, ctx)
+        socket.sync_close = true
+        socket.connect
+
+        @socket = socket
     end
 end

@@ -8,6 +8,9 @@
 
 require 'kythera'
 
+# A list of all channels. The key is the channel name by default
+$channels = IRCHash.new
+
 # This is just a base class. All protocol module should monkeypatch this.
 class Channel
     # Standard IRC status cmodes
@@ -28,17 +31,6 @@ class Channel
                        'p' => :private,
                        's' => :secret,
                        't' => :topic_lock }
-
-    # A list of all channels. The key is the channel name by default
-    $channels = IRCHash.new
-
-    # Attribute reader for `$channels`
-    #
-    # @return [Hash] a list of all Channels
-    #
-    def self.channels
-        $channels
-    end
 
     # Attribute reader for `@@status_modes`
     #
@@ -200,6 +192,15 @@ class Channel
 
             $eventq.post(:channel_deleted, self)
         end
+    end
+
+    # Does this channel have the specified mode set?
+    #
+    # @param [Symbol] mode the mode symbol
+    # @return [Boolean] true or false
+    #
+    def has_mode?(mode)
+        @modes.include?(mode)
     end
 
     # Deletes all modes

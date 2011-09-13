@@ -15,7 +15,7 @@ module Protocol::InspIRCd
 
     # Sends the initial data to the server
     def send_handshake
-        $state[:bursting] = Time.now
+        $state.bursting = Time.now
 
         send_capab
         send_server

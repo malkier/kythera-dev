@@ -31,7 +31,7 @@ class Extension
 
             unless kyver.satisfied_by?(Gem::Version.new(Kythera::VERSION))
                 if $config.me.unsafe_extensions == :ignore
-                    false
+                    false # Load anyway
                     next
                 else
                     puts "kythera: incompatable extension '#{klass::NAME}'"
@@ -40,7 +40,7 @@ class Extension
 
                 abort if $config.me.unsafe_extensions == :die
 
-                true
+                true # Don't load
             end
         end
 
@@ -62,14 +62,14 @@ class Extension
         # Load the ones that passed verification
         $extensions.each do |klass|
             # Does this extension have a configuration block?
-            if $state[:ext_cfg] and $state[:ext_cfg][klass::NAME.to_sym]
-                klass.initialize($state[:ext_cfg][klass::NAME.to_sym])
+            if $state.ext_cfg and $state.ext_cfg[klass::NAME.to_sym]
+                klass.initialize($state.ext_cfg[klass::NAME.to_sym])
             else
                 klass.initialize
             end
         end
 
         # Clear the extension configuration blocks
-        $state.delete(:ext_cfg)
+        $state.ext_cfg = nil
     end
 end
