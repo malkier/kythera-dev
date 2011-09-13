@@ -18,7 +18,7 @@ context :uplink do
 
   context :recvq do
     hookup do
-      fp    = File.expand_path('protocol/ts6_burst.txt', File.dirname(__FILE__))
+      fp    = File.expand_path('protocol/ts6/burst.txt', File.dirname(__FILE__))
       burst = File.readlines(fp)
       topic.instance_variable_set(:@recvq, burst)
     end

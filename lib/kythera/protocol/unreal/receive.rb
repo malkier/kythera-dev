@@ -199,6 +199,25 @@ module Protocol::Unreal
             channel.add_user(user)
 
             if their_ts <= channel.timestamp
+                if op
+                  user.add_status_mode(channel, :operator)
+
+                  $eventq.post(:mode_added_on_channel,
+                              :operator, user, channel)
+                end
+
+                if voice
+                    user.add_status_mode(channel, :voice)
+
+                    $eventq.post(:mode_added_on_channel, :voice, user, channel)
+                end
+
+                if halfop
+                    user.add_status_mode(channel, :halfop)
+
+                    $eventq.post(:mode_added_on_channel, :halfop, user, channel)
+                end
+
                 if owner
                     user.add_status_mode(channel, :owner)
 
@@ -209,19 +228,6 @@ module Protocol::Unreal
                     user.add_status_mode(channel, :admin)
 
                     $eventq.post(:mode_added_on_channel, :admin, user, channel)
-                end
-
-                if op
-                    user.add_status_mode(channel, :operator)
-
-                    $eventq.post(:mode_added_on_channel,
-                                :operator, user, channel)
-                end
-
-                if voice
-                    user.add_status_mode(channel, :voice)
-
-                    $eventq.post(:mode_added_on_channel, :voice, user, channel)
                 end
             end
         end
