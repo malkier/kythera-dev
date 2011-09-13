@@ -31,10 +31,6 @@ context :unreal do
       topic.instance_variable_set(:@recvq, burst)
     end
 
-    $users.clear
-    $channels.clear
-    $servers.clear
-
     asserts('responds to irc_pass')   { topic.respond_to?(:irc_pass,   true) }
     asserts('responds to irc_server') { topic.respond_to?(:irc_server, true) }
     asserts('responds to irc_nick')   { topic.respond_to?(:irc_nick,   true) }

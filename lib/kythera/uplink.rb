@@ -40,7 +40,7 @@ class Uplink
 
         # Include the methods for the protocol we're using
         extend Protocol
-        extend Protocol.find(@config.protocol)
+        extend Protocol.find(@config.protocol) if @config.protocol
     end
 
     public

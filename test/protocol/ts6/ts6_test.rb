@@ -15,6 +15,11 @@ context :ts6 do
     $uplink = Uplink.new($config.uplinks[0])
   end
 
+  hookup do
+    require 'kythera/protocol/ts6'
+    $uplink.config.protocol = :ts6
+  end
+
   denies_topic.nil
   asserts_topic.kind_of Uplink
   asserts('protocol') { topic.config.protocol }.equals :ts6
@@ -27,7 +32,6 @@ context :ts6 do
     end
 
     asserts('responds to irc_pass')   { topic.respond_to?(:irc_pass,   true) }
-    denies('responds to irc_capab')   { topic.respond_to?(:irc_capab,  true) }
     asserts('responds to irc_server') { topic.respond_to?(:irc_server, true) }
     asserts('responds to irc_sid')    { topic.respond_to?(:irc_sid,    true) }
     asserts('responds to irc_uid')    { topic.respond_to?(:irc_uid,    true) }
