@@ -42,7 +42,7 @@ configure do
 
     # If you have any extensions that are installed from RubyGems,
     # you can require them here.
-    #@require 'extension_gem'
+    #require 'extension_gem'
 
     # This section of the configuration is dedicated to the general
     # behavior of the service as a whole.
@@ -207,6 +207,22 @@ configure do
         # large number of users connect within a short time period.
         #
         delay 2
+    end
+
+    # Do you want to enable the API server?
+    #
+    # This is used to integrate with external services, like a website. The
+    # API specification is not yet complete, so this isn't really useful to
+    # anyone yet. Keep an eye out though; it will be awesome.
+    #
+    extension :diakofti do
+        # What port do you want to run the TCP server on?
+        port 3000
+
+        # If you need to bind to a specific IP when connecting to the
+        # uplink specify it here. You can also specify a local port.
+        #
+        bind '127.0.0.1'
     end
 
     # This is an example configuration block for the example extension and

@@ -309,6 +309,15 @@ end
 # Directly reopening this module is possible, but not advisable.
 #
 module Kythera::Configuration::Daemon
+    # Reports an error about an unknown directive
+    def method_missing(meth, *args, &block)
+        begin
+            super
+        rescue NoMethodError
+            puts "kythera: unknown config directive 'daemon:#{meth}' (ignored)"
+        end
+    end
+
     # Adds methods to the parser from an arbitrary module
     #
     # @param [Module] mod the module containing methods to add
@@ -370,6 +379,15 @@ end
 # you should only need to use `use` once.
 #
 module Kythera::Configuration::Uplink
+    # Reports an error about an unknown directive
+    def method_missing(meth, *args, &block)
+        begin
+            super
+        rescue NoMethodError
+            puts "kythera: unknown config directive 'uplink:#{meth}' (ignored)"
+        end
+    end
+
     # Adds methods to the parser from an arbitrary module
     #
     # @param [Module] mod the module containing methods to add
