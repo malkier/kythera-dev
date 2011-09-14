@@ -13,8 +13,9 @@ require 'kythera'
 class Channel
     # InspIRCd has all sorts of crazy channel modes
     @@status_modes = { 'a' => :protected,
-                       'o' => :operator,
                        'h' => :halfop,
+                       'o' => :operator,
+                       'q' => :owner,
                        'v' => :voice }
 
     @@list_modes   = { 'b' => :ban,
@@ -24,10 +25,10 @@ class Channel
 
     @@param_modes  = { 'l' => :limited,
                        'k' => :keyed,
-                       'f' => :messageflood,
-                       'F' => :nickflood,
-                       'j' => :joinflood,
-                       'J' => :kicknorejoin,
+                       'f' => :flood_protection,
+                       'F' => :nick_flood,
+                       'j' => :join_flood,
+                       'J' => :kick_rejoin_protection,
                        'L' => :redirect }
 
     @@bool_modes   = { 'i' => :invite_only,
@@ -36,18 +37,18 @@ class Channel
                        'p' => :private,
                        's' => :secret,
                        't' => :topic_lock,
-                       'A' => :allowinvite,
-                       'B' => :blockcaps,
-                       'c' => :blockcolor,
-                       'C' => :noctcp,
-                       'D' => :delayjoin,
+                       'A' => :allow_invite,
+                       'B' => :block_caps,
+                       'c' => :block_color,
+                       'C' => :no_ctcp,
+                       'D' => :delay_join,
                        'G' => :censor,
                        'K' => :knock,
                        'R' => :registered_only,
-                       'S' => :stripcolor,
-                       'T' => :nonotice,
+                       'S' => :strip_color,
+                       'T' => :no_notice,
                        'u' => :auditorium,
-                       'y' => :operprefix,
+                       'y' => :oper_prefix,
                        'z' => :ssl_only }
 
     # The channel's timestamp

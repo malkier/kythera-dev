@@ -102,7 +102,7 @@ module Protocol::Unreal
     def irc_nick(origin, parv)
         if origin
             unless user = $users[origin]
-                $log.error "got nick change for non-existant nick: #{origin}"
+                $log.error "got nick change for non-existent nick: #{origin}"
                 return
             end
 
@@ -192,7 +192,7 @@ module Protocol::Unreal
             end
 
             unless user = $users[nick]
-                $log.error "got non-existant nick in SJOIN: #{nick}"
+                $log.error "got non-existent nick in SJOIN: #{nick}"
                 next
             end
 

@@ -15,42 +15,42 @@ module Protocol::InspIRCd
 
     # Handles an incoming SERVER
     #
-    # parv[0] -> server name
-    # parv[1] -> password
-    # parv[2] -> hops
-    # parv[3] -> sid
-    # parv[4] -> description
+    # Authentication:
+    #     parv[0] -> server name
+    #     parv[1] -> password
+    #     parv[2] -> hops
+    #     parv[3] -> sid
+    #     parv[4] -> description
+    #
+    # New server introduction:
+    #     origin  -> local SID
+    #     parv[0] -> server name
+    #     parv[1] -> *
+    #     parv[2] -> hops
+    #     parv[3] -> SID
+    #     parv[4] -> description
     #
     def irc_server(origin, parv)
         if origin
-            # If we have an origin, then this is a new server introduction.
-            # However this is a TS5 introduction, and we only support TS6-only
-            # networks, so spit out a warning and ignore it.
-            #
-            $log.warn 'got non-TS6 server introduction on TS6-only network:'
-            $log.warn "#{parv[0]} (#{parv[2]})"
-
-            return
-        end
-
-        # No origin means we're handshaking, so this must be our uplink
-        server = nil
-
-        if parv[1] != @config.receive_password
-            $log.error "incorrect password received from `#{@config.name}`"
-            self.dead = true
-        else
+            # New server introduction
             server = Server.new(parv[3])
-        end
+        else
+            if parv[1] != @config.receive_password
+                $log.error "incorrect password received from `#{@config.name}`"
+                self.dead = true
+            else
+                server = Server.new(parv[3])
+            end
 
-        # Make sure their name matches what we expect
-        unless parv[0] == @config.name
-            $log.error "name mismatch from uplink"
-            $log.error "#{parv[0]} != #{@config.name}"
+            # Make sure their name matches what we expect
+            unless parv[0] == @config.name
+                $log.error "name mismatch from uplink"
+                $log.error "#{parv[0]} != #{@config.name}"
 
-            self.dead = true
+                self.dead = true
 
-            return
+                return
+            end
         end
 
         server.name        = parv[0]
@@ -172,7 +172,7 @@ module Protocol::InspIRCd
                 # Maybe it's a nickname?
                 user = $users.values.find { |u| u.nickname == uid }
                 unless user
-                    $log.error "got non-existant UID in FJOIN: #{uid}"
+                    $log.error "got non-existent UID in FJOIN: #{uid}"
                     next
                 end
             end
@@ -239,7 +239,7 @@ module Protocol::InspIRCd
         return unless parv.length == 2 # We don't want TS5 introductions
 
         unless user = $users[origin]
-            $log.error "got nick change for non-existant UID: #{origin}"
+            $log.error "got nick change for non-existent UID: #{origin}"
             return
         end
 
