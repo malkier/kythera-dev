@@ -63,7 +63,11 @@ class Extension
         $extensions.each do |klass|
             # Does this extension have a configuration block?
             if $state.ext_cfg and $state.ext_cfg[klass::NAME.to_sym]
-                klass.initialize($state.ext_cfg[klass::NAME.to_sym])
+                cfg = $state.ext_cfg[klass::NAME.to_sym]
+
+                return unless klass.verify_configuration(cfg)
+
+                k = klass.initialize(cfg)
             else
                 klass.initialize
             end

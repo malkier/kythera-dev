@@ -87,13 +87,13 @@ module Log
     #
     def self.log_level=(level)
         case level
-            when :none    then $log       = nil
-            when :fatal   then $log.level = Logger::FATAL
-            when :error   then $log.level = Logger::ERROR
-            when :warning then $log.level = Logger::WARN
-            when :info    then $log.level = Logger::INFO
-            when :debug   then $log.level = Logger::DEBUG
-            else               $log.level = Logger::WARN
+            when :none    then self.logger = nil
+            when :fatal   then $log.level  = Logger::FATAL
+            when :error   then $log.level  = Logger::ERROR
+            when :warning then $log.level  = Logger::WARN
+            when :info    then $log.level  = Logger::INFO
+            when :debug   then $log.level  = Logger::DEBUG
+            else               $log.level  = Logger::WARN
         end
     end
 end
