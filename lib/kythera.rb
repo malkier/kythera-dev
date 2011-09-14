@@ -95,9 +95,6 @@ require 'kythera/timer'
 require 'kythera/uplink'
 require 'kythera/user'
 
-# Require all of our extensions
-Dir.glob(['extensions/**/extension.rb']) { |filepath| require filepath }
-
 # Starts the parsing of the configuraiton DSL
 #
 # @param [Proc] block contains the actual configuration code
@@ -236,28 +233,37 @@ module Kythera::Configuration
     # @param [Symbol] name the name of the extension
     #
     def extension(name, &block)
-        $state.ext_cfg ||= {}
+        # Start by loading the extension header
+        begin
+            require "extensions/#{name}/header"
+        rescue LoadError
+            puts "kythera: couldn't load extension header: #{name} (ignored)"
+            return
+        end
+
+        # That's all we need to do unless there's config to parse
+        return unless block_given?
 
         # Find the Extension's class
         ext = $extensions.find { |e| e::NAME == name }
 
-        unless ext
-            puts "kythera: unknown extension configuration: #{name} (ignored)"
-        else
-            begin
-                # Find the Extension's configuration methods
-                ext_config_parser = ext::Configuration
-            rescue NameError
-                puts "kythera: extension has no configuration handlers: #{name}"
-            else
-                # Parse the configuration block
-                ext_config = OpenStruct.new
-                ext_config.extend(ext_config_parser)
-                ext_config.instance_eval(&block)
+        $state.ext_cfg ||= {}
 
-                # Store it in $state.ext_cfg
-                $state.ext_cfg[ext::NAME] = ext_config
+        begin
+            # Find the Extensions's configuration methods
+            ext_config_parser = ext::Configuration
+        rescue NameError
+            if block_given?
+                puts "kythera: extension has no configuration handlers: #{name}"
             end
+        else
+            # Parse the configuration block
+            ext_config = OpenStruct.new
+            ext_config.extend(ext_config_parser)
+            ext_config.instance_eval(&block)
+
+            # Store it in $state.ext_cfg
+            $state.ext_cfg[ext::NAME] = ext_config
         end
     end
 
