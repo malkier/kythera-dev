@@ -15,8 +15,8 @@ require 'riot'
 #require 'riot/rr'
 
 # For all tests
-$config = nil
-$log    = Log::NilLogger.instance
+$config    = nil
+Log.logger = nil
 
 # These are defined here for easy use in setup blocks
 $_daemon_block = proc do
@@ -27,7 +27,7 @@ $_daemon_block = proc do
       name              'kythera.test'
       description       'kythera unit tester'
       admin             :rakaur, 'rakaur@malkier.net'
-      logging           :debug
+      logging           :warn
       unsafe_extensions :die
       reconnect_time    10
       verify_emails     false

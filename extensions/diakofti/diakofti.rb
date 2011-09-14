@@ -36,7 +36,7 @@ class Diakofti
 
         @socket = Server.new(sock)
 
-        puts "Diakofti extension loaded (version #{VERSION})"
+        $log.debug "Diakofti extension loaded (version #{VERSION})"
     end
 
     class Server < Extension::Socket
@@ -78,7 +78,7 @@ class Diakofti
         end
 
         def parse
-           puts "got data: #{@recvq}"
+           $log.debug "got data: #{@recvq}"
         end
     end
 end

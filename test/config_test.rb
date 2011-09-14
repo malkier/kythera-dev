@@ -29,7 +29,7 @@ context :configuration do
    asserts(:description)      .equals 'kythera unit tester'
    asserts(:admin_name)       .equals 'rakaur'
    asserts(:admin_email)      .equals 'rakaur@malkier.net'
-   asserts(:logging)          .equals :debug
+   asserts(:logging)          .equals :warn
    asserts(:unsafe_extensions).equals :die
    asserts(:reconnect_time)   .equals 10
    asserts(:mailer)           .equals '/usr/sbin/sendmail'

@@ -343,6 +343,10 @@ module Kythera::Configuration::Daemon
 
     def logging(level)
         self.logging = level
+
+        # Kythera.new will set this up fully later
+        Log.logger    = Logger.new($stdout)
+        Log.log_level = level
     end
 
     def unsafe_extensions(action)
@@ -415,7 +419,7 @@ module Kythera::Configuration::Uplink
         if defined?(OpenSSL)
             self.ssl = true
         else
-            puts "kythera: warning: SSL specified but OpenSSL not available"
+            $log.warn "OpenSSL is not available; SSL disabled for #{self.host}"
         end
     end
 

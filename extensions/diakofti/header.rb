@@ -27,11 +27,7 @@ class DiakoftiHeader < Extension
     # @return [Boolean] true or false
     #
     def self.verify_configuration(c)
-        if not c or not c.port then false else true end        #
-                #     false
-                # else
-                #     true
-                # end
+        if not c or not c.port then false else true end
     end
 
     # Our configuration methods
