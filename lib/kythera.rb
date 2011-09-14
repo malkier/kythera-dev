@@ -118,9 +118,6 @@ def configure(&block)
     # The configuration magic begins here...
     $config.instance_eval(&block)
 
-    # Make sure the configuration information is valid
-    Kythera.verify_configuration
-
     # Verify extension compatibility
     Extension.verify_and_load
 
@@ -157,12 +154,6 @@ class Kythera
 
     # Our name for things we print out
     ME = 'kythera'
-
-    # Verifies that the configuration isn't invalid or incomplete
-    def self.verify_configuration
-        # XXX - configuration verification
-        $config.uplinks.sort! { |a, b| a.priority <=> b.priority }
-    end
 end
 
 # Contains the methods that actually implement the configuration
@@ -298,6 +289,8 @@ module Kythera::Configuration
         ul.instance_eval(&block)
 
         (@uplinks ||= []) << ul
+
+        $config.uplinks.sort! { |a, b| a.priority <=> b.priority }
     end
 end
 

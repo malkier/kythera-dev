@@ -133,7 +133,7 @@ class Uplink
         begin
             data = @socket.read_nonblock(8192)
         rescue Errno::EAGAIN
-            retry # XXX - maybe add this back to the readfds?
+            return # Will go back to select and try again
         rescue Exception => err
             data = nil # Dead
         end
@@ -161,19 +161,20 @@ class Uplink
 
     # Writes the each "line" in the sendq to the socket
     def write
-        begin
-            # Use shift because we need it to fall off immediately
-            while line = @sendq.shift
-                $log.debug "<- #{line}"
-                line += "\r\n"
+        while line = @sendq.first
+            $log.debug "<- #{line}"
+            line += "\r\n"
+
+            begin
                 @socket.write_nonblock(line)
+            rescue Errno::EAGAIN
+                # Will go back to select and try again
+            rescue Exception => err
+                $log.error "write error to #{@config.name}: #{err}"
+                self.dead = true
+            else
+                @sendq.shift
             end
-        rescue Errno::EAGAIN
-            retry # XXX - maybe add this back to the writefds?
-        rescue Exception => err
-            $log.error "write error to #{@config.name}: #{err}"
-            self.dead = true
-            return
         end
     end
 

@@ -11,14 +11,14 @@ require 'kythera'
 class ShrikeService < Service
     private
 
-    # This is dangerous, and is only here for my testing purposes - XXX
+    # This is dangerous, and is only here for my testing purposes!
     def do_raw(user, params)
         return unless is_sra?(user.nickname)
 
         @uplink.raw(params.join(' '))
     end
 
-    # Extremely dangerous, this is here only for my testing purposes! - XXX
+    # Extremely dangerous, this is here only for my testing purposes!
     def do_eval(user, params)
         return unless is_sra?(user.nickname)
 
