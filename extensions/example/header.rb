@@ -1,6 +1,6 @@
 #
 # kythera: services for IRC networks
-# extensions/example/extension.rb: example extension
+# extensions/example/header.rb: example extension header
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
 # Rights to this code are documented in doc/license.txt

@@ -176,7 +176,7 @@ module Protocol::TS6
         return unless parv.length == 2 # We don't want TS5 introductions
 
         unless user = $users[origin]
-            $log.error "got nick change for non-existant UID: #{origin}"
+            $log.error "got nick change for non-existent UID: #{origin}"
             return
         end
 
@@ -242,7 +242,7 @@ module Protocol::TS6
                 user = $users.values.find { |u| u.nickname == uid }
 
                 unless user
-                    $log.error "got non-existant UID in SJOIN: #{uid}"
+                    $log.error "got non-existent UID in SJOIN: #{uid}"
                     next
                 end
             end

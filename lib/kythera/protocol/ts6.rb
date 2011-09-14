@@ -44,7 +44,7 @@ module Protocol::TS6
             if chanobj = $channels[channel]
                 channel = chanobj
             else
-                # This is a nonexistant channel
+                # This is a nonexistent channel
                 channel = Channel.new(channel)
             end
         end

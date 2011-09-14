@@ -108,8 +108,24 @@ class Kythera
             # If it's true we're connectED, if it's nil we're connectING
             connect until $uplink and $uplink.connected?
 
-            # Only check for writable if we have data waiting to be written
-            writefd = [$uplink.socket] if $uplink.need_write?
+            # Sockets to check for waiting data
+            readfds = []
+
+            # Sockets to check for writability
+            writefds = []
+
+            # Add the extension sockets to the mix
+            $extension_sockets.each do |es|
+                readfds << es.socket if es.need_read?
+            end
+
+            $extension_sockets.each do |es|
+                writefds << es.socket if es.need_write?
+            end
+
+            # Always check for read, and check for write when needed
+            readfds  << $uplink.socket
+            writefds << $uplink.socket if $uplink.need_write?
 
             # Ruby's threads suck. In theory, the timers should
             # manage themselves in separate threads. Unfortunately,
@@ -117,17 +133,32 @@ class Kythera
             # this tells select() to timeout when the next timer needs to run.
             #
             timeout = (Timer.next_time - Time.now.to_f).round
-            timeout = 1 if timeout == 0 # Don't want 0, that's forever
-            timeout = 60 if timeout < 0 # Less than zero means no timers
+            timeout = 1  if timeout == 0 # Don't want 0, that's forever
+            timeout = 60 if timeout  < 0 # Less than zero means no timers
 
             # Wait up to 60 seconds for our socket to become readable/writable
-            ret = IO.select([$uplink.socket], writefd, [], timeout)
+            ret = IO.select(readfds, writefds, [], timeout)
 
             # This means select timed out and there's no activity on the socket
             next unless ret
 
-            $eventq.post :socket_readable unless ret[0].empty?
-            $eventq.post :socket_writable unless ret[1].empty?
+            # Readable sockets
+            ret[0].each do |socket|
+               if socket == $uplink.socket
+                   $eventq.post(:socket_readable)
+               else
+                   $eventq.post(:extension_socket_readable, socket)
+               end
+            end
+
+            # Writable sockets
+            ret[1].each do |socket|
+                if socket == $uplink.socket
+                    $eventq.post(:socket_writable)
+                else
+                    $eventq.post(:extension_socket_writable, socket)
+                end
+            end
 
             # Run the event loop until it's empty
             $eventq.run while $eventq.needs_run?
@@ -152,12 +183,12 @@ class Kythera
             curruli += 1
             curruli  = 0 if curruli > ($config.uplinks.length - 1)
 
-            $eventq = EventQueue.new
+            $eventq.clear
             $uplink = Uplink.new($config.uplinks[curruli])
 
             sleep $config.me.reconnect_time
         else
-            $eventq = EventQueue.new
+            $eventq.clear
             $uplink = Uplink.new($config.uplinks[0])
         end
 

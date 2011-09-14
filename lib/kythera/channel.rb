@@ -144,8 +144,6 @@ class Channel
                 $log.debug "mode #{action}: #{self} -> #{mode} #{param}"
             end
 
-            # XXX - list modes
-
             # Status modes for users get tossed to another method so that
             # how they work can be monkeypatched by protocol modules
             #

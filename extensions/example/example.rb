@@ -10,9 +10,8 @@ require 'kythera'
 
 class ExampleExtension
     # If you get here, you're loaded and ready to go
-
     def initialize(config)
         @config = config
-        #puts "ExampleExtension has been initialized!"
+        puts "ExampleExtension has been initialized!"
     end
 end

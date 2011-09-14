@@ -6,7 +6,6 @@
 Extensions Interface
 ====================
 
-All files matching `extensions/**/extension.rb` are autoloaded.
 A good structure would be:
 
   * `extensions/my_extension/`

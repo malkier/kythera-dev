@@ -8,9 +8,6 @@
 
 require 'kythera'
 
-# The global EventQueue
-$eventq = nil
-
 # Contains information about a posted event
 class Event
     # The name of the event
@@ -40,10 +37,9 @@ class EventQueue
 
     # Creates a new EventQueue
     def initialize
-        @queue    = []
-        @handlers = {}
-
-        $log.debug 'new EventQueue'
+        @queue       = []
+        @handlers    = {}
+        @persistents = {}
     end
 
     public
@@ -68,6 +64,16 @@ class EventQueue
         #$log.debug "registered handler for event: #{event}"
     end
 
+    # Registers a handler for an event that persists
+    #
+    # @param [Symbol] event unique event name
+    # @param [Proc] block the handling code
+    #
+    def persistently_handle(event, &block)
+        (@persistents[event] ||= []) << block
+        #$log.debug "registered handler for event: #{event}"
+    end
+
     # Does the queue need emptied?
     #
     # @return [Boolean] true or false
@@ -76,16 +82,21 @@ class EventQueue
         @queue.empty? ? false : true
     end
 
+    # Clears non-persistent handlers
+    def clear
+        @handlers.clear
+    end
+
     # Goes through the event queue and runs the handlers
     def run
         while e = @queue.shift
-            unless @handlers[e.event]
-                #$log.debug "no handlers for event: #{e.event}"
-                next
+            if @handlers[e.event]
+                @handlers[e.event].each { |block| block.call(*e.args) }
+            elsif @persistents[e.event]
+                @persistents[e.event].each { |block| block.call(*e.args) }
+            else
+                next # No handlers
             end
-
-            #$log.debug "dispatching handlers for event: #{e.event}"
-            @handlers[e.event].each { |block| block.call(*e.args) }
         end
     end
 end

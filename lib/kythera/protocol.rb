@@ -68,7 +68,7 @@ module Protocol
             if chanobj = $channels[channel]
                 channel = chanobj
             else
-                # This is a nonexistant channel
+                # This is a nonexistent channel
                 channel = Channel.new(channel)
             end
         end
@@ -128,11 +128,11 @@ module Protocol
     # Finds a User and Channel or errors
     def find_user_and_channel(origin, name, command)
         unless user = $users[origin]
-            $log.error "got non-existant user in #{command}: #{origin}"
+            $log.error "got non-existent user in #{command}: #{origin}"
         end
 
         unless channel = $channels[name]
-            $log.error "got non-existant channel in #{command}: #{name}"
+            $log.error "got non-existent channel in #{command}: #{name}"
         end
 
         [user, channel]

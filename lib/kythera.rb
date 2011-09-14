@@ -85,6 +85,7 @@ require 'kythera/channel'
 require 'kythera/database'
 require 'kythera/event'
 require 'kythera/extension'
+require 'kythera/extension/socket'
 require 'kythera/protocol'
 require 'kythera/run'
 require 'kythera/securerandom'
@@ -94,9 +95,6 @@ require 'kythera/timer'
 require 'kythera/uplink'
 require 'kythera/user'
 
-# Require all of our extensions
-Dir.glob(['extensions/**/extension.rb']) { |filepath| require filepath }
-
 # Starts the parsing of the configuraiton DSL
 #
 # @param [Proc] block contains the actual configuration code
@@ -105,6 +103,7 @@ def configure(&block)
     # This is for storing random application states
     $state  = OpenStruct.new
     $config = Object.new
+    $eventq = EventQueue.new
 
     class << $config
         # Adds methods to the parser from an arbitrary module
@@ -119,9 +118,6 @@ def configure(&block)
     # The configuration magic begins here...
     $config.instance_eval(&block)
 
-    # Make sure the configuration information is valid
-    Kythera.verify_configuration
-
     # Verify extension compatibility
     Extension.verify_and_load
 
@@ -134,6 +130,7 @@ def configure_test(&block)
     unless $config
         $state  = OpenStruct.new
         $config = Object.new
+        $eventq = EventQueue.new
 
         $config.extend(Kythera::Configuration)
     end
@@ -150,19 +147,13 @@ class Kythera
     V_MINOR = 1
 
     # For minor changes and bugfixes
-    V_PATCH = 3
+    V_PATCH = 4
 
     # A String representation of the version number
     VERSION = "#{V_MAJOR}.#{V_MINOR}.#{V_PATCH}"
 
     # Our name for things we print out
     ME = 'kythera'
-
-    # Verifies that the configuration isn't invalid or incomplete
-    def self.verify_configuration
-        # XXX - configuration verification
-        $config.uplinks.sort! { |a, b| a.priority <=> b.priority }
-    end
 end
 
 # Contains the methods that actually implement the configuration
@@ -198,6 +189,9 @@ module Kythera::Configuration
             return
         end
 
+        # That's all we need to do unless there's config to parse
+        return unless block_given?
+
         # Find the Service's class
         srv = Service.services_classes.find { |s| s::NAME == name }
 
@@ -205,7 +199,9 @@ module Kythera::Configuration
             # Find the Service's configuration methods
             srv_config_parser = srv::Configuration
         rescue NameError
-            puts "kythera: service has no configuration handlers: #{name}"
+            if block_given?
+                puts "kythera: service has no configuration handlers: #{name}"
+            end
         else
             # Parse the configuration block
             srv_config = OpenStruct.new
@@ -233,28 +229,37 @@ module Kythera::Configuration
     # @param [Symbol] name the name of the extension
     #
     def extension(name, &block)
-        $state.ext_cfg ||= {}
+        # Start by loading the extension header
+        begin
+            require "extensions/#{name}/header"
+        rescue LoadError
+            puts "kythera: couldn't load extension header: #{name} (ignored)"
+            return
+        end
+
+        # That's all we need to do unless there's config to parse
+        return unless block_given?
 
         # Find the Extension's class
         ext = $extensions.find { |e| e::NAME == name }
 
-        unless ext
-            puts "kythera: unknown extension configuration: #{name} (ignored)"
-        else
-            begin
-                # Find the Extension's configuration methods
-                ext_config_parser = ext::Configuration
-            rescue NameError
-                puts "kythera: extension has no configuration handlers: #{name}"
-            else
-                # Parse the configuration block
-                ext_config = OpenStruct.new
-                ext_config.extend(ext_config_parser)
-                ext_config.instance_eval(&block)
+        $state.ext_cfg ||= {}
 
-                # Store it in $state.ext_cfg
-                $state.ext_cfg[ext::NAME] = ext_config
+        begin
+            # Find the Extensions's configuration methods
+            ext_config_parser = ext::Configuration
+        rescue NameError
+            if block_given?
+                puts "kythera: extension has no configuration handlers: #{name}"
             end
+        else
+            # Parse the configuration block
+            ext_config = OpenStruct.new
+            ext_config.extend(ext_config_parser)
+            ext_config.instance_eval(&block)
+
+            # Store it in $state.ext_cfg
+            $state.ext_cfg[ext::NAME] = ext_config
         end
     end
 
@@ -284,6 +289,8 @@ module Kythera::Configuration
         ul.instance_eval(&block)
 
         (@uplinks ||= []) << ul
+
+        $config.uplinks.sort! { |a, b| a.priority <=> b.priority }
     end
 end
 
@@ -302,6 +309,15 @@ end
 # Directly reopening this module is possible, but not advisable.
 #
 module Kythera::Configuration::Daemon
+    # Reports an error about an unknown directive
+    def method_missing(meth, *args, &block)
+        begin
+            super
+        rescue NoMethodError
+            puts "kythera: unknown config directive 'daemon:#{meth}' (ignored)"
+        end
+    end
+
     # Adds methods to the parser from an arbitrary module
     #
     # @param [Module] mod the module containing methods to add
@@ -327,6 +343,10 @@ module Kythera::Configuration::Daemon
 
     def logging(level)
         self.logging = level
+
+        # Kythera.new will set this up fully later
+        Log.logger    = Logger.new($stdout)
+        Log.log_level = level
     end
 
     def unsafe_extensions(action)
@@ -363,6 +383,15 @@ end
 # you should only need to use `use` once.
 #
 module Kythera::Configuration::Uplink
+    # Reports an error about an unknown directive
+    def method_missing(meth, *args, &block)
+        begin
+            super
+        rescue NoMethodError
+            puts "kythera: unknown config directive 'uplink:#{meth}' (ignored)"
+        end
+    end
+
     # Adds methods to the parser from an arbitrary module
     #
     # @param [Module] mod the module containing methods to add
@@ -390,7 +419,7 @@ module Kythera::Configuration::Uplink
         if defined?(OpenSSL)
             self.ssl = true
         else
-            puts "kythera: warning: SSL specified but OpenSSL not available"
+            $log.warn "OpenSSL is not available; SSL disabled for #{self.host}"
         end
     end
 

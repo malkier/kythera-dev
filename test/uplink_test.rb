@@ -14,7 +14,7 @@ context :uplink do
     $uplink = Uplink.new($config.uplinks[0])
   end
 
-  denies(:nil?)
+  denies_topic.nil
 
   context :recvq do
     hookup do
@@ -22,6 +22,7 @@ context :uplink do
       burst = File.readlines(fp)
       topic.instance_variable_set(:@recvq, burst)
     end
+
     setup { topic.instance_variable_get(:@recvq) }
 
     asserts_topic.kind_of Array

@@ -50,7 +50,7 @@ class User
         @ip        = ip
         @realname  = real
         @uid       = uid
-        @timestamp = ts
+        @timestamp = ts.to_i
         @modes     = []
 
         @status_modes = {}
@@ -65,6 +65,14 @@ class User
         $log.debug "new user: #{nick}!#{user}@#{host} (#{real}) [#{uid}]"
 
         $eventq.post(:user_added, self)
+    end
+
+    # Is this user an IRC operator?
+    #
+    # @return [Boolean] true or false
+    #
+    def operator?
+        @modes.include?(:operator)
     end
 
     # Our user's origin
