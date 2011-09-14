@@ -54,7 +54,7 @@ class ShrikeService < Service
 
         @config = $config.shrike
 
-        $log.info "Shrike Service loaded (version #{VERSION})"
+        $log.info "Shrike ervice loaded (version #{VERSION})"
 
         # Introduce our user in the burst
         $eventq.handle(:start_of_burst) do

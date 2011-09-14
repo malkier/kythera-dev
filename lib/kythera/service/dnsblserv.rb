@@ -58,7 +58,7 @@ class DNSBLService < Service
         # Number of users currently waiting to be checked
         @needs_checking = 0
 
-        $log.info "DNSBL Service loaded (version #{VERSION})"
+        $log.info "DNSBL service loaded (version #{VERSION})"
 
         # Listen for user connections
         $eventq.handle(:user_added) { |user| queue_user(user) }

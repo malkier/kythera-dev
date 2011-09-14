@@ -198,6 +198,9 @@ module Kythera::Configuration
             return
         end
 
+        # That's all we need to do unless there's config to parse
+        return unless block_given?
+
         # Find the Service's class
         srv = Service.services_classes.find { |s| s::NAME == name }
 
@@ -205,7 +208,9 @@ module Kythera::Configuration
             # Find the Service's configuration methods
             srv_config_parser = srv::Configuration
         rescue NameError
-            puts "kythera: service has no configuration handlers: #{name}"
+            if block_given?
+                puts "kythera: service has no configuration handlers: #{name}"
+            end
         else
             # Parse the configuration block
             srv_config = OpenStruct.new
