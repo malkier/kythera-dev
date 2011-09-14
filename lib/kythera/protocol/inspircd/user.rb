@@ -67,6 +67,14 @@ class User
         $eventq.post(:user_added, self)
     end
 
+    # Is this user an IRC operator?
+    #
+    # @return [Boolean] true or false
+    #
+    def operator?
+        @modes.include?(:operator)
+    end
+
     # Our user's origin
     def origin
         @uid
