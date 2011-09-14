@@ -52,10 +52,10 @@ context :unreal do
 
       denies_topic.nil
       denies_topic.empty
-      asserts_topic.size 11
+      asserts(:size) { topic.length }.equals 11
 
       context :first do
-        setup { topic.first }
+        setup { topic.find { |s| s.name == 'test.server.com' } }
 
         denies_topic.nil
         asserts_topic.kind_of Server
@@ -72,7 +72,7 @@ context :unreal do
       end
 
       context :second do
-        setup { topic[1] }
+        setup { topic.find { |s| s.name == 'test.server1.com' } }
 
         denies_topic.nil
         asserts_topic.kind_of Server
@@ -85,10 +85,10 @@ context :unreal do
 
           denies_topic.nil
           denies_topic.empty
-          asserts_topic.size 10
+          asserts(:size) { topic.length }.equals 10
 
-          context :second do
-            setup { topic.first }
+          context :first do
+            setup { topic.find { |s| s.nickname == 'rakaur' } }
 
             denies_topic.nil
             asserts_topic.kind_of User
@@ -110,10 +110,10 @@ context :unreal do
       setup { $users.values }
 
       denies_topic.empty
-      asserts_topic.size 100
+      asserts(:size) { topic.length }.equals 100
 
       context :first do
-        setup { topic.first }
+        setup { topic.find { |u| u.nickname == 'rakaur' } }
 
         denies_topic.nil
         asserts_topic.kind_of User
@@ -151,10 +151,10 @@ context :unreal do
       setup { $channels.values }
 
       denies_topic.empty
-      asserts_topic.size 100
+      asserts(:size) { topic.length }.equals 100
 
       context :first do
-        setup { topic.first }
+        setup { topic.find { |c| c.name == '#malkier' } }
 
         denies_topic.nil
         asserts_topic.kind_of Channel

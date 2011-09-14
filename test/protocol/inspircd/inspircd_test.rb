@@ -52,10 +52,10 @@ context :inspircd do
 
       denies_topic.nil
       denies_topic.empty
-      asserts_topic.size 11
+      asserts(:size) { topic.length }.equals 11
 
       context :first do
-        setup { topic.first }
+        setup { topic.find { |s| s.sid == '0X0' } }
 
         denies_topic.nil
         asserts_topic.kind_of Server
@@ -73,7 +73,7 @@ context :inspircd do
       end
 
       context :second do
-        setup { topic[1] }
+        setup { topic.find { |s| s.sid == '0AA' } }
 
         denies_topic.nil
         asserts_topic.kind_of Server
@@ -87,10 +87,10 @@ context :inspircd do
 
           denies_topic.nil
           denies_topic.empty
-          asserts_topic.size 10
+          asserts(:size) { topic.length }.equals 10
 
           context :first do
-            setup { topic.first }
+            setup { topic.find { |u| u.uid == '0AAAAAAAA' } }
 
             denies_topic.nil
             asserts_topic.kind_of User
@@ -112,10 +112,10 @@ context :inspircd do
       setup { $users.values }
 
       denies_topic.empty
-      asserts_topic.size 100
+      asserts(:size) { topic.length }.equals 100
 
       context :first do
-        setup { topic.first }
+        setup { topic.find { |u| u.uid == '0AAAAAAAA' } }
 
         denies_topic.nil
         asserts_topic.kind_of User
@@ -153,10 +153,10 @@ context :inspircd do
       setup { $channels.values }
 
       denies_topic.empty
-      asserts_topic.size 100
+      asserts(:size) { topic.length }.equals 100
 
       context :first do
-        setup { topic.first }
+        setup { topic.find { |c| c.name == '#malkier' } }
 
         denies_topic.nil
         asserts_topic.kind_of Channel
