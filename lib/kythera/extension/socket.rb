@@ -29,6 +29,10 @@ class Extension::Socket
             write if socket == @socket
         end
 
+        $eventq.persistently_handle(:extension_socket_recvq_ready) do |socket|
+            parse if socket == @socket
+        end
+
         $extension_sockets << self
     end
 
@@ -52,12 +56,39 @@ class Extension::Socket
 
     private
 
-    # The extension should override these
+    # We provide a basic read method, but the extension is free to override it
     def read
-        $log.error "an extension forgot to override Extension::Socket#read"
+        begin
+            @recvq << @socket.read_nonblock(8192)
+        rescue Errno::EAGAIN
+            return # Will go back to select and try again
+        rescue Exception => err
+            @socket.close
+            $extension_sockets.delete(self)
+        else
+            parse
+        end
     end
 
+    # We provide a basic write method, but the extension is free to override it
     def write
-        $log.error "an extension forgot to override Extension::Socket#write"
+        while line = @sendq.first
+            begin
+                @socket.write_nonblock(line)
+            rescue Errno::EAGAIN
+                return # Will go back to select and try again
+            rescue Exception => err
+                @socket.close
+                $extension_sockets.delete(self)
+            else
+                @sendq.shift
+            end
+        end
+
+        $eventq.post(:extension_socket_recvq_ready, @socket)
+    end
+
+    def parse
+        $log.error "an extension forgot to override Extension::Socket#parse"
     end
 end

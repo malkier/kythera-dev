@@ -42,6 +42,11 @@ List of Events
     * the recvq has data ready to be parsed
     * params:
       * _none_
+  
+  * extension\_socket\_recvq\_ready
+    * the recvq has data ready to be parsed
+    * params:
+      * the socket that is ready
 
   * start\_of\_burst
     * the service is starting to receive/send the connection burst

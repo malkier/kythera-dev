@@ -64,21 +64,10 @@ class Diakofti
 
         private
 
-        def read
-            begin
-                @recvq = @socket.read_nonblock(8192)
-            rescue Errno::EAGAIN
-                return # Will go back to select and try again
-            rescue Exception => err
-                @socket.close
-                $extension_sockets.delete(self)
-            else
-                parse
-            end
-        end
-
         def parse
-           $log.debug "got data: #{@recvq}"
+           while line = @recvq.shift
+               $log.debug "parsing: #{line}"
+           end
         end
     end
 end

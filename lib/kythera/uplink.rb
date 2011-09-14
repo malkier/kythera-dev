@@ -168,7 +168,7 @@ class Uplink
             begin
                 @socket.write_nonblock(line)
             rescue Errno::EAGAIN
-                # Will go back to select and try again
+                return # Will go back to select and try again
             rescue Exception => err
                 $log.error "write error to #{@config.name}: #{err}"
                 self.dead = true
