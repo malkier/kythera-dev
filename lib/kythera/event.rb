@@ -91,8 +91,10 @@ class EventQueue
     def run
         while e = @queue.shift
             if @handlers[e.event]
+                #$log.debug "dispatching handlers for event: #{e.event}"
                 @handlers[e.event].each { |block| block.call(*e.args) }
             elsif @persistents[e.event]
+                #$log.debug "dispatching persistents for event: #{e.event}"
                 @persistents[e.event].each { |block| block.call(*e.args) }
             else
                 next # No handlers

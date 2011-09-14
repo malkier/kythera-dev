@@ -63,10 +63,12 @@ class Extension::Socket
         rescue Errno::EAGAIN
             return # Will go back to select and try again
         rescue Exception => err
+            $log.debug "extension socket: lost client '#{@socket.peeraddr[3]}'"
+
             @socket.close
             $extension_sockets.delete(self)
         else
-            parse
+            $eventq.post(:extension_socket_recvq_ready, @socket)
         end
     end
 
@@ -84,8 +86,6 @@ class Extension::Socket
                 @sendq.shift
             end
         end
-
-        $eventq.post(:extension_socket_recvq_ready, @socket)
     end
 
     def parse

@@ -52,6 +52,7 @@ class Diakofti
             rescue Errno::EAGAIN
                 return # Will go back to select and try again
             else
+                $log.info "diakofti: new client from #{newsock.peeraddr[3]}"
                 Client.new(newsock)
             end
         end
@@ -66,6 +67,7 @@ class Diakofti
 
         def parse
            while line = @recvq.shift
+               line.chomp!
                $log.debug "parsing: #{line}"
            end
         end
