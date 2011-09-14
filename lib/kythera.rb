@@ -147,7 +147,7 @@ class Kythera
     V_MINOR = 1
 
     # For minor changes and bugfixes
-    V_PATCH = 3
+    V_PATCH = 4
 
     # A String representation of the version number
     VERSION = "#{V_MAJOR}.#{V_MINOR}.#{V_PATCH}"
