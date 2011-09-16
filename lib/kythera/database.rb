@@ -9,7 +9,12 @@
 
 require 'kythera'
 
-$db = Sequel.sqlite('db/kythera.db')
+# JRuby needs special database adapters
+if defined?(JRUBY_VERSION)
+    $db = Sequel.connect('jdbc:sqlite:db/kythera.db')
+else
+    $db = Sequel.connect('sqlite:db/kythera.db')
+end
 
 # Namespace to bind objects to the database
 module Database
