@@ -54,44 +54,15 @@ for TS6-only networks. If you link a non-TS6 server, Kythera will ignore it.
 
 ## Authors ##
 
-<table border='0'>
-  <tr>
-    <th>role</th>
-    <th>nickname</th>
-    <th>realname</th>
-    <th>email</th>
-  </tr>
-  <tr>
-    <td>Lead Developer</td>
-    <td>rakaur</td>
-    <td>Eric Will</td>
-    <td>rakaur.at.malkier.dot.net</td>
-  </tr>
-  <tr>
-    <td>Developer</td>
-    <td>sycobuny</td>
-    <td>Stephen Belcher</td>
-    <td>sycobuny.at.malkier.dot.net</td>
-  </tr>
-  <tr>
-    <td>Developer</td>
-    <td>andrew</td>
-    <td>Andrew Herbig</td>
-    <td>goforit7arh.at.gmail.dot.com</td>
-  </tr>
-  <tr>
-    <td>Contributor</td>
-    <td>xiphias</td>
-    <td>Michael Rodriguez</td>
-    <td>xiphias.at.khaydarin.dot.net</td>
-  </tr>
-  <tr>
-    <td>Tester</td>
-    <td>rintaun</td>
-    <td>Matt Lanigan</td>
-    <td>rintaun.at.projectxero.dot.net</td>
-  </tr>
-</table>
+|----------------+----------+-------------------+--------------------------------|
+| role           | nickname | realname          | email                          |
+|----------------|----------|-------------------|--------------------------------|
+| Lead Developer | rakaur   | Eric Will         | rakaur.at.malkier.dot.net      |
+| Developer      | sycobuny | Stephen Belcher   | sycobuny.at.malkier.dot.net    |
+| Developer      | andrew   | Andrew Herbig     | goforit7arh.at.gmail.dot.com   |
+| Contributor    | xiphias  | Michael Rodriguez | xiphias.at.khaydarin.dot.net   |
+| Tester         | rintaun  | Matt Lanigan      | rintaun.at.projectxero.dot.net |
+|----------------+----------+-------------------+--------------------------------|
 
 ## Download ##
 
