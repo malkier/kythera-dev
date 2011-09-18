@@ -9,8 +9,8 @@
 
 require 'kythera'
 
-# This reopens the base Server class in `kythera/server.rb`
-class Server
+# This subclasses the base Server class in `kythera/server.rb`
+class Protocol::Unreal::Server < Server
     # Creates a new Server and adds it to the list keyed by name
     def initialize(name)
         @name   = name

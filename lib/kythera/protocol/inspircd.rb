@@ -9,6 +9,9 @@
 
 require 'kythera'
 
+module Protocol::InspIRCd
+end
+
 require 'kythera/protocol/inspircd/channel'
 require 'kythera/protocol/inspircd/send'
 require 'kythera/protocol/inspircd/server'

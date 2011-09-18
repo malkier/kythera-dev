@@ -8,6 +8,9 @@
 
 require 'kythera'
 
+module Protocol::TS6
+end
+
 require 'kythera/protocol/ts6/channel'
 require 'kythera/protocol/ts6/send'
 require 'kythera/protocol/ts6/server'

@@ -8,8 +8,8 @@
 
 require 'kythera'
 
-# This reopens the base Channel class in `kythera/channel.rb`
-class Channel
+# This subclasses the base Channel class in `kythera/channel.rb`
+class Protocol::TS6::Channel < Channel
     # TS6 has except and invex as well as ban
     @@list_modes = { 'b' => :ban,
                      'e' => :except,

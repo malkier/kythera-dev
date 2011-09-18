@@ -9,8 +9,8 @@
 
 require 'kythera'
 
-# This reopens the base Channel class in `kythera/channel.rb`
-class Channel
+# This subclasses the base Channel class in `kythera/channel.rb`
+class Protocol::InspIRCd::Channel < Channel
     # InspIRCd has all sorts of crazy channel modes
     @@status_modes = { 'a' => :protected,
                        'h' => :halfop,

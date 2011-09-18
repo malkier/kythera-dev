@@ -8,10 +8,10 @@
 
 require 'kythera'
 
-# A list of all servers. The protocol module should decide what the key is.
+# A list of all servers; keyed by server name by default
 $servers = IRCHash.new
 
-# This is just a base class. All protocol module should monkeypatch this.
+# This is just a base class; protocol module should subclass this
 class Server
     # The server's name
     attr_accessor :name

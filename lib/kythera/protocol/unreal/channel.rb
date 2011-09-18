@@ -9,8 +9,8 @@
 
 require 'kythera'
 
-# This reopens the base Channel class in `kythera/channel.rb`
-class Channel
+# This subclasses the base Channel class in `kythera/channel.rb`
+class Protocol::Unreal::Channel < Channel
     # Unreal has all sorts of crazy channel modes
     @@status_modes = { 'q' => :owner,
                        'a' => :admin,

@@ -41,9 +41,9 @@ module Protocol
     # @param [String] message the message to send
     #
     def privmsg(user, target, message)
-        target = target.origin if target.kind_of?(User)
+        target = target.key if target.kind_of?(User)
         target = target.name   if target.kind_of?(Channel)
-        send_privmsg(user.origin, target, message)
+        send_privmsg(user.key, target, message)
     end
 
     # Sends a NOTICE to a user
@@ -53,9 +53,9 @@ module Protocol
     # @param [String] message the message to send
     #
     def notice(user, target, message)
-        target = target.origin if target.kind_of?(User)
+        target = target.key if target.kind_of?(User)
         target = target.name   if target.kind_of?(Channel)
-        send_notice(user.origin, target, message)
+        send_notice(user.key, target, message)
     end
 
     # Makes one of our clients join a channel
@@ -73,7 +73,7 @@ module Protocol
             end
         end
 
-        send_join(user.origin, channel.name)
+        send_join(user.key, channel.name)
 
         channel.add_user(user)
 
@@ -95,7 +95,7 @@ module Protocol
 
         return unless @user.is_on?(channel)
 
-        send_part(user.origin, channel.name, reason)
+        send_part(user.key, channel.name, reason)
 
         channel.delete_user(user)
     end
@@ -106,7 +106,7 @@ module Protocol
     # @param [String] reason quit reason if any
     #
     def quit(user, reason = 'signed off')
-        send_quit(user.origin, reason)
+        send_quit(user.key, reason)
     end
 
     # Makes one of our clients set a channel topic
@@ -120,7 +120,7 @@ module Protocol
             return unless channel = $channels[channel]
         end
 
-        send_topic(user.origin, channel.name, topic)
+        send_topic(user.key, channel.name, topic)
     end
 
     private

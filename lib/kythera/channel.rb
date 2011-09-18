@@ -8,10 +8,10 @@
 
 require 'kythera'
 
-# A list of all channels. The key is the channel name by default
+# A list of all channels; keyed by channel name by default
 $channels = IRCHash.new
 
-# This is just a base class. All protocol module should monkeypatch this.
+# This is just a base class; protocol module should subclass this
 class Channel
     # Standard IRC status cmodes
     @@status_modes = { 'o' => :operator,
@@ -45,9 +45,6 @@ class Channel
 
     # If the channel is +k, this is the key
     attr_reader :key
-
-    # If the channel is +l, this is the limit
-    attr_reader :limit
 
     # A Hash of members keyed by nickname
     attr_reader :members
@@ -163,7 +160,7 @@ class Channel
     # @param [User] user the User to add
     #
     def add_user(user)
-        @members[user.origin] = user
+        @members[user.key] = user
 
         $log.debug "user joined #{self}: #{user} (#{@members.length})"
 
@@ -175,7 +172,7 @@ class Channel
     # @param [User] user User object to delete
     #
     def delete_user(user)
-        @members.delete user.origin
+        @members.delete(user.key)
 
         user.status_modes.delete(self)
 

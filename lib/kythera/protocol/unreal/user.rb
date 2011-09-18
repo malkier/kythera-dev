@@ -9,8 +9,8 @@
 
 require 'kythera'
 
-# This reopens the base User class in `kythera/user.rb`
-class User
+# This subclasses the base User class in `kythera/user.rb`
+class Protocol::Unreal::User < User
     # The user's timestamp
     attr_reader :timestamp, :vhost, :cloakhost
 
@@ -44,8 +44,8 @@ class User
                      'z' => :ssl }
 
     # Creates a new user and adds it to the list keyed by nick
-    def initialize(server, nick, user, host, real, umodes, ts,
-                       vhost=nil, cloakhost=nil)
+    def initialize(server, nick, user, host, real, umodes, ts, vhost = nil,
+                   cloakhost = nil)
         @server    = server
         @nickname  = nick
         @username  = user
@@ -77,8 +77,8 @@ class User
         @modes.include?(:global_oper)
     end
 
-    # Our user's origin
-    def origin
+    # The value we use to represent our membership in a Hash
+    def key
         @nickname
     end
 end
