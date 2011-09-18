@@ -1,0 +1,37 @@
+!!!
+%html{:lang => :en}
+  %head
+    %meta{:charset => 'utf-8'}
+    %link{:rel => :stylesheet, :href => 'default.css'}
+
+    %title malkier/kythera @ GitHub
+
+  %body
+    %a{:href => 'http://github.com/malkier/kythera'}
+      %img{:style => 'position: absolute; top: 0; right: 0; border: 0', :src => 'http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png', :alt => 'Fork me on GitHub'}
+
+  #container
+    .download
+      %a{:href => 'http://github.com/malkier/kythera/zipball/master'}<
+        %img{:border => 0, :width => 90, :src => 'http://github.com/images/modules/download/zip.png'}
+      %a{:href => 'http://github.com/malkier/kythera/tarball/master'}<
+        %img{:border => 0, :width => 90, :src => 'http://github.com/images/modules/download/tar.png'}
+
+    %h1
+      %a{:href => 'http://github.com/malkier/kythera'} kythera
+      %span.small<
+        by
+        %a{:href => 'http://github.com/malkier'} malkier
+
+    .description services for IRC networks
+
+    = yield
+
+    .footer
+      get the source code on GitHub :
+      %a{:href => 'http://github.com/malkier/kythera'} malkier/kythera
+      %br
+      %br
+      %a{:href => 'http://www.malkier.net'} tai'shar malkier
+      %br
+      %br

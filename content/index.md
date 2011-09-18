@@ -1,8 +1,3 @@
----
-layout: default
-title: Kythera IRC Services
----
-
 Kythera is a set of services for IRC networks. Kythera is extremely extensible
 and is not limited to providing a specific set of services such as `NickServ`,
 `ChanServ` vs. Undernet-style `X`, etc. You can configure the service to offer
