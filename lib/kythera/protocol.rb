@@ -6,8 +6,7 @@
 # Rights to this code are documented in doc/license.txt
 #
 
-require 'kythera/protocol/send'
-require 'kythera/protocol/receive'
+require 'kythera'
 
 module Protocol
     # Removes the first character of the string

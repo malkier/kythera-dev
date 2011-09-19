@@ -8,6 +8,7 @@
 
 require 'kythera'
 
+# The current uplink; it's a global because extensions etc need it
 $uplink = nil
 
 # Represents the interface to the remote IRC server

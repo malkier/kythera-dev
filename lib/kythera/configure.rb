@@ -6,6 +6,8 @@
 # Rights to this code are documented in doc/license.txt
 #
 
+require 'kythera'
+
 # Starts the parsing of the configuraiton DSL
 #
 # @param [Proc] block contains the actual configuration code

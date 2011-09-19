@@ -34,5 +34,3 @@ module Database
         '%03d' % @@version
     end
 end
-
-require 'kythera/database/account'
