@@ -16,26 +16,22 @@ else
     $db = Sequel.connect('sqlite:db/kythera.db')
 end
 
-# Namespace to bind objects to the database
+#
+# A namespace to encapsulate all database-related modules and classes. The API
+# specified here should be transaction-safe and immediately write changes made.
+# This makes the service stay in sync with the database, and any crashes should
+# not cause data loss.
+#
 module Database
+    #
     # Returns the loaded version of the schema. This is useful for extensions
     # that are loading models into the database, or just for the curious.
+    #
+    # @return [String] A 3-digit number of the schema version
+    #
     def self.version
         @@version ||= $db['SELECT * FROM schema_info'].first[:version]
         '%03d' % @@version
-    end
-
-    # DRY - this code was duplicated in all *Flag objects
-    module GenericFlag
-        # Converts to a String
-        def to_s
-            flag
-        end
-
-        # Converts to a Symbol
-        def to_sym
-            flag.to_sym
-        end
     end
 end
 
