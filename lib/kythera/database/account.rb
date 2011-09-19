@@ -9,21 +9,84 @@
 
 require 'kythera'
 
-# This is the core Account model which all services and extensions should use
-# for user management. While you can push directly into the database using
-# built-in Sequel ORM magic, it's advised you treat the class as read-only
-# except for the API specified here.
-#
-
 module Database
+    #
+    # This class provides the core functionality of an account system, which can
+    # be proxied by any number of services in any number of ways. It allows for
+    # registering new lookup methods at runtime, so that a service can register
+    # a new way to find users if it needs or wants to. It also provides a hook
+    # to ensure accounts can clean up their own models before an account that
+    # they depend on is dropped.
+    #
+    # Another feature is account validation. While this class does not enforce
+    # any restrictions on logging in or performing any functions before an
+    # account is validated, other services may access that information and
+    # restrict the users however they would like.
+    #
     class Account < Sequel::Model
         one_to_many :account_fields
 
+        #
+        # The base error class for anything that might go wrong in Account. It
+        # should probably not be used directly.
+        #
+        # @private
+        #
+        class Error < Exception; end
+
+        #
+        # When a login is already registered and somone attempts to re-register
+        # it, this error will be raised.
+        #
+        class LoginExistsError      < Exception; end
+
+        #
+        # When a bad password is given, this error will be raised.
+        #
+        class PasswordMismatchError < Exception; end
+
+        #
+        # When a bad validation token is given, this error will be raised.
+        #
+        class BadValidationError    < Exception; end
+
+        #
+        # When someone attempts to perform a function on a bad login, this error
+        # will be raised.
+        #
+        class NoSuchLoginError      < Exception; end
+
+        #
+        # The list of resolve handlers which will be called by Account.resolve.
+        #
+        # @private
+        #
         @@resolvers = []
+
+        #
+        # The list of handlers that will be called to clean up the database
+        # state before an account is dropped.
+        #
+        # @private
+        #
         @@droppers  = []
+
+        #
+        # A class-wide hash so that non-cached Sequel Model objects can still
+        # refer to the same list of users if they're the same account.
+        #
+        # @private
+        #
         @@users     = {}
 
-        def intialize(*args)
+        #
+        # Initializes the object, registering an array for storing related user
+        # objects if one doesn't already exist, and creating an empty helper
+        # array for later.
+        #
+        # @private
+        #
+        def initialize(*args)
             super
 
             @@users[id] ||= []
@@ -450,12 +513,17 @@ module Database
             @@users[id]
         end
 
-        class LoginExistsError      < Exception; end
-        class PasswordMismatchError < Exception; end
-        class BadValidationError    < Exception; end
-        class NoSuchLoginError      < Exception; end
-
+        #
+        # This class simplifies helper generation slightly by making the
+        # associated Account object available automatically in @account.
+        #
         class Helper
+            #
+            # Initialize a new Helper for a given account.
+            #
+            # @param [Account] account The account to register to this helper.
+            # @private
+            #
             def initialize(account)
                 @account = account
             end
@@ -465,16 +533,37 @@ module Database
         private
         #######
 
+        #
+        # Encrypts a plaintext password using a salt.
+        #
+        # @private
+        # @param [String] salt The salt used to encrypt the password
+        # @param [String] password The plaintext password to be encrypted
+        # @return [String] The encrypted password
+        #
         def self.encrypt(salt, password)
             saltbytes = salt.unpack('m')[0]
             Digest::SHA2.hexdigest(saltbytes + password)
         end
 
+        #
+        # Encrypts a plaintext password
+        #
+        # @private
+        # @param [String] password The plaintext password to be encrypted
+        # @return [String] The encrypted password
+        #
         def encrypt(password)
             self.class.encrypt(self.salt, password)
         end
     end
 
+    #
+    # This is the model that represents an arbitrary field for an account in the
+    # database. Probably should not be used directly.
+    #
+    # @private
+    #
     class AccountField < Sequel::Model
         many_to_one :account
     end
