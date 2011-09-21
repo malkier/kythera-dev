@@ -247,7 +247,7 @@ module Database
             #
             def self.revoke(account, privilege)
                 account = Account.resolve(account)
-                account.delete("#{PREFIX}.#{privilege}")
+                account.delete_flag("#{PREFIX}.#{privilege}")
             end
 
             #
@@ -443,8 +443,7 @@ module Database
 
             # find channel ids where there are no successors
             drops = Hash(ids.zip([]).flatten)
-            del = succ_privs.group_by(:channel_id)
-            del = del.having { count(:*) > 0 }
+            del = succ_privs.group_by(:channel_id).having { count(:*) > 0 }
             del.all.collect { |privilege| drops.delete(privilege.channel_id) }
             drops = drops.keys
 

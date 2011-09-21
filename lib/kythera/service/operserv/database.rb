@@ -46,7 +46,7 @@ module Database
         #   OperatorService.revoke(account, :stats)
         #
         def self.revoke(account, privilege)
-            account.delete("#{PRIV_PREFIX}.#{privilege}")
+            account.delete_flag("#{PRIV_PREFIX}.#{privilege}")
         end
 
         #

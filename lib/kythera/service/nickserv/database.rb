@@ -138,8 +138,7 @@ module Database
                 nickname = ds.first
                 nickname.delete
 
-                if account.nicknames.length
-                end
+                Account.admin_drop(account) if account.nicknames.empty?
             end
 
             #
@@ -191,7 +190,7 @@ module Database
             #   Nickname.disable_hold(account)
             #
             def self.disable_hold(account)
-                account.delete("#{PREFIX}.hold")
+                account.delete_flag("#{PREFIX}.hold")
             end
 
             #
