@@ -171,9 +171,9 @@ module Database
             raise LoginExistsError unless self.where(:login => login).empty?
 
             now  = Time.now
-            salt = SecureRandom.base64(256)
-            pass = encrypt(salt, password)
-            vt   = Digest::SHA2.hexdigest("--#{pass}--#{now.to_s}--")
+            salt = SecureRandom.base64(192)
+            pass = hash_password(salt, password)
+            vt   = SecureRandom.base64(12)
 
             account = new
             account.login        = login
@@ -310,7 +310,7 @@ module Database
         #   account.authenticates?('stevesucks')     # false
         #
         def authenticates?(password)
-            self.password == encrypt(password)
+            self.password == hash_password(password)
         end
 
         #
@@ -327,8 +327,6 @@ module Database
         #   account.authenticate('steveisawesome')
         #
         def authenticate(password)
-            pass = encrypt(password)
-
             if authenticates?(password)
                 self.update(:last_login => Time.now, :failed_logins => 0)
                 @authenticated = true
@@ -534,27 +532,27 @@ module Database
         #######
 
         #
-        # Encrypts a plaintext password using a salt.
+        # Hashes a plaintext password using a salt.
         #
         # @private
-        # @param [String] salt The salt used to encrypt the password
-        # @param [String] password The plaintext password to be encrypted
-        # @return [String] The encrypted password
+        # @param [String] salt The salt used to hash the password
+        # @param [String] password The plaintext password to be hashed
+        # @return [String] The hashed password
         #
-        def self.encrypt(salt, password)
+        def self.hash_password(salt, password)
             saltbytes = salt.unpack('m')[0]
             Digest::SHA2.hexdigest(saltbytes + password)
         end
 
         #
-        # Encrypts a plaintext password
+        # Hashes a plaintext password
         #
         # @private
-        # @param [String] password The plaintext password to be encrypted
-        # @return [String] The encrypted password
+        # @param [String] password The plaintext password to be hashed
+        # @return [String] The hashed password
         #
-        def encrypt(password)
-            self.class.encrypt(self.salt, password)
+        def hash_password(password)
+            self.class.hash_password(self.salt, password)
         end
     end
 
