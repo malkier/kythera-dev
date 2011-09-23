@@ -241,9 +241,15 @@ class Uplink
         ctx.options    |= OpenSSL::SSL::OP_ALL
 
         socket = OpenSSL::SSL::SSLSocket.new(@socket, ctx)
-        socket.sync_close = true
-        socket.connect
 
-        @socket = socket
+        begin
+            socket.connect
+            socket.sync_close = true
+        rescue Exception => err
+            $log.error 'SSL failed to connect'
+            self.dead = true
+        else
+            @socket = socket
+        end
     end
 end

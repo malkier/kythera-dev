@@ -215,15 +215,32 @@ configure do
     # API specification is not yet complete, so this isn't really useful to
     # anyone yet. Keep an eye out though; it will be awesome.
     #
-    extension :diakofti do
+    #extension :diakofti do
         # What port do you want to run the TCP server on?
-        port 3000
+    #    port 3000
 
         # If you need to bind to a specific IP when connecting to the
         # uplink specify it here. You can also specify a local port.
         #
-        bind '127.0.0.1'
-    end
+    #    bind '127.0.0.1'
+
+        # The information we need for serving TLS/SSL
+        #
+        # If you're like most people you'll need to generate
+        # your own, self-signed certificate rather than pay
+        # an absurd sum of money to some company. In order to
+        # do this you need to run something along the lines of:
+        #
+        #     openssl req -new -x509 -days 365 -sha1 -newkey rsa:1024 \
+        #                 -nodes -keyout server.key -out server.crt \
+        #                 -subj '/O=Company/OU=Department/CN=xmpp.example.com'
+        #
+        # Use the resulting "server.crt" file for ssl_certificate.
+        # Use the resulting "server.key" file for ssl_private_key.
+        #
+    #    ssl_certificate 'extensions/diakofti/server.crt'
+    #    ssl_private_key 'extensions/diakofti/server.key'
+    #end
 
     # This is an example configuration block for the example extension and
     # exists to serve as an educational tool for extension developers.
