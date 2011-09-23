@@ -58,10 +58,11 @@ class Protocol::InspIRCd::Channel < Channel
     def initialize(name, timestamp=nil)
         @name      = name
         @timestamp = (timestamp || Time.now).to_i
-        @modes     = []
 
         # Keyed by UID
         @members = IRCHash.new
+
+        clear_modes
 
         $log.error "new channel #{@name} already exists!" if $channels[name]
 
@@ -73,6 +74,34 @@ class Protocol::InspIRCd::Channel < Channel
     end
 
     public
+
+    # Is this hostmask in the chanfilter list?
+    #
+    # @param [String] hostmask the hostmask to check for
+    # @return [Boolean] true or false
+    #
+    def is_chanfiltered?(hostmask)
+        @list_modes[:chanfilter].include?(hostmask)
+    end
+
+    # Is this hostmask in the except list?
+    #
+    # @param [String] hostmask the hostmask to check for
+    # @return [Boolean] true or false
+    #
+    def is_excepted?(hostmask)
+        @list_modes[:except].include?(hostmask)
+    end
+
+    # Is this hostmask in the invex list?
+    #
+    # @param [String] hostmask the hostmask to check for
+    # @return [Boolean] true or false
+    #
+    def is_invexed?(hostmask)
+        @list_modes[:invex].include?(hostmask)
+    end
+
 
     # Writer for `@timestamp`
     #

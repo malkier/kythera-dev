@@ -172,9 +172,9 @@ context :inspircd do
         asserts('is auditorium')      { topic.has_mode?(:auditorium)       }
         asserts('is SSL only')        { topic.has_mode?(:ssl_only)         }
 
-        asserts('flood limit')        { topic.flood_protection }.equals "10:5"
-        asserts('key')                { topic.key }.equals 'partypants'
-        asserts('limit')              { topic.limited }.equals "15"
+        asserts('flood') { topic.mode_param(:flood_protection) }.equals "10:5"
+        asserts('key')   { topic.key }.equals 'partypants'
+        asserts('limit') { topic.mode_param(:limited) }.equals "15"
 
         asserts('rakaur is member') { topic.members['0AAAAAAAA'] }
         asserts('member count')     { topic.members.length }.equals 6
