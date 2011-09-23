@@ -49,15 +49,6 @@ class Channel
     # A Hash of members keyed by nickname
     attr_reader :members
 
-    # An Array of mode Symbols
-    attr_reader :modes
-
-    # A Hash of param modes and their parameter
-    attr_reader :param_modes
-
-    # A hash of list modes and their list
-    attr_reader :list_modes
-
     # Creates a new channel. Should be patched by the protocol module.
     def initialize(name)
         @name   = name
@@ -138,16 +129,16 @@ class Channel
                 mode = @@bool_modes[c]
             end
 
-            # Add boolean modes to the channel's modes
-            unless @@status_modes.include?(c)
+            if @@bool_modes.include?(c) or @@param_modes.include?(c)
+                # Add boolean/param modes to the channel's modes
                 if action == :add
                     @modes << mode
                 else
                     @modes.delete(mode)
                 end
-
-                $log.debug "mode #{action}: #{self} -> #{mode} #{param}"
             end
+
+            $log.debug "mode #{action}: #{self} -> #{mode} #{param}"
 
             # Status modes for users get tossed to another method so that
             # how they work can be monkeypatched by protocol modules
@@ -222,6 +213,15 @@ class Channel
     #
     def mode_list(mode)
         @list_modes[mode]
+    end
+
+    # Is this hostmask in the ban list?
+    #
+    # @param [String] hostmask the hostmask to check for
+    # @return [Boolean] true or false
+    #
+    def is_banned?(hostmask)
+        @list_modes[:ban].include?(hostmask)
     end
 
     # Deletes all modes

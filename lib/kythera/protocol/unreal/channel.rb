@@ -74,6 +74,24 @@ class Protocol::Unreal::Channel < Channel
 
     public
 
+    # Is this hostmask in the except list?
+    #
+    # @param [String] hostmask the hostmask to check for
+    # @return [Boolean] true or false
+    #
+    def is_excepted?(hostmask)
+        @list_modes[:except].include?(hostmask)
+    end
+
+    # Is this hostmask in the invex list?
+    #
+    # @param [String] hostmask the hostmask to check for
+    # @return [Boolean] true or false
+    #
+    def is_invexed?(hostmask)
+        @list_modes[:invex].include?(hostmask)
+    end
+
     # Writer for `@timestamp`
     #
     # @param timestamp new timestamp
