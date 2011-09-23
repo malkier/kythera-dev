@@ -58,10 +58,11 @@ class Protocol::InspIRCd::Channel < Channel
     def initialize(name, timestamp=nil)
         @name      = name
         @timestamp = (timestamp || Time.now).to_i
-        @modes     = []
 
         # Keyed by UID
         @members = IRCHash.new
+
+        clear_modes
 
         $log.error "new channel #{@name} already exists!" if $channels[name]
 

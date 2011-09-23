@@ -52,13 +52,20 @@ class Channel
     # An Array of mode Symbols
     attr_reader :modes
 
+    # A Hash of param modes and their parameter
+    attr_reader :param_modes
+
+    # A hash of list modes and their list
+    attr_reader :list_modes
+
     # Creates a new channel. Should be patched by the protocol module.
     def initialize(name)
         @name   = name
-        @modes  = []
 
         # Keyed by nickname by default
         @members = IRCHash.new
+
+        clear_modes
 
         $channels[name] = self
 
@@ -98,9 +105,16 @@ class Channel
                 mode  = @@status_modes[c]
                 param = params.shift
 
+            # List modes
             elsif @@list_modes.include?(c)
                 mode  = @@list_modes[c]
                 param = params.shift
+
+                if action == :add
+                    @list_modes[mode] << param
+                else
+                    @list_modes[mode].delete(param)
+                end
 
             # Always has a param (some send the key, some send '*')
             elsif c == 'k'
@@ -114,13 +128,9 @@ class Channel
                 param  = params.shift
 
                 if action == :add
-                    instance_variable_set("@#{mode}", param)
-
-                    Channel.class_exec do
-                        attr_reader mode.to_sym
-                    end
+                    @param_modes[mode] = param
                 else
-                    instance_variable_set("@#{mode}", nil)
+                    @param_modes.delete(mode)
                 end
 
             # The rest, no param
@@ -129,15 +139,13 @@ class Channel
             end
 
             # Add boolean modes to the channel's modes
-            unless @@status_modes.include?(c) or @@list_modes.include?(c)
+            unless @@status_modes.include?(c)
                 if action == :add
                     @modes << mode
                 else
                     @modes.delete(mode)
                 end
-            end
 
-            unless @@status_modes.include?(c)
                 $log.debug "mode #{action}: #{self} -> #{mode} #{param}"
             end
 
@@ -195,12 +203,36 @@ class Channel
     # @return [Boolean] true or false
     #
     def has_mode?(mode)
-        @modes.include?(mode)
+        @modes.include?(mode) || @param_modes.include?(mode)
+    end
+
+    # Get a mode's param
+    #
+    # @param [Symbol] mode the mode symbol
+    # @return [String] the mode param's value
+    #
+    def mode_param(mode)
+        @param_modes[mode]
+    end
+
+    # Get a list mode's list
+    #
+    # @param [Symbol] mode the mode symbol
+    # @return [Array] the list
+    #
+    def mode_list(mode)
+        @list_modes[mode]
     end
 
     # Deletes all modes
     def clear_modes
-        @modes = []
+        @modes       = []
+        @param_modes = {}
+        @list_modes  = {}
+
+        @@list_modes.each_value do |mode|
+            @list_modes[mode] = []
+        end
     end
 
     private

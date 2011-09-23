@@ -160,7 +160,7 @@ context :ts6 do
         asserts('is no external')  { topic.has_mode?(:no_external) }
         asserts('is topic locked') { topic.has_mode?(:topic_lock)  }
         asserts('is limited')      { topic.has_mode?(:limited)     }
-        asserts('limit')     { topic.limited }.equals "15"
+        asserts('limit')           { topic.mode_param(:limited) }.equals "15"
 
         asserts('rakaur is member') { topic.members['0AAAAAAAA'] }
         asserts('member count')     { topic.members.length }.equals 6

@@ -18,37 +18,37 @@ class Protocol::Unreal::Channel < Channel
                        'h' => :halfop,
                        'v' => :voice }
 
-    @@list_modes = { 'b' => :ban,
-                     'e' => :except,
-                     'I' => :invex }
+    @@list_modes   = { 'b' => :ban,
+                       'e' => :except,
+                       'I' => :invex }
 
-    @@param_modes = { 'f' => :flood_protection,
-                      'j' => :join_throttle,
-                      'k' => :keyed,
-                      'l' => :limited,
-                      'L' => :limit_channel }
+    @@param_modes  = { 'f' => :flood_protection,
+                       'j' => :join_throttle,
+                       'k' => :keyed,
+                       'l' => :limited,
+                       'L' => :limit_channel }
 
-    @@bool_modes = { 'A' => :admin_only,
-                     'c' => :no_ansi,
-                     'C' => :no_ctcp,
-                     'G' => :censored,
-                     'i' => :invite_only,
-                     'M' => :registered_moderated,
-                     'm' => :moderated,
-                     'N' => :no_nick_changes,
-                     'n' => :no_external,
-                     'O' => :ircops_only,
-                     'p' => :private,
-                     'Q' => :no_kick,
-                     'r' => :registered,
-                     'R' => :registered_only,
-                     'S' => :strip_colors,
-                     's' => :secret,
-                     't' => :topic_lock,
-                     'T' => :no_notice,
-                     'u' => :auditorium,
-                     'V' => :no_invite,
-                     'z' => :ssl_only }
+    @@bool_modes   = { 'A' => :admin_only,
+                       'c' => :no_ansi,
+                       'C' => :no_ctcp,
+                       'G' => :censored,
+                       'i' => :invite_only,
+                       'M' => :registered_moderated,
+                       'm' => :moderated,
+                       'N' => :no_nick_changes,
+                       'n' => :no_external,
+                       'O' => :ircops_only,
+                       'p' => :private,
+                       'Q' => :no_kick,
+                       'r' => :registered,
+                       'R' => :registered_only,
+                       'S' => :strip_colors,
+                       's' => :secret,
+                       't' => :topic_lock,
+                       'T' => :no_notice,
+                       'u' => :auditorium,
+                       'V' => :no_invite,
+                       'z' => :ssl_only }
 
     # The channel's timestamp
     attr_reader :timestamp
@@ -57,10 +57,11 @@ class Protocol::Unreal::Channel < Channel
     def initialize(name, timestamp=nil)
         @name      = name
         @timestamp = (timestamp || Time.now).to_i
-        @modes     = []
 
         # Keyed by nick
         @members = IRCHash.new
+
+        clear_modes
 
         $log.error "new channel #{@name} already exists!" if $channels[name]
 
