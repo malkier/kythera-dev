@@ -246,7 +246,6 @@ module Database
             #   Channel.revoke(account, :recover)
             #
             def self.revoke(account, privilege)
-                account = Account.resolve(account)
                 account.delete_flag("#{PREFIX}.#{privilege}")
             end
 
@@ -262,7 +261,6 @@ module Database
             #   Channel.has_privilege?(account, :clear) # false
             #
             def self.has_privilege?(account, privilege)
-                account = Account.resolve(account)
                 !! account["#{PREFIX}.#{privilege}"]
             end
 
@@ -278,9 +276,7 @@ module Database
             #   channel.grant(account, :aop)
             #
             def grant(account, privilege)
-                account = Account.resolve(account)
                 fields  = {:account => account, :privilege => privilege.to_s}
-
                 privileges.insert(fields) if privileges.where(fields).empty?
             end
 
@@ -295,10 +291,12 @@ module Database
             #   channel.revoke(account, :successor)
             #
             def revoke(account, privilege)
-                account = Account.resolve(account)
                 fields  = {:account => account, :privilege => privilege.to_s}
-
                 privileges.where(fields).delete
+
+                if privilege.to_s == 'founder'
+                    self.class.send(:check_succession!, account)
+                end
             end
 
             #
@@ -318,6 +316,58 @@ module Database
                 fields  = {:account => account, :privilege => privilege.to_s}
 
                 ! privileges.where(fields).empty?
+            end
+
+            #######
+            private
+            #######
+
+            #
+            # Checks the privileges in the database when an account's 'founder'
+            # status is revoked - either because of an admin command removing
+            # the status directly, or the implicit status removal that happens
+            # when an account is dropped. This method is private because it has
+            # the potentially volatile side-effect of dropping a channel: if a
+            # founder is dropped from the channel and he or she is the last one
+            # with nobody left behind with the successor privilege, the entire
+            # channel will be dropped. Food for thought.
+            #
+            # @private
+            #
+            def self.check_succession!(account)
+                # privileges where this account is the founder
+                ap = Privilege[:account => account, :privilege => 'founder']
+
+                # find the channel ids where this account is the last founder
+                lfc = ap.group_by(:channel_id).having { {count(:*) => 1} }
+                ids = lfc.all.collect { |privilege| privilege.channel_id }
+
+                # find the successors on all those channels
+                where = {:channel_id => ids, :privilege => 'successor'}
+                succ_privs = Privilege[where]
+
+                # find channel ids where there are no successors
+                my_id = :id.qualify(table_name)
+                priv_opts = {my_id => :channel_id, :privilege => 'successor'}
+                nosucc = ~(Privilege[priv_opts].select(1).exists)
+                join = join(succ_privs.select(:id), :channel_id => :id)
+                drop_ids = join.where(nosucc).select(my_id).collect { |c| c.id }
+
+                # upgrade successors to founders if the rite of succession has
+                # occured on these channels, and call any handlers that have
+                # hooked in to being alerted about this event
+                succ_privs.update(:privilege => 'founder')
+                succ_privs.eager([:channel, :account]).each do |privilege|
+                    @@succession_handlers.each do |handler|
+                        handler.call(privilege.account, privilege.channel)
+                    end
+                end
+
+                # drop the channels. drop privs and flags first. don't use
+                # Channel.drop() and iterate cause that could get slow.
+                Privilege[:channel_id => drop_ids].delete
+                Flag     [:channel_id => drop_ids].delete
+                Channel  [:id         => drop_ids].delete
             end
         end
 
@@ -429,42 +479,12 @@ module Database
         end
 
         Account.before_drop do |account|
-            ap = Privilege[:account => account]
-
-            # find the channel ids where this account is the last founder
-            lfc = ap.where(:privilege => 'founder')
-            lfc = lfc.group_by(:channel_id)
-            lfc = lfc.having { {count(:*) => 1} }
-            ids = lfc.all.collect { |privilege| privilege.channel_id }
-
-            # find the successors on all those channels
-            where = {:channel_id => ids, :privilege => 'successor'}
-            succ_privs = Privilege[where]
-
-            # find channel ids where there are no successors
-            drops = Hash(ids.zip([]).flatten)
-            del = succ_privs.group_by(:channel_id).having { count(:*) > 0 }
-            del.all.collect { |privilege| drops.delete(privilege.channel_id) }
-            drops = drops.keys
-
-            # upgrade successors to founders if the rite of succession has
-            # occured on these channels, and call any handlers that have hooked
-            # in to being alerted about this event
-            succ_privs.update(:privilege => 'founder')
-            succ_privs.eager([:channel, :account]).each do |privilege|
-                @@succession_handlers.each do |handler|
-                    handler.call(privilege.account, privilege.channel)
-                end
-            end
-
-            # drop the channels. drop privs and flags first. don't use
-            # Channel.drop() and iterate cause that could get slow.
-            Privilege[:channel_id => drops].delete
-            Flag[:channel_id => drops].delete
-            Channel[:id => drops].delete
+            # this takes care of the legwork of succession, such as if this
+            # account was the last of a channel's founders
+            Channel.send(:check_succession!, account)
 
             # drop any remaining privileges on this account
-            ap.delete
+            Privilege[:account => account].delete
         end
 
         # Registers the helper to be accessible through `account.chanserv` and
