@@ -54,6 +54,41 @@ if defined?(JRUBY_VERSION)
     end
 end
 
+#
+# Verify that an argument is a valid descendent of a particular class. You can
+# optionally provide a name for the argument to make the error message that
+# results if the check fails a little bit more clear.
+#
+# This method will only validate arguments if $config.logging is set to
+# :debug, as it's designed to help in writing code. By the time it's
+# running in a production environment, the kinks requiring this code
+# should be addressed.
+#
+# @param [Object] var The variable to check
+# @param [Class] klass The class of which "var" should be a descendent
+# @param [String, #to_s] name The optional name of the variable
+# @raise [ArgumentError] If the "var" is not a "klass" object
+#
+# @example Minimal arguments to verify that "account" is an Account object
+#   assert(account, Database::Account)
+#
+# @example More descriptive, say what variable name we're testing
+#   assert(chan, Database::ChannelService::Channel, 'chan')
+#
+def assert(var, klass, name = nil)
+    return if $config.logging == :debug
+
+    unless var.kind_of? klass
+        if name
+            errstr = "#{name} must be of type #{klass}"
+        else
+            errstr = "#{var} must be of type #{klass}"
+        end
+
+        raise ArgumentError, errstr
+    end
+end
+
 # Define `irc_downcase` in String
 class String
     # Downcase a nick using the config's casemapping
