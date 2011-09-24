@@ -163,12 +163,17 @@ module Protocol::Unreal
         #
         members.each do |nick|
             # List modes
-            if %(&"').include?(nick[0].chr)
+            if %w(& " ').include?(nick[0].chr)
                 c, mask = nick.split('', 2)
 
-                channel.list_modes[:ban]    << mask if c == '&'
-                channel.list_modes[:except] << mask if c == '"'
-                channel.list_modes[:invex]  << mask if c == "'"
+                case c
+                when '&'
+                    channel.parse_modes('+b', [mask])
+                when '"'
+                    channel.parse_modes('+e', [mask])
+                when "'"
+                    channel.parse_modes('+I', [mask])
+                end
 
                 next
             end

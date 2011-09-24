@@ -40,7 +40,7 @@ context :inspircd do
     asserts('channels') { $channels.clear; $channels }.empty
     asserts('servers')  { $servers.clear;  $servers  }.empty
 
-    asserts(:burst) { topic.instance_variable_get(:@recvq) }.size 219
+    asserts(:burst) { topic.instance_variable_get(:@recvq) }.size 220
     asserts('parses') { topic.send(:parse) }
 
     asserts('has 11 servers')   { $servers .length == 11  }
@@ -173,8 +173,12 @@ context :inspircd do
         asserts('is SSL only')        { topic.has_mode?(:ssl_only)         }
 
         asserts('flood') { topic.mode_param(:flood_protection) }.equals "10:5"
-        asserts('key')   { topic.key }.equals 'partypants'
+        asserts('key')   { topic.mode_param(:keyed) }.equals 'partypants'
         asserts('limit') { topic.mode_param(:limited) }.equals "15"
+
+        asserts('dk is banned') { topic.is_banned?('*!xiphias@khaydarin.net') }
+        asserts('jk is execpt') { topic.is_excepted?('*!justin@othius.com') }
+        asserts('wp is banned') { topic.is_invexed?('*!nenolod@nenolod.net') }
 
         asserts('rakaur is member') { topic.members['0AAAAAAAA'] }
         asserts('member count')     { topic.members.length }.equals 6

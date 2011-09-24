@@ -294,18 +294,20 @@ module Protocol::TS6
     # parv[2] -> mode string
     #
     def irc_tmode(origin, parv)
-        if origin.length == 3
-            user, channel = find_user_and_channel(origin, parv[1], :TMODE)
-            return unless user and channel
+        return unless channel = $channels[parv[1]]
+
+        their_ts = parv[0].to_i
+        my_ts    = channel.timestamp
+
+        # Simple TS rules
+        if their_ts <= my_ts
+            params = parv[GET_MODE_PARAMS]
+            modes  = params.delete_at(0)
+
+            channel.parse_modes(modes, params)
         else
-            channel = $channels[parv[1]]
-            return unless channel
+            $log.warn "invalid ts for #{channel} (#{their_ts} > #{my_ts})"
         end
-
-        params = parv[GET_MODE_PARAMS]
-        modes  = params.delete_at(0)
-
-        channel.parse_modes(modes, params)
     end
 
     # Handles an incoming MODE
@@ -320,5 +322,30 @@ module Protocol::TS6
         end
 
         user.parse_modes(parv[1])
+    end
+
+    # Handles an incoming BMASK
+    #
+    # [09/23 23:53:48] (D) -> :0XX BMASK 1315447449 #malkier b :michael!xiphias@khaydarin.net test!test@test*
+    # parv[0] -> timestamp
+    # parv[1] -> channel
+    # parv[2] -> mode char
+    # parv[3] -> space-delimited list of hostmasks
+    #
+    def irc_bmask(origin, parv)
+        return unless channel = $channels[parv[1]]
+
+        their_ts = parv[0].to_i
+        my_ts    = channel.timestamp
+
+        # Simple TS rules
+        if their_ts <= my_ts
+            params = parv[3].split(' ')
+            modes  = '+' + parv[2] * params.length
+
+            channel.parse_modes(modes, params)
+        else
+            $log.warn "invalid ts for #{channel} (#{their_ts} > #{my_ts})"
+        end
     end
 end

@@ -43,9 +43,6 @@ class Channel
     # The channel name, including prefix
     attr_reader :name
 
-    # If the channel is +k, this is the key
-    attr_reader :key
-
     # A Hash of members keyed by nickname
     attr_reader :members
 
@@ -111,7 +108,12 @@ class Channel
             elsif c == 'k'
                 mode  = :keyed
                 param = params.shift
-                @key  = action == :add ? param : nil
+
+                if action == :add
+                    @param_modes[:keyed] = param
+                else
+                  @param_modes.delete(:keyed)
+                end
 
             # Has a param when +, doesn't when -
             elsif @@param_modes.include?(c)

@@ -27,6 +27,6 @@ context :uplink do
 
     asserts_topic.kind_of Array
     denies_topic.empty
-    asserts_topic.size 215
+    asserts_topic.size 218
   end
 end
