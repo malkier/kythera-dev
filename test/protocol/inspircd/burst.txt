@@ -19,6 +19,7 @@ SERVER test.server.com unit_tester 0 0X0 :test server
 :0AA UID 0AAAAAAAJ 1315965584 n0AAAAAAAJ 127.0.0.1 127.0.0.1 user 127.0.0.1 1315965584 +iw :gecos
 :0AA FJOIN #malkier 1315965584 +fklABcCRuz 10:5 partypants 15 :qaohv,0AAAAAAAA qah,0AAAAAAAD v,0AAAAAAAE o,0AAAAAAAF qaov,0AAAAAAAI qohv,0AAAAAAAJ
 :0AA FMODE #malkier 1315965584 +beI *!xiphias@khaydarin.net *!justin@othius.com *!nenolod@nenolod.net
+:0AA FMODE #malkier 1315965585 +b *!invalid@time.stamp
 :0AA FJOIN #cecpml 1315965584 +ilnt param :qoh,0AAAAAAAA qaoh,0AAAAAAAB qaoh,0AAAAAAAC aov,0AAAAAAAD qaoh,0AAAAAAAH qa,0AAAAAAAI
 :0AA FJOIN #eoocxh 1315965584 +klps param param :aov,0AAAAAAAA av,0AAAAAAAC h,0AAAAAAAD av,0AAAAAAAE ah,0AAAAAAAF qohv,0AAAAAAAG
 :0AA FJOIN #qgbcur 1315965584 +ikn param :qhv,0AAAAAAAA qaov,0AAAAAAAB v,0AAAAAAAC qahv,0AAAAAAAD qov,0AAAAAAAG
@@ -218,3 +219,8 @@ SERVER test.server.com unit_tester 0 0X0 :test server
 :0AJ FJOIN #emyxsv 1315965584 +klpst param param :qoh,0AJAAAAAB o,0AJAAAAAD ,0AJAAAAAE a,0AJAAAAAF qaov,0AJAAAAAG q,0AJAAAAAH
 :0AJ FJOIN #jjalux 1315965584 +lnpst param :qo,0AJAAAAAE ahv,0AJAAAAAF qhv,0AJAAAAAG h,0AJAAAAAI
 :0X0 ENDBURST
+:0AJAAAAAJ NICK test_nick 1316970148
+:0AAAAAAAA PART #cecpml
+:0AJAAAAAI QUIT :test
+:0AAAAAAAA FMODE #malkier 1315965584 +s
+:0AAAAAAAA FMODE #malkier 1315965585 +j wrong_ts

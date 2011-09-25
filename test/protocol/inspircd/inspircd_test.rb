@@ -40,11 +40,11 @@ context :inspircd do
     asserts('channels') { $channels.clear; $channels }.empty
     asserts('servers')  { $servers.clear;  $servers  }.empty
 
-    asserts(:burst) { topic.instance_variable_get(:@recvq) }.size 220
+    asserts(:burst) { topic.instance_variable_get(:@recvq) }.size 226
     asserts('parses') { topic.send(:parse) }
 
     asserts('has 11 servers')   { $servers .length == 11  }
-    asserts('has 100 users')    { $users   .length == 100 }
+    asserts('has 99 users')     { $users   .length == 99  }
     asserts('has 100 channels') { $channels.length == 100 }
 
     context :servers do
@@ -112,7 +112,7 @@ context :inspircd do
       setup { $users.values }
 
       denies_topic.empty
-      asserts(:size) { topic.length }.equals 100
+      asserts(:size) { topic.length }.equals 99
 
       context :first do
         setup { topic.find { |u| u.uid == '0AAAAAAAA' } }
@@ -139,6 +139,7 @@ context :inspircd do
         asserts(:timestamp).equals 1307151136
 
         asserts('is on #malkier') { topic.is_on?('#malkier') }
+        denies('is on #cecpml')   { topic.is_on?('#cecpml')  }
 
         asserts('is an operator on #malkier') do
           topic.has_mode_on_channel?(:operator, '#malkier')
@@ -156,6 +157,19 @@ context :inspircd do
           topic.has_mode_on_channel?(:protected, '#malkier')
         end
       end
+
+      context :last do
+        setup { $users.values.last }
+
+        asserts(:uid).equals '0AJAAAAAJ'
+        asserts(:nickname).equals 'test_nick'
+        asserts(:timestamp).equals 1316970148
+      end
+
+      context :quit do
+        setup { $users['0AJAAAAAI'] }
+        asserts_topic.nil
+      end
     end
 
     context :channels do
@@ -172,6 +186,8 @@ context :inspircd do
 
         asserts(:name).equals '#malkier'
         asserts('is flood protected') { topic.has_mode?(:flood_protection) }
+        asserts('is secret')          { topic.has_mode?(:secret)           }
+        denies('is join_flood')       { topic.has_mode?(:join_flood)       }
         asserts('is keyed')           { topic.has_mode?(:keyed)            }
         asserts('is limited ')        { topic.has_mode?(:limited)          }
         asserts('is allow invite')    { topic.has_mode?(:allow_invite)     }
@@ -185,9 +201,10 @@ context :inspircd do
         asserts('key')   { topic.mode_param(:keyed) }.equals 'partypants'
         asserts('limit') { topic.mode_param(:limited) }.equals "15"
 
-        asserts('dk is banned') { topic.is_banned?('*!xiphias@khaydarin.net') }
-        asserts('jk is execpt') { topic.is_excepted?('*!justin@othius.com') }
-        asserts('wp is invexed') { topic.is_invexed?('*!nenolod@nenolod.net') }
+        denies('ts is banned')   { topic.is_banned?('*!invalid@time.stamp')    }
+        asserts('dk is banned')  { topic.is_banned?('*!xiphias@khaydarin.net') }
+        asserts('jk is execpt')  { topic.is_excepted?('*!justin@othius.com')   }
+        asserts('wp is invexed') { topic.is_invexed?('*!nenolod@nenolod.net')  }
 
         asserts('rakaur is member') { topic.members['0AAAAAAAA'] }
         asserts('member count')     { topic.members.length }.equals 6

@@ -199,7 +199,7 @@ module Protocol::InspIRCd
     #
     def irc_fmode(origin, parv)
         if channel = $channels[parv[0]]
-            their_ts = parv[0].to_i
+            their_ts = parv[1].to_i
             my_ts    = channel.timestamp
 
             # Simple TS rules
@@ -208,6 +208,8 @@ module Protocol::InspIRCd
                 modes  = params.delete_at(0)
 
                 channel.parse_modes(modes, params)
+            else
+                $log.warn "invalid ts for #{channel} (#{their_ts} > #{my_ts})"
             end
         else
             unless user = $users[parv[0]]
@@ -227,9 +229,7 @@ module Protocol::InspIRCd
     # parv[1] -> ts
     #
     def irc_nick(origin, parv)
-        return unless parv.length == 2 # We don't want TS5 introductions
-
-        unless user = $users[origin]
+        unless user = $users[origin.irc_downcase]
             $log.error "got nick change for non-existent UID: #{origin}"
             return
         end
@@ -238,5 +238,6 @@ module Protocol::InspIRCd
         $log.debug "nick change: #{user} -> #{parv[0]} [#{origin}]"
 
         user.nickname = parv[0]
+        user.timestamp = parv[1].to_i
     end
 end

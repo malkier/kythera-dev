@@ -45,7 +45,7 @@ context :ts6 do
     asserts('parses') { topic.send(:parse) }
 
     asserts('has 11 servers')   { $servers .length == 11  }
-    asserts('has 100 users')    { $users   .length == 99  }
+    asserts('has 99 users')     { $users   .length == 99  }
     asserts('has 100 channels') { $channels.length == 100 }
 
     context :servers do
@@ -135,7 +135,7 @@ context :ts6 do
         asserts(:timestamp).equals 1307151136
 
         asserts('is on #malkier') { topic.is_on?('#malkier') }
-        denies('is on #tggpdx') { topic.is_on?('#tggpdx') }
+        denies('is on #tggpdx')   { topic.is_on?('#tggpdx')  }
 
         asserts('is an operator on #malkier') do
           topic.has_mode_on_channel?(:operator, '#malkier')
@@ -147,16 +147,16 @@ context :ts6 do
       end
 
       context :last do
-         setup { $users.values.last }
+        setup { $users.values.last }
 
-         asserts(:uid).equals '0AJAAAAAJ'
-         asserts(:nickname).equals 'test_nick'
-         asserts(:timestamp).equals 1316970148
+        asserts(:uid).equals '0AJAAAAAJ'
+        asserts(:nickname).equals 'test_nick'
+        asserts(:timestamp).equals 1316970148
       end
 
       context :quit do
-          setup { $users['0AJAAAAAI'] }
-          asserts_topic.nil
+        setup { $users['0AJAAAAAI'] }
+        asserts_topic.nil
       end
     end
 

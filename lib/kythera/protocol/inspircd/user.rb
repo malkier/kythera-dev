@@ -36,7 +36,7 @@ class Protocol::InspIRCd::User < User
     attr_reader :ip
 
     # The user's timestamp
-    attr_reader :timestamp
+    attr_accessor :timestamp
 
     # The user's UID
     attr_reader :uid
