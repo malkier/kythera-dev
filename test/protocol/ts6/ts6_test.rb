@@ -151,7 +151,7 @@ context :ts6 do
 
          asserts(:uid).equals '0AJAAAAAJ'
          asserts(:nickname).equals 'test_nick'
-         #asserts(:timestamp).equals 1316970148 XXX should this be true?
+         asserts(:timestamp).equals 1316970148
       end
 
       context :quit do
