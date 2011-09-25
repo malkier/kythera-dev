@@ -173,7 +173,7 @@ class Channel
     # @param [User] user User object to delete
     #
     def delete_user(user)
-        @members.delete(user.key)
+        @members.delete(user.key.irc_downcase)
 
         user.status_modes.delete(self)
 
@@ -182,7 +182,7 @@ class Channel
         $eventq.post(:user_parted_channel, user, self)
 
         if @members.length == 0
-            $channels.delete @name
+            $channels.delete(@name)
 
             $log.debug "removing empty channel #{self}"
 

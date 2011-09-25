@@ -41,11 +41,11 @@ context :ts6 do
     asserts('channels') { $channels.clear; $channels }.empty
     asserts('servers')  { $servers.clear;  $servers  }.empty
 
-    asserts(:burst) { topic.instance_variable_get(:@recvq) }.size 218
+    asserts(:burst) { topic.instance_variable_get(:@recvq) }.size 224
     asserts('parses') { topic.send(:parse) }
 
     asserts('has 11 servers')   { $servers .length == 11  }
-    asserts('has 100 users')    { $users   .length == 100 }
+    asserts('has 100 users')    { $users   .length == 99  }
     asserts('has 100 channels') { $channels.length == 100 }
 
     context :servers do
@@ -95,7 +95,11 @@ context :ts6 do
 
             denies_topic.nil
             asserts_topic.kind_of User
+
             asserts(:operator?)
+            asserts('administrator?') { topic.has_mode?(:administrator) }
+            asserts('invisible?')     { topic.has_mode?(:invisible)     }
+            asserts('wallop?')        { topic.has_mode?(:wallop)        }
 
             asserts(:uid)      .equals '0AAAAAAAA'
             asserts(:nickname) .equals 'rakaur'
@@ -113,7 +117,7 @@ context :ts6 do
       setup { $users.values }
 
       denies_topic.empty
-      asserts(:size) { topic.length }.equals 100
+      asserts(:size) { topic.length }.equals 99
 
       context :first do
         setup { topic.find { |u| u.uid == '0AAAAAAAA' } }
@@ -131,6 +135,7 @@ context :ts6 do
         asserts(:timestamp).equals 1307151136
 
         asserts('is on #malkier') { topic.is_on?('#malkier') }
+        denies('is on #tggpdx') { topic.is_on?('#tggpdx') }
 
         asserts('is an operator on #malkier') do
           topic.has_mode_on_channel?(:operator, '#malkier')
@@ -139,6 +144,19 @@ context :ts6 do
         asserts('is voiced on #malkier') do
           topic.has_mode_on_channel?(:voice, '#malkier')
         end
+      end
+
+      context :last do
+         setup { $users.values.last }
+
+         asserts(:uid).equals '0AJAAAAAJ'
+         asserts(:nickname).equals 'test_nick'
+         #asserts(:timestamp).equals 1316970148 XXX should this be true?
+      end
+
+      context :quit do
+          setup { $users['0AJAAAAAI'] }
+          asserts_topic.nil
       end
     end
 
@@ -156,15 +174,18 @@ context :ts6 do
 
         asserts(:name).equals '#malkier'
         asserts('is invite only')  { topic.has_mode?(:invite_only) }
+        denies('is keyed')         { topic.has_mode?(:keyed)       }
         asserts('is moderated')    { topic.has_mode?(:moderated)   }
         asserts('is no external')  { topic.has_mode?(:no_external) }
+        asserts('is secret')       { topic.has_mode?(:secret)      }
         asserts('is topic locked') { topic.has_mode?(:topic_lock)  }
         asserts('is limited')      { topic.has_mode?(:limited)     }
         asserts('limit')           { topic.mode_param(:limited) }.equals "15"
 
-        asserts('dk is banned') { topic.is_banned?('*!xiphias@khaydarin.net') }
-        asserts('jk is execpt') { topic.is_excepted?('*!justin@othius.com') }
-        asserts('wp is invexed') { topic.is_invexed?('*!nenolod@nenolod.net') }
+        denies('ts is banned')   { topic.is_banned?('*!invalid@time.stamp')    }
+        asserts('dk is banned')  { topic.is_banned?('*!xiphias@khaydarin.net') }
+        asserts('jk is execpt')  { topic.is_excepted?('*!justin@othius.com')   }
+        asserts('wp is invexed') { topic.is_invexed?('*!nenolod@nenolod.net')  }
 
         asserts('rakaur is member') { topic.members['0AAAAAAAA'] }
         asserts('member count')     { topic.members.length }.equals 6

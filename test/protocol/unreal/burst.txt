@@ -21,7 +21,7 @@ SERVER test.server.com 1 :test server
 :test.server9.com EOS
 :test.server.com SERVER test.server10.com 2 :server 10
 :test.server10.com EOS
-NICK rakaur 1 1307151136 rakaur malkier.net test.server1.com 0 +oCdGHhiNqrTVvW malkier.net malkier.net :Eric Will
+NICK rakaur 1 1307151136 rakaur malkier.net test.server1.com 0 +oCdGHhiNqrTVW malkier.net malkier.net :Eric Will
 NICK n2 1 1315864660 user 127.0.0.1 test.server1.com 0 +ANOrsvx 127.0.0.1 :gecos
 NICK n3 1 1315864660 user 127.0.0.1 test.server1.com 0 +AaBCdgHipRtvWwz 127.0.0.1 :gecos
 NICK n4 1 1315864660 user 127.0.0.1 test.server1.com 0 +Agorstwxz 127.0.0.1 :gecos

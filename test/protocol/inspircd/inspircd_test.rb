@@ -119,7 +119,16 @@ context :inspircd do
 
         denies_topic.nil
         asserts_topic.kind_of User
+
         asserts(:operator?)
+        asserts('invisible?')  { topic.has_mode?(:invisible)  }
+        asserts('wallop?')     { topic.has_mode?(:wallop)     }
+        asserts('bot?')        { topic.has_mode?(:bot)        }
+        asserts('censor?')     { topic.has_mode?(:censor)     }
+        asserts('unethical?')  { topic.has_mode?(:unethical)  }
+        asserts('registered?') { topic.has_mode?(:registered) }
+        asserts('show_whois?') { topic.has_mode?(:show_whois) }
+        denies('cloaked?')     { topic.has_mode?(:cloaked)    }
 
         asserts(:uid)      .equals '0AAAAAAAA'
         asserts(:nickname) .equals 'rakaur'

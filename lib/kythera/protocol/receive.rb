@@ -39,7 +39,7 @@ module Protocol
     # parv[0] -> quit message
     #
     def irc_quit(origin, parv)
-        unless user = $users.delete(origin)
+        unless user = $users.delete(origin.irc_downcase)
             $log.error "received QUIT for unknown user: #{origin}"
             return
         end

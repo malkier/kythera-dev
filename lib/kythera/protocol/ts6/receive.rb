@@ -317,7 +317,6 @@ module Protocol::TS6
 
     # Handles an incoming BMASK
     #
-    # [09/23 23:53:48] (D) -> :0XX BMASK 1315447449 #malkier b :michael!xiphias@khaydarin.net test!test@test*
     # parv[0] -> timestamp
     # parv[1] -> channel
     # parv[2] -> mode char

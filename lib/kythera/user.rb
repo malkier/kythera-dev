@@ -33,9 +33,6 @@ class User
     # The user's gecos/realname
     attr_reader :realname
 
-    # The user's umodes
-    attr_reader :modes
-
     # A Hash keyed by Channel of the user's status modes
     attr_reader :status_modes
 
@@ -70,6 +67,15 @@ class User
     # String representation is just `@nickname`
     def to_s
         @nickname
+    end
+
+    # Does this user have the specified umode?
+    #
+    # @param [Symbol] mode the mode symbol
+    # @return [Boolean] true or false
+    #
+    def has_mode?(mode)
+        @modes.include?(mode)
     end
 
     # Is this user an IRC operator?
@@ -172,7 +178,7 @@ class User
     def is_on?(channel)
         channel = $channels[channel] if channel.kind_of?(String)
 
-        channel.members[key]
+        !! channel.members[key]
     end
 
     # Do you have the specified status mode?
