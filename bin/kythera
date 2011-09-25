@@ -128,6 +128,10 @@ configure do
         network :malkier
 
         # The protocol that your ircd speaks for server-to-server links.
+        #
+        # While you can have multiple uplinks, you cannot have different
+        # protocols for different uplinks. Things will crash and burn.
+        #
         # For ircd-ratbox and charybdis this is `ts6`
         # For UnrealIRCd this is `unreal`
         # For InspIRCd this is `inspircd`
