@@ -9,8 +9,8 @@
 
 require 'kythera'
 
-# This reopens the base Server class in `kythera/server.rb`
-class Server
+# This subclasses the base Server class in `kythera/server.rb`
+class Protocol::InspIRCd::Server < Server
     # The server's SID
     attr_reader :sid
 

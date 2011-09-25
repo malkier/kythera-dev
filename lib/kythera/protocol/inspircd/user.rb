@@ -9,8 +9,8 @@
 
 require 'kythera'
 
-# This reopens the base User class in `kythera/user.rb`
-class User
+# This subclasses the base User class in `kythera/user.rb`
+class Protocol::InspIRCd::User < User
     # InspIRCd usermodes
     @@user_modes = { 'i' => :invisible,
                      'o' => :operator,
@@ -67,16 +67,8 @@ class User
         $eventq.post(:user_added, self)
     end
 
-    # Is this user an IRC operator?
-    #
-    # @return [Boolean] true or false
-    #
-    def operator?
-        @modes.include?(:operator)
-    end
-
-    # Our user's origin
-    def origin
+    # The value we use to represent our membership in a Hash
+    def key
         @uid
     end
 end

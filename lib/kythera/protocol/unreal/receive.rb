@@ -162,7 +162,21 @@ module Protocol::Unreal
         # See benchmark/theory/multiprefix_parsing.rb
         #
         members.each do |nick|
-            next if %(&"').include?(nick[0].chr)
+            # List modes
+            if %w(& " ').include?(nick[0].chr)
+                c, mask = nick.split('', 2)
+
+                case c
+                when '&'
+                    channel.parse_modes('+b', [mask])
+                when '"'
+                    channel.parse_modes('+e', [mask])
+                when "'"
+                    channel.parse_modes('+I', [mask])
+                end
+
+                next
+            end
 
             owner = admin = op = halfop = voice = false
 

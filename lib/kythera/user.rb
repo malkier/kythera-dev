@@ -8,10 +8,10 @@
 
 require 'kythera'
 
-# A list of all users. The protocol module should decide what the key is.
+# A list of all users; keyed by nickname by default
 $users = IRCHash.new
 
-# This is just a base class. All protocol module should monkeypatch this.
+# This is just a base class; protocol modules should subclass this
 class User
     # Standard IRC user modes
     @@user_modes = { 'i' => :invisible,
@@ -58,8 +58,8 @@ class User
 
     public
 
-    # Our user's origin. Should be patched by the protocol module.
-    def origin
+    # The value we use to represent our membership in a Hash
+    def key
         @nickname
     end
 
@@ -168,7 +168,7 @@ class User
     def is_on?(channel)
         channel = $channels[channel] if channel.kind_of?(String)
 
-        channel.members[origin]
+        channel.members[key]
     end
 
     # Do you have the specified status mode?

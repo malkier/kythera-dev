@@ -8,10 +8,13 @@
 
 require 'kythera'
 
+module Protocol::TS6
+end
+
 require 'kythera/protocol/ts6/channel'
+require 'kythera/protocol/ts6/receive'
 require 'kythera/protocol/ts6/send'
 require 'kythera/protocol/ts6/server'
-require 'kythera/protocol/ts6/receive'
 require 'kythera/protocol/ts6/user'
 
 # Implements TS6 protocol-specific methods

@@ -208,25 +208,26 @@ module Protocol::InspIRCd
     # parv... -> mode parameters
     #
     def irc_fmode(origin, parv)
-        if origin.length == 3
-            user, channel = find_user_and_channel(origin, parv[0], :FMODE)
-            return unless user and channel
-        else
-            if channel = $channels[parv[0]]
+        if channel = $channels[parv[0]]
+            their_ts = parv[0].to_i
+            my_ts    = channel.timestamp
+
+            # Simple TS rules
+            if their_ts <= my_ts
                 params = parv[GET_MODE_PARAMS]
                 modes  = params.delete_at(0)
 
                 channel.parse_modes(modes, params)
-            else
-                unless user = $users[parv[0]]
-                    $log.debug "Got FMODE message for unknown UID: #{parv[0]}"
-                    return
-                end
-
-                params = parv[GET_MODE_PARAMS]
-
-                user.parse_modes(params[0])
             end
+        else
+            unless user = $users[parv[0]]
+                $log.debug "Got FMODE message for unknown UID: #{parv[0]}"
+                return
+            end
+
+            params = parv[GET_MODE_PARAMS]
+
+            user.parse_modes(params[0])
         end
     end
 

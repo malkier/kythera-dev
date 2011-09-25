@@ -8,6 +8,7 @@
 
 require 'kythera'
 
+# The current uplink; it's a global because extensions etc need it
 $uplink = nil
 
 # Represents the interface to the remote IRC server
@@ -168,7 +169,7 @@ class Uplink
             begin
                 @socket.write_nonblock(line)
             rescue Errno::EAGAIN
-                # Will go back to select and try again
+                return # Will go back to select and try again
             rescue Exception => err
                 $log.error "write error to #{@config.name}: #{err}"
                 self.dead = true
@@ -240,9 +241,15 @@ class Uplink
         ctx.options    |= OpenSSL::SSL::OP_ALL
 
         socket = OpenSSL::SSL::SSLSocket.new(@socket, ctx)
-        socket.sync_close = true
-        socket.connect
 
-        @socket = socket
+        begin
+            socket.connect
+            socket.sync_close = true
+        rescue Exception => err
+            $log.error 'SSL failed to connect'
+            self.dead = true
+        else
+            @socket = socket
+        end
     end
 end

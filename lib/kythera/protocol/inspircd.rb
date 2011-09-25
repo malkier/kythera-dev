@@ -9,10 +9,13 @@
 
 require 'kythera'
 
+module Protocol::InspIRCd
+end
+
 require 'kythera/protocol/inspircd/channel'
+require 'kythera/protocol/inspircd/receive'
 require 'kythera/protocol/inspircd/send'
 require 'kythera/protocol/inspircd/server'
-require 'kythera/protocol/inspircd/receive'
 require 'kythera/protocol/inspircd/user'
 
 # Implements InspIRCd protocol-specific methods

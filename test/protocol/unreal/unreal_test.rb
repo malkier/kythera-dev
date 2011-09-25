@@ -171,9 +171,13 @@ context :unreal do
         asserts('is SSL only')        { topic.has_mode?(:ssl_only)         }
         asserts('is limited')         { topic.has_mode?(:limited)          }
 
-        asserts('flood limit')        { topic.flood_protection }.equals "10:5"
-        asserts('key')                { topic.key }.equals 'partypants'
-        asserts('limit')              { topic.limited }.equals "15"
+        asserts('flood') { topic.mode_param(:flood_protection) }.equals "10:5"
+        asserts('key')   { topic.mode_param(:keyed) }.equals 'partypants'
+        asserts('limit') { topic.mode_param(:limited) }.equals "15"
+
+        asserts('dk is banned') { topic.is_banned?('*!xiphias@khaydarin.net') }
+        asserts('jk is execpt') { topic.is_excepted?('*!justin@othius.com') }
+        asserts('wp is banned') { topic.is_invexed?('*!nenolod@nenolod.net') }
 
         asserts('rakaur is member') { topic.members['rakaur'] }
         asserts('member count')     { topic.members.length }.equals 49

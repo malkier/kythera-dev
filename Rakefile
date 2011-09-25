@@ -50,12 +50,10 @@ namespace :clean do
 end
 
 # Testing
-task :test do
-    Rake::TestTask.new do |t|
-        t.libs   << 'test'
-        t.pattern = 'test/**/*_test.rb'
-        t.verbose = false
-    end
+Rake::TestTask.new do |t|
+    t.libs   << 'test'
+    t.pattern = 'test/**/*_test.rb'
+    t.verbose = false
 end
 
 # Database migrations

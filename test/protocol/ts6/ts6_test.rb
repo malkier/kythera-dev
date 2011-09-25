@@ -41,7 +41,7 @@ context :ts6 do
     asserts('channels') { $channels.clear; $channels }.empty
     asserts('servers')  { $servers.clear;  $servers  }.empty
 
-    asserts(:burst) { topic.instance_variable_get(:@recvq) }.size 215
+    asserts(:burst) { topic.instance_variable_get(:@recvq) }.size 218
     asserts('parses') { topic.send(:parse) }
 
     asserts('has 11 servers')   { $servers .length == 11  }
@@ -160,7 +160,11 @@ context :ts6 do
         asserts('is no external')  { topic.has_mode?(:no_external) }
         asserts('is topic locked') { topic.has_mode?(:topic_lock)  }
         asserts('is limited')      { topic.has_mode?(:limited)     }
-        asserts('limit')     { topic.limited }.equals "15"
+        asserts('limit')           { topic.mode_param(:limited) }.equals "15"
+
+        asserts('dk is banned') { topic.is_banned?('*!xiphias@khaydarin.net') }
+        asserts('jk is execpt') { topic.is_excepted?('*!justin@othius.com') }
+        asserts('wp is banned') { topic.is_invexed?('*!nenolod@nenolod.net') }
 
         asserts('rakaur is member') { topic.members['0AAAAAAAA'] }
         asserts('member count')     { topic.members.length }.equals 6

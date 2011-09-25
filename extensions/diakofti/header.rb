@@ -27,7 +27,22 @@ class DiakoftiHeader < Extension
     # @return [Boolean] true or false
     #
     def self.verify_configuration(c)
-        if not c or not c.port then false else true end
+        return false if not c or not c.port
+
+        if c.ssl_certificate and c.ssl_private_key
+           ctx = OpenSSL::SSL::SSLContext.new
+           ctx.cert = c.ssl_certificate
+           ctx.key  = c.ssl_private_key
+
+           ctx.verify_mode = OpenSSL::SSL::VERIFY_NONE
+           ctx.options     = OpenSSL::SSL::OP_NO_TICKET
+           ctx.options    |= OpenSSL::SSL::OP_NO_SSLv2
+           ctx.options    |= OpenSSL::SSL::OP_ALL
+
+           c.ssl_context = ctx
+        end
+
+        true
     end
 
     # Our configuration methods
@@ -52,6 +67,16 @@ class DiakoftiHeader < Extension
 
         def bind(rvalue)
             self.bind = rvalue
+        end
+
+        def ssl_certificate(certfile)
+            fr = File.read(certfile.to_s)
+            self.ssl_certificate = OpenSSL::X509::Certificate.new(fr)
+        end
+
+        def ssl_private_key(keyfile)
+            fr = File.read(keyfile.to_s)
+            self.ssl_private_key = OpenSSL::PKey::RSA.new(fr)
         end
     end
 end

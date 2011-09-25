@@ -8,10 +8,10 @@
 
 require 'kythera'
 
-# A list of all channels. The key is the channel name by default
+# A list of all channels; keyed by channel name by default
 $channels = IRCHash.new
 
-# This is just a base class. All protocol module should monkeypatch this.
+# This is just a base class; protocol module should subclass this
 class Channel
     # Standard IRC status cmodes
     @@status_modes = { 'o' => :operator,
@@ -43,25 +43,17 @@ class Channel
     # The channel name, including prefix
     attr_reader :name
 
-    # If the channel is +k, this is the key
-    attr_reader :key
-
-    # If the channel is +l, this is the limit
-    attr_reader :limit
-
     # A Hash of members keyed by nickname
     attr_reader :members
-
-    # An Array of mode Symbols
-    attr_reader :modes
 
     # Creates a new channel. Should be patched by the protocol module.
     def initialize(name)
         @name   = name
-        @modes  = []
 
         # Keyed by nickname by default
         @members = IRCHash.new
+
+        clear_modes
 
         $channels[name] = self
 
@@ -101,15 +93,27 @@ class Channel
                 mode  = @@status_modes[c]
                 param = params.shift
 
+            # List modes
             elsif @@list_modes.include?(c)
                 mode  = @@list_modes[c]
                 param = params.shift
+
+                if action == :add
+                    @list_modes[mode] << param
+                else
+                    @list_modes[mode].delete(param)
+                end
 
             # Always has a param (some send the key, some send '*')
             elsif c == 'k'
                 mode  = :keyed
                 param = params.shift
-                @key  = action == :add ? param : nil
+
+                if action == :add
+                    @param_modes[:keyed] = param
+                else
+                  @param_modes.delete(:keyed)
+                end
 
             # Has a param when +, doesn't when -
             elsif @@param_modes.include?(c)
@@ -117,13 +121,9 @@ class Channel
                 param  = params.shift
 
                 if action == :add
-                    instance_variable_set("@#{mode}", param)
-
-                    Channel.class_exec do
-                        attr_reader mode.to_sym
-                    end
+                    @param_modes[mode] = param
                 else
-                    instance_variable_set("@#{mode}", nil)
+                    @param_modes.delete(mode)
                 end
 
             # The rest, no param
@@ -131,8 +131,8 @@ class Channel
                 mode = @@bool_modes[c]
             end
 
-            # Add boolean modes to the channel's modes
-            unless @@status_modes.include?(c) or @@list_modes.include?(c)
+            if @@bool_modes.include?(c) or @@param_modes.include?(c)
+                # Add boolean/param modes to the channel's modes
                 if action == :add
                     @modes << mode
                 else
@@ -140,9 +140,7 @@ class Channel
                 end
             end
 
-            unless @@status_modes.include?(c)
-                $log.debug "mode #{action}: #{self} -> #{mode} #{param}"
-            end
+            $log.debug "mode #{action}: #{self} -> #{mode} #{param}"
 
             # Status modes for users get tossed to another method so that
             # how they work can be monkeypatched by protocol modules
@@ -163,7 +161,7 @@ class Channel
     # @param [User] user the User to add
     #
     def add_user(user)
-        @members[user.origin] = user
+        @members[user.key] = user
 
         $log.debug "user joined #{self}: #{user} (#{@members.length})"
 
@@ -175,7 +173,7 @@ class Channel
     # @param [User] user User object to delete
     #
     def delete_user(user)
-        @members.delete user.origin
+        @members.delete(user.key)
 
         user.status_modes.delete(self)
 
@@ -198,12 +196,45 @@ class Channel
     # @return [Boolean] true or false
     #
     def has_mode?(mode)
-        @modes.include?(mode)
+        @modes.include?(mode) || @param_modes.include?(mode)
+    end
+
+    # Get a mode's param
+    #
+    # @param [Symbol] mode the mode symbol
+    # @return [String] the mode param's value
+    #
+    def mode_param(mode)
+        @param_modes[mode]
+    end
+
+    # Get a list mode's list
+    #
+    # @param [Symbol] mode the mode symbol
+    # @return [Array] the list
+    #
+    def mode_list(mode)
+        @list_modes[mode]
+    end
+
+    # Is this hostmask in the ban list?
+    #
+    # @param [String] hostmask the hostmask to check for
+    # @return [Boolean] true or false
+    #
+    def is_banned?(hostmask)
+        @list_modes[:ban].include?(hostmask)
     end
 
     # Deletes all modes
     def clear_modes
-        @modes = []
+        @modes       = []
+        @param_modes = {}
+        @list_modes  = {}
+
+        @@list_modes.each_value do |mode|
+            @list_modes[mode] = []
+        end
     end
 
     private
