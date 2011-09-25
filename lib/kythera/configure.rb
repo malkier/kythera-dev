@@ -51,24 +51,6 @@ def configure_test(&block)
     $config.instance_eval(&block)
 end
 
-# Contains all of the application-wide stuff
-class Kythera
-    # For backwards-incompatible changes
-    V_MAJOR = 0
-
-    # For backwards-compatible changes
-    V_MINOR = 1
-
-    # For minor changes and bugfixes
-    V_PATCH = 4
-
-    # A String representation of the version number
-    VERSION = "#{V_MAJOR}.#{V_MINOR}.#{V_PATCH}"
-
-    # Our name for things we print out
-    ME = 'kythera'
-end
-
 # Contains the methods that actually implement the configuration
 module Kythera::Configuration
     # Holds the settings for the daemon section
