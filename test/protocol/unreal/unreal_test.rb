@@ -177,7 +177,7 @@ context :unreal do
 
         asserts('dk is banned') { topic.is_banned?('*!xiphias@khaydarin.net') }
         asserts('jk is execpt') { topic.is_excepted?('*!justin@othius.com') }
-        asserts('wp is banned') { topic.is_invexed?('*!nenolod@nenolod.net') }
+        asserts('wp is invexed') { topic.is_invexed?('*!nenolod@nenolod.net') }
 
         asserts('rakaur is member') { topic.members['rakaur'] }
         asserts('member count')     { topic.members.length }.equals 49
