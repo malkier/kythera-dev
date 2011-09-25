@@ -99,6 +99,7 @@ module Protocol::Unreal
             $log.debug "nick change: #{user} -> #{parv[0]}"
 
             user.nickname = parv[0]
+            user.timestamp = parv[1].to_i
         else
             p = parv
 
@@ -143,6 +144,8 @@ module Protocol::Unreal
             params = modes_and_params[REMOVE_FIRST]
 
             channel.parse_modes(modes, params) unless modes == nil
+        else
+            return
         end
 
         # Parse the members list

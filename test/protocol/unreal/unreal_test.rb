@@ -40,11 +40,11 @@ context :unreal do
     asserts('channels') { $channels.clear; $channels }.empty
     asserts('servers')  { $servers.clear;  $servers  }.empty
 
-    asserts(:burst) { topic.instance_variable_get(:@recvq) }.size 224
+    #XXXXXXXXXXXXasserts(:burst) { topic.instance_variable_get(:@recvq) }.size 224
     asserts('parses') { topic.send(:parse) }
 
     asserts('has 11 servers')   { $servers .length == 11  }
-    asserts('has 100 users')    { $users   .length == 100 }
+    asserts('has 99 users')     { $users   .length == 99  }
     asserts('has 100 channels') { $channels.length == 100 }
 
     context :servers do
@@ -110,7 +110,7 @@ context :unreal do
       setup { $users.values }
 
       denies_topic.empty
-      asserts(:size) { topic.length }.equals 100
+      asserts(:size) { topic.length }.equals 99
 
       context :first do
         setup { topic.find { |u| u.nickname == 'rakaur' } }
@@ -142,6 +142,7 @@ context :unreal do
         asserts(:cloakhost).equals 'malkier.net'
 
         asserts('is on #malkier') { topic.is_on?('#malkier') }
+        denies('is on #6')   { topic.is_on?('#6')  }
 
         asserts('is an operator on #malkier') do
           topic.has_mode_on_channel?(:operator, '#malkier')
@@ -158,6 +159,18 @@ context :unreal do
         asserts('is admin on #malkier') do
           topic.has_mode_on_channel?(:admin, '#malkier')
         end
+      end
+
+      context :last do
+        setup { $users.values.last }
+
+        asserts(:nickname).equals 'test_nick'
+        asserts(:timestamp).equals 1316970148
+      end
+
+      context :quit do
+        setup { $users['n81'] }
+        asserts_topic.nil
       end
     end
 
@@ -184,14 +197,16 @@ context :unreal do
         asserts('is no invite')       { topic.has_mode?(:no_invite)        }
         asserts('is SSL only')        { topic.has_mode?(:ssl_only)         }
         asserts('is limited')         { topic.has_mode?(:limited)          }
+        asserts('is no_ansi')         { topic.has_mode?(:no_ansi)          }
 
         asserts('flood') { topic.mode_param(:flood_protection) }.equals "10:5"
         asserts('key')   { topic.mode_param(:keyed) }.equals 'partypants'
         asserts('limit') { topic.mode_param(:limited) }.equals "15"
 
-        asserts('dk is banned') { topic.is_banned?('*!xiphias@khaydarin.net') }
-        asserts('jk is execpt') { topic.is_excepted?('*!justin@othius.com') }
-        asserts('wp is invexed') { topic.is_invexed?('*!nenolod@nenolod.net') }
+        denies('ts is banned')   { topic.is_banned?('*!invalid@time.stamp')    }
+        asserts('dk is banned')  { topic.is_banned?('*!xiphias@khaydarin.net') }
+        asserts('jk is execpt')  { topic.is_excepted?('*!justin@othius.com')   }
+        asserts('wp is invexed') { topic.is_invexed?('*!nenolod@nenolod.net')  }
 
         asserts('rakaur is member') { topic.members['rakaur'] }
         asserts('member count')     { topic.members.length }.equals 49

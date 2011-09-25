@@ -229,7 +229,7 @@ module Protocol::InspIRCd
     # parv[1] -> ts
     #
     def irc_nick(origin, parv)
-        unless user = $users[origin.irc_downcase]
+        unless user = $users[origin]
             $log.error "got nick change for non-existent UID: #{origin}"
             return
         end

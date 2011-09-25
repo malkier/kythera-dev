@@ -41,7 +41,7 @@ class Protocol::Unreal::User < User
                      'z' => :ssl }
 
      # The user's timestamp
-     attr_reader :timestamp
+     attr_accessor :timestamp
 
      # The user's virtual host/spoof
      attr_reader :vhost
