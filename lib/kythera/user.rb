@@ -53,7 +53,11 @@ class User
         # Do our user modes
         parse_modes(umodes)
 
-        $users[nick] = self
+        $users[key] = self
+
+        $eventq.post(:user_added, self)
+
+        $log.debug "new user: #{nick}!#{user}@#{host} (#{real})"
     end
 
     public

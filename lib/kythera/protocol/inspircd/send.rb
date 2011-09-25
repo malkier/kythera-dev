@@ -38,6 +38,9 @@ module Protocol::InspIRCd
         str  = "SERVER #{$config.me.name} #{@config.send_password} 0 "
         str += "#{@config.sid} :#{$config.me.description}"
 
+        # Keep track of our own server, it counts!
+        Server.new(@config.sid, $config.me.name, $config.me.description)
+
         raw str
     end
 
@@ -67,7 +70,8 @@ module Protocol::InspIRCd
 
         raw str
 
-        User.new(nil, nick, user, host, ip, real, modes, uid, ts)
+        me = $servers[@config.sid]
+        User.new(me, nick, user, host, ip, real, modes, uid, ts)
     end
 
     # :<sid> FJOIN <channel> <timestamp> +<modes> <params> :<statusmodes,uuid>

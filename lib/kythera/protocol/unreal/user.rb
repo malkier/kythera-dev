@@ -11,9 +11,6 @@ require 'kythera'
 
 # This subclasses the base User class in `kythera/user.rb`
 class Protocol::Unreal::User < User
-    # The user's timestamp
-    attr_reader :timestamp, :vhost, :cloakhost
-
     # Unreal's user modes
     @@user_modes = { 'A' => :server_admin,
                      'a' => :services_admin,
@@ -25,7 +22,7 @@ class Protocol::Unreal::User < User
                      'H' => :hide_ircop,
                      'h' => :helper,
                      'i' => :invisible,
-                     'N' => :netadmin,
+                     'N' => :net_admin,
                      'O' => :local_oper,
                      'o' => :global_oper,
                      'p' => :hide_whois_channels,
@@ -43,30 +40,22 @@ class Protocol::Unreal::User < User
                      'x' => :hidden_host,
                      'z' => :ssl }
 
+     # The user's timestamp
+     attr_reader :timestamp
+
+     # The user's virtual host/spoof
+     attr_reader :vhost
+
+     # The user's fake/pseudorandom hostmask (for DoS protection)
+     attr_reader :cloakhost
+
     # Creates a new user and adds it to the list keyed by nick
-    def initialize(server, nick, user, host, real, umodes, ts, vhost = nil,
-                   cloakhost = nil)
-        @server    = server
-        @nickname  = nick
-        @username  = user
-        @hostname  = host
-        @realname  = real
+    def initialize(server, nn, un, hn, rn, umodes, ts, vhost = nil, cloak = nil)
         @timestamp = ts.to_i
-        @modes     = []
+        @vhost     = vhost || host
+        @cloakhost = cloak || host
 
-        @vhost     = vhost     || host
-        @cloakhost = cloakhost || host
-
-        @status_modes = {}
-
-        # Do our user modes
-        parse_modes(umodes)
-
-        $users[nick] = self
-
-        $log.debug "new user: #{nick}!#{user}@#{host} (#{real})"
-
-        $eventq.post(:user_added, self)
+        super(server, nn, un, hn, rn, umodes)
     end
 
     # Is this user an IRC operator?
@@ -75,10 +64,5 @@ class Protocol::Unreal::User < User
     #
     def operator?
         @modes.include?(:global_oper)
-    end
-
-    # The value we use to represent our membership in a Hash
-    def key
-        @nickname
     end
 end

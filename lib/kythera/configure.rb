@@ -183,6 +183,8 @@ module Kythera::Configuration
         ul.extend(Kythera::Configuration::Uplink)
         ul.instance_eval(&block)
 
+        ul.name ||= host.to_s
+
         (@uplinks ||= []) << ul
 
         $config.uplinks.sort! { |a, b| a.priority <=> b.priority }

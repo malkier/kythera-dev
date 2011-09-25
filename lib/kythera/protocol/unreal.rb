@@ -15,7 +15,6 @@ end
 require 'kythera/protocol/unreal/channel'
 require 'kythera/protocol/unreal/receive'
 require 'kythera/protocol/unreal/send'
-require 'kythera/protocol/unreal/server'
 require 'kythera/protocol/unreal/user'
 
 # Implements Unreal protocol-specific methods

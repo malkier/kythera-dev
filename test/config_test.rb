@@ -57,7 +57,7 @@ context :configuration do
      asserts(:port)            .equals 6667
      asserts(:name)            .equals 'test.server.com'
      asserts(:priority)        .equals 1
-     asserts(:sid)             .equals '0X0'
+     asserts(:sid)             .equals '0XX'
      asserts(:send_password)   .equals 'unit_tester'
      asserts(:receive_password).equals 'unit_tester'
      asserts(:network)         .equals 'testing'

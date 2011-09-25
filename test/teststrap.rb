@@ -43,7 +43,7 @@ $_uplink_block = proc do
     uplink '127.0.0.1', 6667 do
       priority         1
       name             'test.server.com'
-      sid              '0X0'
+      sid              '0XX'
       send_password    :unit_tester
       receive_password :unit_tester
       network          :testing

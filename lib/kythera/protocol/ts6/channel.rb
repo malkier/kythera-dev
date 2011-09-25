@@ -19,22 +19,9 @@ class Protocol::TS6::Channel < Channel
     attr_reader :timestamp
 
     # Creates a new channel and adds it to the list keyed by name
-    def initialize(name, timestamp=nil)
-        @name      = name
+    def initialize(name, timestamp = nil)
         @timestamp = (timestamp || Time.now).to_i
-
-        # Keyed by UID
-        @members = IRCHash.new
-
-        clear_modes
-
-        $log.error "new channel #{@name} already exists!" if $channels[name]
-
-        $channels[name] = self
-
-        $log.debug "new channel: #{@name} (#{timestamp})"
-
-        $eventq.post(:channel_added, self)
+        super(name)
     end
 
     public

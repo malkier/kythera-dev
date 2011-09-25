@@ -33,6 +33,9 @@ module Protocol::Unreal
 
     # SERVER server.name 1 :server description
     def send_server
+        # Keep track of our own server, it counts!
+        Server.new($config.me.name, $config.me.description)
+
         raw "SERVER #{$config.me.name} 1 :#{$config.me.description}"
     end
 
@@ -61,6 +64,7 @@ module Protocol::Unreal
 
         raw str
 
+        s = $servers[$config.me.name]
         User.new(nil, nick, user, host, real, modes, ts)
     end
 

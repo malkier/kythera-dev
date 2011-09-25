@@ -47,10 +47,7 @@ module Protocol::Unreal
     #   parv[2] -> description
     #
     def irc_server(origin, parv)
-        # No origin means that we're handshaking, so this must be our uplink.
         unless origin
-            server = Server.new(parv[0])
-
             # Make sure their name matches what we expect
             unless parv[0] == @config.name
                 $log.error "name mismatch from uplink"
@@ -60,16 +57,9 @@ module Protocol::Unreal
 
                 return
             end
-
-            server.description = parv[2]
-
-            $log.debug "new server: #{parv[0]}"
-
-            $eventq.post(:server_added, server)
-        else
-            server             = Server.new(parv[0])
-            server.description = parv[2]
         end
+
+        server = Server.new(parv[0], parv[2])
     end
 
     # Handles an incoming PING

@@ -48,7 +48,7 @@ class Channel
 
     # Creates a new channel. Should be patched by the protocol module.
     def initialize(name)
-        @name   = name
+        @name = name
 
         # Keyed by nickname by default
         @members = IRCHash.new

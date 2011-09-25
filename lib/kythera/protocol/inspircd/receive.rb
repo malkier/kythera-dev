@@ -31,34 +31,24 @@ module Protocol::InspIRCd
     #     parv[4] -> description
     #
     def irc_server(origin, parv)
-        if origin
-            # New server introduction
-            server = Server.new(parv[3])
-        else
-            if parv[1] != @config.receive_password
-                $log.error "incorrect password received from `#{@config.name}`"
-                self.dead = true
-            else
-                server = Server.new(parv[3])
-            end
+        Server.new(parv[3], parv[0], parv[4])
 
-            # Make sure their name matches what we expect
-            unless parv[0] == @config.name
-                $log.error "name mismatch from uplink"
-                $log.error "#{parv[0]} != #{@config.name}"
+        return if origin # Anything else is authentication
 
-                self.dead = true
-
-                return
-            end
+        unless parv[1] == @config.receive_password
+            $log.error "incorrect password received from `#{@config.name}`"
+            self.dead = true
+            return
         end
 
-        server.name        = parv[0]
-        server.description = parv[4]
+        # Make sure their name matches what we expect
+        unless parv[0] == @config.name
+            $log.error "name mismatch from uplink"
+            $log.error "#{parv[0]} != #{@config.name}"
 
-        $log.debug "new server: #{parv[0]}"
-
-        $eventq.post(:server_added, server)
+            self.dead = true
+            return
+        end
     end
 
     # Handles an incoming CAPAB
@@ -118,14 +108,14 @@ module Protocol::InspIRCd
     def irc_uid(origin, parv)
         p = parv
 
-        unless s = $servers[origin]
+        unless server = $servers[origin]
             $log.error "got UID from unknown SID: #{origin}"
             return
         end
 
-        u = User.new(s, p[2], p[5], p[4], p[6], p[-1], p[8], p[0], p[1])
+        u = User.new(server, p[2], p[5], p[4], p[6], p[-1], p[8], p[0], p[1])
 
-        s.add_user(u)
+        server.add_user(u)
     end
 
     # Handles an incoming FJOIN

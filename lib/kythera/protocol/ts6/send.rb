@@ -32,6 +32,9 @@ module Protocol::TS6
 
     # SERVER <NAME> <HOPS> :<DESC>
     def send_server
+        # Keep track of our own server, it counts!
+        Server.new(@config.sid, $config.me.name, $config.me.description)
+
         raw "SERVER #{$config.me.name} 1 :#{$config.me.description}"
     end
 
@@ -60,7 +63,8 @@ module Protocol::TS6
 
         raw str
 
-        User.new(nil, nick, uname, host, ip, real, modes, uid, ts)
+        me = $servers[@config.sid]
+        User.new(me, nick, uname, host, ip, real, modes, uid, ts)
     end
 
     # :UID PRIVMSG <TARGET_UID> :<MESSAGE>

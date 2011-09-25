@@ -24,7 +24,9 @@ module Protocol::TS6
             $log.error "incorrect password received from `#{@config.name}`"
             self.dead = true
         else
-            Server.new(parv[3])
+            # Because the SID and the name isn't ever seen in one place, we
+            # have to hack this together, and it blows to the max
+            $state.uplink_sid = parv[3]
 
             # Start the burst timer
             $state.bursting = Time.now
@@ -52,7 +54,7 @@ module Protocol::TS6
         end
 
         # No origin means we're handshaking, so this must be our uplink
-        server = $servers.values.first
+        Server.new($state.uplink_sid, parv[0], parv[2])
 
         # Make sure their name matches what we expect
         unless parv[0] == @config.name
@@ -63,13 +65,6 @@ module Protocol::TS6
 
             return
         end
-
-        server.name        = parv[0]
-        server.description = parv[2]
-
-        $log.debug "new server: #{parv[0]}"
-
-        $eventq.post(:server_added, server)
     end
 
     # Handles an incoming SVINFO
@@ -118,11 +113,7 @@ module Protocol::TS6
     # parv[3] -> description
     #
     def irc_sid(origin, parv)
-        server             = Server.new(parv[2])
-        server.name        = parv[0]
-        server.description = parv[3]
-
-        $eventq.post(:server_added, server)
+        server = Server.new(parv[2], parv[0], parv[3])
     end
 
     # Handles an incoming SQUIT (server disconnection)
@@ -157,14 +148,14 @@ module Protocol::TS6
     def irc_uid(origin, parv)
         p = parv
 
-        unless s = $servers[origin]
+        unless server = $servers[origin]
             $log.error "got UID from unknown SID: #{origin}"
             return
         end
 
-        u = User.new(s, p[0], p[4], p[5], p[6], p[8], p[3], p[7], p[2])
+        u = User.new(server, p[0], p[4], p[5], p[6], p[8], p[3], p[7], p[2])
 
-        s.add_user(u)
+        server.add_user(u)
     end
 
     # Handles an incoming NICK

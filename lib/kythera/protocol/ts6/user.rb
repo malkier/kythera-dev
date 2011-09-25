@@ -28,28 +28,11 @@ class Protocol::TS6::User < User
 
     # Creates a new user and adds it to the list keyed by UID
     def initialize(server, nick, user, host, ip, real, umodes, uid, ts)
-        @server    = server
-        @nickname  = nick
-        @username  = user
-        @hostname  = host
         @ip        = ip
-        @realname  = real
         @uid       = uid
         @timestamp = ts.to_i
-        @modes     = []
 
-        @status_modes = {}
-
-        $log.error "new user replacing user with same UID!" if $users[uid]
-
-        # Do our user modes
-        parse_modes(umodes)
-
-        $users[uid] = self
-
-        $log.debug "new user: #{nick}!#{user}@#{host} (#{real}) [#{uid}]"
-
-        $eventq.post(:user_added, self)
+        super(server, nick, user, host, real, umodes)
     end
 
     # The value we use to represent our membership in a Hash
