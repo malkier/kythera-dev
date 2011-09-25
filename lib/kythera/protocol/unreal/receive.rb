@@ -98,8 +98,18 @@ module Protocol::Unreal
 
             $log.debug "nick change: #{user} -> #{parv[0]}"
 
-            user.nickname = parv[0]
+            oldnick = user.nickname
+            newnick = parv[0]
+
+            user.nickname  = newnick
             user.timestamp = parv[1].to_i
+
+            # We have to rekey lists we're in, which really sucks
+            $channels.values.each do |channel|
+                next unless channel.members[oldnick]
+                channel.members.delete(oldnick)
+                channel.members[newnick] = self
+            end
         else
             p = parv
 
@@ -144,8 +154,6 @@ module Protocol::Unreal
             params = modes_and_params[REMOVE_FIRST]
 
             channel.parse_modes(modes, params) unless modes == nil
-        else
-            return
         end
 
         # Parse the members list
@@ -155,8 +163,10 @@ module Protocol::Unreal
         # See benchmark/theory/multiprefix_parsing.rb
         #
         members.each do |nick|
-            # List modes
+            # Only do list modes if the TS is right
             if %w(& " ').include?(nick[0].chr)
+                next unless their_ts <= channel.timestamp
+
                 c, mask = nick.split('', 2)
 
                 case c
@@ -205,6 +215,7 @@ module Protocol::Unreal
 
             channel.add_user(user)
 
+            # Only apply status modes if the TS is right
             if their_ts <= channel.timestamp
                 if op
                   user.add_status_mode(channel, :operator)

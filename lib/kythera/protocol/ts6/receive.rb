@@ -241,6 +241,7 @@ module Protocol::TS6
 
             channel.add_user(user)
 
+            # Only apply status modes if the TS is right
             if their_ts <= channel.timestamp
                 if op
                     user.add_status_mode(channel, :operator)

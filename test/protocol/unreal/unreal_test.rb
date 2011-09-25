@@ -40,7 +40,7 @@ context :unreal do
     asserts('channels') { $channels.clear; $channels }.empty
     asserts('servers')  { $servers.clear;  $servers  }.empty
 
-    #XXXXXXXXXXXXasserts(:burst) { topic.instance_variable_get(:@recvq) }.size 224
+    asserts(:burst) { topic.instance_variable_get(:@recvq) }.size 229
     asserts('parses') { topic.send(:parse) }
 
     asserts('has 11 servers')   { $servers .length == 11  }
@@ -166,6 +166,7 @@ context :unreal do
 
         asserts(:nickname).equals 'test_nick'
         asserts(:timestamp).equals 1316970148
+        asserts('is on #malkier') { topic.is_on?('#malkier') }
       end
 
       context :quit do
@@ -209,7 +210,7 @@ context :unreal do
         asserts('wp is invexed') { topic.is_invexed?('*!nenolod@nenolod.net')  }
 
         asserts('rakaur is member') { topic.members['rakaur'] }
-        asserts('member count')     { topic.members.length }.equals 49
+        asserts('member count')     { topic.members.length }.equals 50
       end
     end
   end

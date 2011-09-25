@@ -169,6 +169,7 @@ module Protocol::InspIRCd
 
             channel.add_user(user)
 
+            # Only do status modes if the TS is right
             if their_ts <= channel.timestamp
                 modes.each do |m|
                     mode = Channel.status_modes[m]

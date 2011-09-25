@@ -40,7 +40,7 @@ context :inspircd do
     asserts('channels') { $channels.clear; $channels }.empty
     asserts('servers')  { $servers.clear;  $servers  }.empty
 
-    asserts(:burst) { topic.instance_variable_get(:@recvq) }.size 226
+    asserts(:burst) { topic.instance_variable_get(:@recvq) }.size 227
     asserts('parses') { topic.send(:parse) }
 
     asserts('has 11 servers')   { $servers .length == 11  }
@@ -164,6 +164,7 @@ context :inspircd do
         asserts(:uid).equals '0AJAAAAAJ'
         asserts(:nickname).equals 'test_nick'
         asserts(:timestamp).equals 1316970148
+        asserts('is on #malkier') { topic.is_on?('#malkier') }
       end
 
       context :quit do
@@ -207,7 +208,7 @@ context :inspircd do
         asserts('wp is invexed') { topic.is_invexed?('*!nenolod@nenolod.net')  }
 
         asserts('rakaur is member') { topic.members['0AAAAAAAA'] }
-        asserts('member count')     { topic.members.length }.equals 6
+        asserts('member count')     { topic.members.length }.equals 7
       end
     end
   end

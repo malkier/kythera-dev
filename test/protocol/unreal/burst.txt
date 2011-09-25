@@ -122,7 +122,6 @@ NICK n82 1 1315864660 user 127.0.0.1 test.server9.com 0 +AaBCGHhrsVvWz 127.0.0.1
 NICK n81 1 1315864660 user 127.0.0.1 test.server9.com 0 +CdOprsTtVW 127.0.0.1 :gecos
 NICK n86 1 1315864660 user 127.0.0.1 test.server9.com 0 +ABCGgHNpRrVxz 127.0.0.1 :gecos
 :test.server1.com SJOIN 1315864660 #malkier +fkGOstuVzl 10:5 partypants 15 :@+%*~rakaur @n4 %n5 @+~n7 n9 @%*n12 @+*~n15 +~n18 @+*~n21 +%n22 @*~n23 @+*n24 n26 +%~n27 @%~n28 *n30 @+n31 @n35 +%~n36 +*~n38 @+~n41 @+%*~n42 n43 %n46 @+%~n47 %~n50 @+~n54 +*n55 %n56 @+*n60 @+%*~n61 *~n64 @+%*~n68 @*n69 +~n71 %*~n72 %*n74 +*~n77 %*~n79 +~n81 +%n84 @n87 +%*~n90 @~n92 *~n93 @%n94 @%n95 @+~n97 +%*~n100 &*!xiphias@khaydarin.net "*!justin@othius.com '*!nenolod@nenolod.net
-:test.server1.com SJOIN 1315864661 #malkier + :&*!invalid@time.stamp
 :test.server1.com SJOIN 1315864660 #2 +flCiNOQtTz param param :*rakaur @%~n3 *~n5 +%~n6 +%*n8 @*n9 @+n15 %n17 *~n18 @*n20 @+*~n23 @%*n26 n29 @n31 +~n36 @+%n41 @+%*n44 +~n47 @+*n49 +~n51 @%n52 %~n56 +%n60 *~n61 @%n63 @+~n64 %*n65 *~n69 %~n72 *~n77 @%*~n78 +%*~n80 @%~n81 +*n82 @n83 @+%~n86 ~n88 @~n89 @n90 +*n91 @%~n92 @*n94 %*~n95 @+%*~n99 @+*~n100
 :test.server1.com SJOIN 1315864660 #3 +fkcmNORSstuV param param :@+*rakaur +%*n3 %*~n7 +%*~n9 +%~n11 +%*~n13 @*~n16 @~n17 *n19 %n20 @n22 @*~n23 @%*~n25 +%*~n27 @%~n29 %*n30 @%*~n31 @*n32 +*~n34 +%*~n37 %n39 +%*n40 +%n41 %~n45 @+*n47 @+%n48 @+%*~n50 @+*n53 +~n54 n57 +%*n59 @n60 +%*n61 +~n62 @n64 +n66 @+%*~n70 @+%*n71 %*n72 @+~n74 +~n83 @~n87 *n89 %~n93 @*~n95 %*~n99
 :test.server1.com SJOIN 1315864660 #4 +jkAcGiOrRtuV param param :+~n5 @+*n6 +%*n7 n9 @+%~n11 @+~n14 +%n15 +%*~n18 @+*~n19 @%n22 +%~n23 @%n25 @%*~n26 +*~n27 @+n28 +*n31 @%*n32 %~n33 +%*~n34 *n35 @+%*n38 @%~n39 +n40 @%*~n42 @+%*~n46 %*n47 @+%n55 +*n58 *n59 @+*n61 +%*~n62 +*~n63 @%*~n65 n67 *~n68 +*~n69 @n71 +*n72 @*~n73 @+*~n75 @+n77 @*n78 @*~n84 @~n85 %*~n86 @%*~n90 %~n91 *~n94
@@ -223,6 +222,7 @@ NICK n86 1 1315864660 user 127.0.0.1 test.server9.com 0 +ABCGgHNpRrVxz 127.0.0.1
 :test.server9.com SJOIN 1315864660 #81 +lLcCmNnprSstTz param param :@+%~rakaur @*n2 +%*n3 @+%*~n4 +%n10 +%*~n11 @+~n12 %*n14 @+%n19 +*~n22 @+*~n24 +n25 @+*~n26 +%*n27 @+%n28 *n30 @*n31 +n37 +%*n38 *n39 n40 +*n43 @+%n45 %*n46 ~n48 @n49 @+n51 %*n52 +%*n53 %*n57 +%*~n60 @%*~n62 +%*~n65 @+%~n66 +n69 @+*n72 @+%*~n73 @%~n74 *n75 @+%~n76 @+*n77 @*n78 @+n80 @n81 @%*n82 %*~n85 @+%~n86 %*~n87 @~n90 *~n91 +%*~n95 +%*~n96 n97 +%*n99 @%~n100
 :test.server9.com SJOIN 1315864660 #86 +klLcMOpQRtVz param param param :+~n3 @+%*n4 *n5 *~n6 @%*n7 +%~n11 @%~n12 @*~n13 +%*n14 @+%*n15 +%n16 *n18 %n19 +%*~n20 @+%*n21 %n22 *~n24 +%~n25 +n27 @%~n31 @+n32 *~n35 n36 n41 @+%~n44 +*~n45 +%~n46 @*~n48 %n53 +%*~n55 ~n57 +~n58 @*n60 @%*~n61 @+%n62 +%n63 @+~n66 @+%~n67 @%~n70 @%*~n72 n73 @+*~n74 %n75 +%*n77 @+%*~n80 @+%~n83 @*n85 @+n86 @+n87 %*n88 +*~n89 @~n90 +%*~n91 @+%*n94 +%*n95 @%n97 *n98 +*n99 n100
 :test.server.com PING test.server.com :kythera.test
+:test.server1.com SJOIN 1315864661 #malkier + :n86 &*!invalid@time.stamp
 :n86 NICK test_nick 1316970148
 :rakaur PART #6
 :n81 QUIT :test
