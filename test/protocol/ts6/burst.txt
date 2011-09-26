@@ -223,3 +223,4 @@ PING :0X0
 :0AJAAAAAI QUIT :test
 :0AAAAAAAA TMODE 1315424187 #malkier +s
 :0AAAAAAAA TMODE 1315424188 #malkier +k wrong_ts
+SQUIT 0AI :test.server.com

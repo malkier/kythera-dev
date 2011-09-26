@@ -225,3 +225,4 @@ SERVER test.server.com unit_tester 0 0X0 :test server
 :0AJAAAAAI QUIT :test
 :0AAAAAAAA FMODE #malkier 1315965584 +s
 :0AAAAAAAA FMODE #malkier 1315965585 +j wrong_ts
+SQUIT 0AI :test.server.com

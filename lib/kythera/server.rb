@@ -39,7 +39,7 @@ class Server
 
     # The value we use to represent our membership in a Hash
     def key
-        @name
+        @name.irc_downcase
     end
 
     # Adds a User as a member

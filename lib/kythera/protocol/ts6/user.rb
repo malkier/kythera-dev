@@ -37,6 +37,6 @@ class Protocol::TS6::User < User
 
     # The value we use to represent our membership in a Hash
     def key
-        @uid
+        @uid.irc_downcase
     end
 end

@@ -41,11 +41,11 @@ context :ts6 do
     asserts('channels') { $channels.clear; $channels }.empty
     asserts('servers')  { $servers.clear;  $servers  }.empty
 
-    asserts(:burst) { topic.instance_variable_get(:@recvq) }.size 225
+    asserts(:burst) { topic.instance_variable_get(:@recvq) }.size 226
     asserts('parses') { topic.send(:parse) }
 
-    asserts('has 11 servers')   { $servers .length == 11  }
-    asserts('has 99 users')     { $users   .length == 99  }
+    asserts('has 10 servers')   { $servers .length == 10  }
+    asserts('has 89 users')     { $users   .length == 89  }
     asserts('has 100 channels') { $channels.length == 100 }
 
     context :servers do
@@ -53,7 +53,7 @@ context :ts6 do
 
       denies_topic.nil
       denies_topic.empty
-      asserts(:size) { topic.length }.equals 11
+      asserts(:size) { topic.length }.equals 10
 
       context :first do
         setup { topic.find { |s| s.sid == '0X0' } }
@@ -111,13 +111,18 @@ context :ts6 do
           end
         end
       end
+
+      context :quit do
+          setup { $servers['0AI'] }
+          asserts_topic.nil
+      end
     end
 
     context :users do
       setup { $users.values }
 
       denies_topic.empty
-      asserts(:size) { topic.length }.equals 99
+      asserts(:size) { topic.length }.equals 89
 
       context :first do
         setup { topic.find { |u| u.uid == '0AAAAAAAA' } }

@@ -227,3 +227,4 @@ NICK n86 1 1315864660 user 127.0.0.1 test.server9.com 0 +ABCGgHNpRrVxz 127.0.0.1
 :rakaur PART #6
 :n81 QUIT :test
 :rakaur MODE #malkier +c
+SQUIT test.server8.com :test.server.com

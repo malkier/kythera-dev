@@ -116,23 +116,6 @@ module Protocol::TS6
         server = Server.new(parv[2], parv[0], parv[3])
     end
 
-    # Handles an incoming SQUIT (server disconnection)
-    #
-    # parv[0] -> SID leaving
-    # parv[1] -> server's uplink's name
-    #
-    def irc_squit(origin, parv)
-        unless server = $servers.delete(parv[0])
-            $log.error "received SQUIT for unknown SID: #{parv[0]}"
-            return
-        end
-
-        # Remove all their users to comply with CAPAB QS
-        server.users.each { |u| $users.delete u.uid }
-
-        $log.debug "server leaving: #{parv[0]}"
-    end
-
     # Handles an incoming UID (user introduction)
     #
     # parv[0] -> nickname

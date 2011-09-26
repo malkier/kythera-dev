@@ -23,6 +23,6 @@ class Protocol::TS6::Server < Server
 
     # The value we use to represent our membership in a Hash
     def key
-        @sid
+        @sid.irc_downcase
     end
 end

@@ -61,7 +61,7 @@ class User
 
     # The value we use to represent our membership in a Hash
     def key
-        @nickname
+        @nickname.irc_downcase
     end
 
     # String representation is just `@nickname`

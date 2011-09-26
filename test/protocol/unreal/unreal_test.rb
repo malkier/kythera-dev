@@ -40,11 +40,11 @@ context :unreal do
     asserts('channels') { $channels.clear; $channels }.empty
     asserts('servers')  { $servers.clear;  $servers  }.empty
 
-    asserts(:burst) { topic.instance_variable_get(:@recvq) }.size 229
+    asserts(:burst) { topic.instance_variable_get(:@recvq) }.size 230
     asserts('parses') { topic.send(:parse) }
 
-    asserts('has 11 servers')   { $servers .length == 11  }
-    asserts('has 99 users')     { $users   .length == 99  }
+    asserts('has 10 servers')   { $servers .length == 10  }
+    asserts('has 89 users')     { $users   .length == 89  }
     asserts('has 100 channels') { $channels.length == 100 }
 
     context :servers do
@@ -52,10 +52,10 @@ context :unreal do
 
       denies_topic.nil
       denies_topic.empty
-      asserts(:size) { topic.length }.equals 11
+      asserts(:size) { topic.length }.equals 10
 
       context :first do
-        setup { topic.find { |s| s.name == 'test.server.com' } }
+        setup { $servers['test.server.com'] }
 
         denies_topic.nil
         asserts_topic.kind_of Server
@@ -72,7 +72,7 @@ context :unreal do
       end
 
       context :second do
-        setup { topic.find { |s| s.name == 'test.server1.com' } }
+        setup { $servers['test.server1.com'] }
 
         denies_topic.nil
         asserts_topic.kind_of Server
@@ -104,13 +104,18 @@ context :unreal do
           end
         end
       end
+
+      context :quit do
+          setup { $servers['test.server8.com'] }
+          asserts_topic.nil
+      end
     end
 
     context :users do
       setup { $users.values }
 
       denies_topic.empty
-      asserts(:size) { topic.length }.equals 99
+      asserts(:size) { topic.length }.equals 89
 
       context :first do
         setup { topic.find { |u| u.nickname == 'rakaur' } }

@@ -10,6 +10,23 @@
 module Protocol
     private
 
+    # Handles an incoming SQUIT (server disconnection)
+    #
+    # parv[0] -> server leaving
+    # parv[1] -> server's uplink's name
+    #
+    def irc_squit(origin, parv)
+        unless server = $servers.delete(parv[0].irc_downcase)
+            $log.error "received SQUIT for unknown SID: #{parv[0]}"
+            return
+        end
+
+        # Remove all their users to comply with CAPAB QS
+        server.users.each { |u| $users.delete(u.key) }
+
+        $log.debug "server leaving: #{parv[0]}"
+    end
+
     # Handles an incoming JOIN
     #
     # parv[0] -> channel name

@@ -40,11 +40,11 @@ context :inspircd do
     asserts('channels') { $channels.clear; $channels }.empty
     asserts('servers')  { $servers.clear;  $servers  }.empty
 
-    asserts(:burst) { topic.instance_variable_get(:@recvq) }.size 227
+    asserts(:burst) { topic.instance_variable_get(:@recvq) }.size 228
     asserts('parses') { topic.send(:parse) }
 
-    asserts('has 11 servers')   { $servers .length == 11  }
-    asserts('has 99 users')     { $users   .length == 99  }
+    asserts('has 10 servers')   { $servers .length == 10  }
+    asserts('has 89 users')     { $users   .length == 89  }
     asserts('has 100 channels') { $channels.length == 100 }
 
     context :servers do
@@ -52,7 +52,7 @@ context :inspircd do
 
       denies_topic.nil
       denies_topic.empty
-      asserts(:size) { topic.length }.equals 11
+      asserts(:size) { topic.length }.equals 10
 
       context :first do
         setup { topic.find { |s| s.sid == '0X0' } }
@@ -73,7 +73,7 @@ context :inspircd do
       end
 
       context :second do
-        setup { topic.find { |s| s.sid == '0AA' } }
+        setup { $servers['0AA'] }
 
         denies_topic.nil
         asserts_topic.kind_of Server
@@ -106,13 +106,18 @@ context :inspircd do
           end
         end
       end
+
+      context :quit do
+          setup { $servers['0AI'] }
+          asserts_topic.nil
+      end
     end
 
     context :users do
       setup { $users.values }
 
       denies_topic.empty
-      asserts(:size) { topic.length }.equals 99
+      asserts(:size) { topic.length }.equals 89
 
       context :first do
         setup { topic.find { |u| u.uid == '0AAAAAAAA' } }
