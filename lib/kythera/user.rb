@@ -19,6 +19,9 @@ class User
                      'w' => :wallop,
                      'o' => :operator }
 
+    # A list of Channels we're on
+    attr_reader :channels
+
     # The user's Server object
     attr_reader :server
 
@@ -51,6 +54,7 @@ class User
         @hostname = host
         @realname = real
         @modes    = []
+        @channels = []
 
         @status_modes = {}
 
@@ -62,6 +66,25 @@ class User
         $eventq.post(:user_added, self)
 
         $log.debug "new user: #{nick}!#{user}@#{host} (#{real})"
+    end
+
+    # Delete a user and remove it from all relevant lists
+    #
+    # @param [User] user User to delete
+    # @return [User] the deleted User
+    #
+    def self.delete_user(user)
+        assert { :user }
+
+        user.server.delete_user(user)
+        user.channels.dup.each { |channel| channel.delete_user(user) }
+
+        $log.debug "user deleted: #{user}"
+
+        $eventq.post(:user_deleted, user)
+
+        # Also returns the deleted user as a side effect
+        $users.delete(user.key)
     end
 
     public

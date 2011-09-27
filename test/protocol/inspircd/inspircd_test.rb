@@ -45,9 +45,9 @@ context :inspircd do
     asserts(:burst) { topic.instance_variable_get(:@recvq) }.size 228
     asserts('parses') { topic.send(:parse) }
 
-    asserts('has 10 servers')   { $servers .length == 10  }
-    asserts('has 89 users')     { $users   .length == 89  }
-    asserts('has 100 channels') { $channels.length == 100 }
+    asserts('has 10 servers')   { $servers .length == 10 }
+    asserts('has 89 users')     { $users   .length == 89 }
+    asserts('has 100 channels') { $channels.length == 90 }
 
     context :servers do
       setup { $servers.values }
@@ -178,13 +178,18 @@ context :inspircd do
         setup { $users['0AJAAAAAI'] }
         asserts_topic.nil
       end
+
+      context :squit do
+        setup { $users['0AIAAAAAJ'] }
+        asserts_topic.nil
+      end
     end
 
     context :channels do
       setup { $channels.values }
 
       denies_topic.empty
-      asserts(:size) { topic.length }.equals 100
+      asserts(:size) { topic.length }.equals 90
 
       context :first do
         setup { topic.find { |c| c.name == '#malkier' } }
@@ -216,6 +221,11 @@ context :inspircd do
 
         asserts('rakaur is member') { topic.members['0AAAAAAAA'] }
         asserts('member count')     { topic.members.length }.equals 7
+      end
+
+      context :squit do
+        setup { $channels['#qpwqcs'] }
+        asserts_topic.nil
       end
     end
   end

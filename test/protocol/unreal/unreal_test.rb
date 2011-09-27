@@ -178,6 +178,11 @@ context :unreal do
         setup { $users['n81'] }
         asserts_topic.nil
       end
+
+      context :squit do
+        setup { $users['n79'] }
+        asserts_topic.nil
+      end
     end
 
     context :channels do
@@ -215,7 +220,13 @@ context :unreal do
         asserts('wp is invexed') { topic.is_invexed?('*!nenolod@nenolod.net')  }
 
         asserts('rakaur is member') { topic.members['rakaur'] }
-        asserts('member count')     { topic.members.length }.equals 50
+        asserts('member count')     { topic.members.length }.equals 44
+      end
+
+      context :squit do
+        setup { $channels['#79'] }
+        denies_topic.nil
+        asserts { topic.members.length }.equals 41
       end
     end
   end

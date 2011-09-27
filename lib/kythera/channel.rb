@@ -169,6 +169,7 @@ class Channel
         assert { :user }
 
         @members[user.key] = user
+        user.channels << self
 
         $log.debug "user joined #{self}: #{user} (#{@members.length})"
 
@@ -183,6 +184,7 @@ class Channel
         assert { :user }
 
         @members.delete(user.key)
+        user.channels.delete(self)
 
         user.status_modes.delete(self)
 
