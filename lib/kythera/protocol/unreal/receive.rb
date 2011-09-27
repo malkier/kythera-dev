@@ -105,10 +105,13 @@ module Protocol::Unreal
             user.timestamp = parv[1].to_i
 
             # We have to rekey lists we're in, which really sucks
+            $users.delete(oldnick)
+            $users[newnick] = user
+
             $channels.values.each do |channel|
                 next unless channel.members[oldnick]
                 channel.members.delete(oldnick)
-                channel.members[newnick] = self
+                channel.members[newnick] = user
             end
         else
             p = parv

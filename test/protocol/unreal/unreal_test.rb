@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 2; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # test/protocol/unreal_test.rb: tests the Protocol::Unreal module
@@ -167,7 +168,7 @@ context :unreal do
       end
 
       context :last do
-        setup { $users.values.last }
+        setup { $users['test_nick'] }
 
         asserts(:nickname).equals 'test_nick'
         asserts(:timestamp).equals 1316970148

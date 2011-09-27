@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 2; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # test/protocol/ts6_test.rb: tests the Protocol::TS6 module
@@ -164,7 +165,7 @@ context :inspircd do
       end
 
       context :last do
-        setup { $users.values.last }
+        setup { $users['0AJAAAAAJ'] }
 
         asserts(:uid).equals '0AJAAAAAJ'
         asserts(:nickname).equals 'test_nick'

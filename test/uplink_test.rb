@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 2; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # test/uplink_test.rb: tests the Uplink class

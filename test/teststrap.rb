@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 2; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # test/teststrap.rb: required by all tests
