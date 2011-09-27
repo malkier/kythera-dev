@@ -73,7 +73,7 @@ class ShrikeService < Service
 
         # Join our configuration channel
         $eventq.handle(:end_of_burst) do
-            @uplink.join(@user.uid, @config.channel) if @config.channel
+            @uplink.join(@user.key, @config.channel) if @config.channel
         end
     end
 
