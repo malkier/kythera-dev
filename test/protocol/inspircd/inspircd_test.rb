@@ -10,21 +10,23 @@
 require File.expand_path('../../teststrap', File.dirname(__FILE__))
 
 context :inspircd do
-  setup do
+  hookup do
     $_daemon_block.call
     $_uplink_block.call
     $_logger_setup.call
-    $uplink = Uplink.new($config.uplinks[0])
+
+    require 'kythera/protocol/inspircd'
+    $config.uplinks[0].protocol = :inspircd
   end
 
-  hookup do
-    require 'kythera/protocol/inspircd'
-    $uplink.config.protocol = :inspircd
+  setup do
+    $uplink = Uplink.new($config.uplinks[0])
   end
 
   denies_topic.nil
   asserts_topic.kind_of Uplink
-  asserts('protocol') { topic.config.protocol }.equals :inspircd
+  asserts('protocol')   { topic.config.protocol     }.equals :inspircd
+  asserts('casemapping') { topic.config.casemapping }.equals :rfc1459
 
   context :parse do
     hookup do

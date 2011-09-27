@@ -40,6 +40,15 @@ class Uplink
             $log.info "finished synching to network in #{delta}s"
         end
 
+        unless @config.casemapping_override
+            case @config.protocol
+            when :unreal
+                @config.casemapping = :ascii
+            else
+                @config.casemapping = :rfc1459
+            end
+        end
+
         # Include the methods for the protocol we're using
         extend Protocol
         extend Protocol.find(@config.protocol) if @config.protocol

@@ -63,7 +63,6 @@ context :configuration do
      asserts(:send_password)   .equals 'unit_tester'
      asserts(:receive_password).equals 'unit_tester'
      asserts(:network)         .equals 'testing'
-     asserts(:casemapping)     .equals :rfc1459
    end
   end
 end

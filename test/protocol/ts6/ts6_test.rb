@@ -10,21 +10,23 @@
 require File.expand_path('../../teststrap', File.dirname(__FILE__))
 
 context :ts6 do
-  setup do
+  hookup do
     $_daemon_block.call
     $_uplink_block.call
     $_logger_setup.call
-    $uplink = Uplink.new($config.uplinks[0])
+
+    require 'kythera/protocol/ts6'
+    $config.uplinks[0].protocol = :ts6
   end
 
-  hookup do
-    require 'kythera/protocol/ts6'
-    $uplink.config.protocol = :ts6
+  setup do
+    $uplink = Uplink.new($config.uplinks[0])
   end
 
   denies_topic.nil
   asserts_topic.kind_of Uplink
-  asserts('protocol') { topic.config.protocol }.equals :ts6
+  asserts('protocol')   { topic.config.protocol     }.equals :ts6
+  asserts('casemapping') { topic.config.casemapping }.equals :rfc1459
 
   context :parse do
     hookup do

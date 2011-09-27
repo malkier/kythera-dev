@@ -10,21 +10,23 @@
 require File.expand_path('../../teststrap', File.dirname(__FILE__))
 
 context :unreal do
-  setup do
+  hookup do
     $_daemon_block.call
     $_uplink_block.call
     $_logger_setup.call
-    $uplink = Uplink.new($config.uplinks[0])
+
+    require 'kythera/protocol/unreal'
+    $config.uplinks[0].protocol = :unreal
   end
 
-  hookup do
-    require 'kythera/protocol/unreal'
-    $uplink.config.protocol = :unreal
+  setup do
+    $uplink = Uplink.new($config.uplinks[0])
   end
 
   denies_topic.nil
   asserts_topic.kind_of Uplink
-  asserts('protocol') { topic.config.protocol }.equals :unreal
+  asserts('protocol')   { topic.config.protocol     }.equals :unreal
+  asserts('casemapping') { topic.config.casemapping }.equals :ascii
 
   context :parse do
     hookup do

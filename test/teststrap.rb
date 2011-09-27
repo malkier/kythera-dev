@@ -47,7 +47,6 @@ $_uplink_block = proc do
       send_password    :unit_tester
       receive_password :unit_tester
       network          :testing
-      casemapping      :rfc1459
     end
   end
 end

@@ -137,15 +137,6 @@ configure do
         # For InspIRCd this is `inspircd`
         #
         protocol :ts6
-
-        # This is sort of a technical setting. The original IRC protocol
-        # was designed in Finland and had a slight quirk with the mapping
-        # of a few characters. Strict IRCds honor this. Some new IRCds do not.
-        # Almost all TSora IRCds (ircd-ratbox, ircd-hybrid, etc) will want
-        # the original, "rfc1459," and others such as bahamut and Unreal
-        # will want "ascii."
-        #
-        casemapping :rfc1459
     end
 
     # Still reading... :)
