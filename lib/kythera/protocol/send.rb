@@ -11,6 +11,13 @@
 module Protocol
     private
 
+    # :origin OPERWALL :message
+    def send_operwall(origin, message)
+        assert { { :origin => String, :message => String } }
+
+        raw ":#{origin} OPERWALL :#{message}"
+    end
+
     # :origin PRIVMSG target :message
     def send_privmsg(origin, target, message)
         assert { { :origin => String, :target => String, :message => String } }

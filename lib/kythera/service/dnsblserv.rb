@@ -44,12 +44,7 @@ class DNSBLService < Service
     end
 
     # Called by the daemon when we connect to the uplink
-    #
-    # @param [Uplink] Uplink interface to the IRC server
-    #
-    def initialize(uplink)
-        super # Prepare uplink object
-
+    def initialize
         # Shortcut to our configuration info
         @config = $config.dnsblserv
 

@@ -38,14 +38,7 @@ application will utilize to introduce your clients and to send events your way:
             end
         end
 
-        # Your service is always initialized with the uplink
-        def initialize(uplink)
-            # Calling super sets `@uplink` to the argument provided.
-            # The uplink contains the methods you'll use to communicate
-            # with the IRC server.
-            #
-            super
-
+        def initialize
             # You're free to register any events you'd like to handle, however
             # your class will have an interface for receiving PRIVMSG sent to it
             # so that you don't have to parse _all_ PRIVMSGs.
@@ -55,7 +48,7 @@ application will utilize to introduce your clients and to send events your way:
             # You should also introduce your clients to the uplink here. This
             # method returns your User object.
             #
-            @user = @uplink.introduce_user(nick, user, host, real, modes)
+            @user = $uplink.introduce_user(nick, user, host, real, modes)
         end
 
         public

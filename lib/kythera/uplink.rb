@@ -33,8 +33,8 @@ class Uplink
         $eventq.handle(:socket_writable) { write }
         $eventq.handle(:recvq_ready)     { parse }
 
-        $eventq.handle(:connected) { send_handshake }
-        $eventq.handle(:connected) { Service.instantiate(self) }
+        $eventq.handle(:connected) { send_handshake      }
+        $eventq.handle(:connected) { Service.instantiate }
 
         $eventq.handle(:end_of_burst) do |delta|
             $log.info "finished synching to network in #{delta}s"

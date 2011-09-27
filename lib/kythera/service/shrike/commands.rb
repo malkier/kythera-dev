@@ -16,7 +16,7 @@ class ShrikeService < Service
     def do_raw(user, params)
         return unless is_sra?(user.nickname)
 
-        @uplink.raw(params.join(' '))
+        $uplink.raw(params.join(' '))
     end
 
     # Extremely dangerous, this is here only for my testing purposes!
@@ -27,7 +27,7 @@ class ShrikeService < Service
 
         result = eval(code)
 
-        @uplink.privmsg(@user.uid, @config.channel, "#{result.inspect}")
+        $uplink.privmsg(@user.key, @config.channel, "#{result.inspect}")
     end
 
     # Registers a username or channel

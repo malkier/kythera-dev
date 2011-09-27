@@ -34,6 +34,17 @@ module Protocol
         @sendq << string
     end
 
+    # Sends an OPERWALL
+    #
+    # @param [String] origin the entity sending the message
+    # @param [String] message the message to send
+    #
+    def operwall(origin, message)
+        assert { { :origin => String, :message => String } }
+
+        send_operwall(origin, message)
+    end
+
     # Sends a PRIVMSG to a user
     #
     # @param [String] origin the entity sending the message

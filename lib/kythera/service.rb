@@ -36,22 +36,11 @@ class Service
     end
 
     # Instantiate all of our services
-    #
-    # @param [Uplink] uplink the Uplink to pass to the services
-    #
-    def self.instantiate(uplink)
+    def self.instantiate
         @@services_classes.each do |srv|
             next unless srv.verify_configuration
-
-            s = srv.new(uplink)
-            $services << s
+            $services << srv.new
         end
-    end
-
-    # This should never be called except from a subclass, and only exists
-    # as a guide for arguments.
-    def initialize(uplink)
-        @uplink = uplink
     end
 
     private
