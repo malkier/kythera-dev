@@ -93,7 +93,7 @@ class ShrikeService < Service
         if self.respond_to?(meth, true)
             self.send(meth, user, params)
         else
-            $uplink.notice(@user, user, "Invalid command: \2#{cmd}\2")
+            $uplink.notice(@user.key, user.key, "Invalid command: \2#{cmd}\2")
         end
     end
 end
