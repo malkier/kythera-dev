@@ -87,6 +87,14 @@ class IRCHash < Hash
     def []=(key, value)
         super(key.irc_downcase, value)
     end
+
+    # Delete a member, but downcase the key first
+    #
+    # @param [Object] key the key to be deleted
+    #
+    def delete(key)
+        super(key.irc_downcase)
+    end
 end
 
 # Require all the Ruby stdlib stuff we need
@@ -152,37 +160,130 @@ class Kythera
     ME = 'kythera'
 end
 
+# Used to filter the input to the assert method
+STRIP_UNSAFE_VAR_NAMES = /[^a-z_]/i
+
 #
-# Verify that an argument is a valid descendent of a particular class. You can
-# optionally provide a name for the argument to make the error message that
-# results if the check fails a little bit more clear.
+# Asserts that arguments match a certain class, and raises errors if
+# they do not. The arguments are passed as return values from a block
+# which makes certain assumptions for how the variables would be named
+# in the scope of the method. For instance, an "account" variable should
+# be an Account object.
 #
-# This method will only validate arguments if $config.logging is set to
-# :debug, as it's designed to help in writing code. By the time it's
+# The simplest way to use the method is to pass a block which returns a
+# single Symbol (containing the variable name) or Class (the class of
+# which the variable should be a type). The earlier stated assumptions
+# hold in this case. You can also pass an array (which can mix Symbol
+# and Class elements) which makes the same assumptions about each
+# individual element.
+#
+# The more explicit mechanism of declaring variables using a hash should
+# be reserved for when variables aren't named according to their type.
+# The hash should be formatted with keys being the variable names, and
+# values being the classes.
+#
+# Only the "returning a single Symbol" method of checking types requires
+# that the argument be a Symbol, all other methods can take a String,
+# Class, Symbol, or whatever other representation can be converted to
+# a string that describes the name and/or type.
+#
+# This method will only validate arguments if $config.me.logging is set
+# to :debug, as it's designed to help in writing code. By the time it's
 # running in a production environment, the kinks requiring this code
 # should be addressed.
 #
-# @param [Object] var The variable to check
-# @param [Class] klass The class of which "var" should be a descendent
-# @param [String, #to_s] name The optional name of the variable
-# @raise [ArgumentError] If the "var" is not a "klass" object
+# @private
+# @param [Proc] block Block returning argument types
+# @raise [ArgumentError] If arguments don't match type
 #
-# @example Minimal arguments to verify that "account" is an Account object
-#   assert(account, Database::Account)
+# @example Using a single Symbol class to define an argument
+#   def drop(account)
+#       assert { :account } # verify account is an Account object
+#       account.delete # perform an Account-specific action
+#   end
 #
-# @example More descriptive, say what variable name we're testing
-#   assert(chan, Database::ChannelService::Channel, 'chan')
+# @example Verifying multiple arguments in an Array
+#   def get_privileges(account, channel)
+#       assert { [:account, Channel] } # mixed type is allowed
+#       Privilege[:account => account, :channel => channel].all
+#   end
 #
-def assert(var, klass, name = nil)
-    return if $config.logging == :debug
+# @example Validating arguments that don't use the naming convention
+#   def message(from, to, message)
+#       # strings are allowed as keys or values
+#       assert { {'from' => Account, :to => 'Account'} }
+#       Message.new(from, to, message).send!
+#   end
+#
+def assert(&block)
+    return unless $config.me.logging == :debug
 
-    unless var.kind_of? klass
-        if name
-            errstr = "#{name} must be of type #{klass}"
-        else
-            errstr = "#{var} must be of type #{klass}"
+    # get the arguments and the scope in which they were declared.
+    args = block.call
+    bind = block.binding
+
+    # predeclare to_check, which contains our list of variables to
+    # validate, and errors, which contains the list of ones that don't
+    # meet their respective criterion.
+    to_check = {}
+    errors   = []
+
+    # turn :some_arg into SomeArg.
+    to_class = lambda do |str|
+        Sequel::Model.send(:camelize, str.to_s.gsub(STRIP_UNSAFE_VAR_NAMES, ''))
+    end
+
+    # turn SomeClass into some_class.
+    to_var = lambda do |cls|
+        cls = cls.to_s.split('::')[-1]
+        Sequel::Model.send(:underscore, cls.gsub(STRIP_UNSAFE_VAR_NAMES, ''))
+    end
+
+    # if they just passed :some_arg or SomeClass, camelize or
+    # de-camelize as necessary.
+    if args.is_a?(String) or args.is_a?(Symbol) or args.is_a?(Class)
+        to_check[ to_var.call(args) ] = to_class.call(args)
+
+    # if they passed an array of :some_arg or SomeClass, camelize or
+    # de-camelize each arg, as necessary.
+    elsif args.is_a?(Array)
+        args.each do |arg|
+            to_check[ to_var.call(arg) ] = to_class.call(arg)
         end
 
-        raise ArgumentError, errstr
+    # they were pretty explicit here, :some_arg => SomeClass. we still
+    # wipe their args clean but we know there's probably something named
+    # differently here.
+    elsif args.is_a?(Hash)
+        args.each do |varname, classname|
+            to_check[ to_var.call(varname) ] = to_class.call(classname)
+        end
     end
+
+    # check each variable in its original scope.
+    to_check.sort { |a, b| a[0] <=> b[0] }.each do |var, klass|
+        unless bind.eval("#{var}.kind_of?(#{klass})")
+            full = bind.eval("#{klass}.to_s")
+            real = bind.eval("#{var}.class")
+            errors << %Q{argument "#{var}" must be of type "#{klass}"} +
+                      %Q{ but was of type "#{real}"}
+        end
+    end
+
+    # all arguments passed muster, yay!
+    return if errors.empty?
+
+    # this is just me being an English pedant.
+    if errors.length == 1
+        errstr = errors[0]
+    else
+        errstr = errors[0 ... -1].join(', ')
+        errstr = [errstr, errors[-1]].join(' and ')
+        errstr = errstr[0].upcase + errstr[1 .. -1] + '.'
+    end
+
+    # raise an ArgumentError in the calling scope, so we're a ghost in
+    # the process and don't send people scurrying to this file to find
+    # a problem that's probably somewhere else.
+    raise ArgumentError, errstr, caller
 end

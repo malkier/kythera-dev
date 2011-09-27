@@ -16,6 +16,8 @@ class Protocol::TS6::Server < Server
 
     # Creates a new Server and adds it to the list keyed by SID
     def initialize(sid, name, description)
+        assert { { :sid => String } }
+
         @sid = sid
         super(name, description)
     end
@@ -24,6 +26,6 @@ class Protocol::TS6::Server < Server
 
     # The value we use to represent our membership in a Hash
     def key
-        @sid.irc_downcase
+        @sid
     end
 end

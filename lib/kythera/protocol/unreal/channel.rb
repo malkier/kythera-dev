@@ -68,6 +68,8 @@ class Protocol::Unreal::Channel < Channel
     # @return [Boolean] true or false
     #
     def is_excepted?(hostmask)
+        assert { { :hostmask => String } }
+
         @list_modes[:except].include?(hostmask)
     end
 
@@ -77,6 +79,8 @@ class Protocol::Unreal::Channel < Channel
     # @return [Boolean] true or false
     #
     def is_invexed?(hostmask)
+        assert { { :hostmask => String } }
+
         @list_modes[:invex].include?(hostmask)
     end
 

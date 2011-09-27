@@ -49,6 +49,8 @@ class Channel
 
     # Creates a new channel. Should be patched by the protocol module.
     def initialize(name)
+        assert { { :name => String } }
+
         @name = name
 
         # Keyed by nickname by default
@@ -76,6 +78,8 @@ class Channel
     # @param [Array] params params to the mode string, tokenized by space
     #
     def parse_modes(modes, params)
+        assert { { :modes => String, :params => Array } }
+
         action = nil # :add or :delete
 
         modes.each_char do |c|
@@ -162,6 +166,8 @@ class Channel
     # @param [User] user the User to add
     #
     def add_user(user)
+        assert { :user }
+
         @members[user.key] = user
 
         $log.debug "user joined #{self}: #{user} (#{@members.length})"
@@ -174,7 +180,9 @@ class Channel
     # @param [User] user User object to delete
     #
     def delete_user(user)
-        @members.delete(user.key.irc_downcase)
+        assert { :user }
+
+        @members.delete(user.key)
 
         user.status_modes.delete(self)
 
@@ -197,6 +205,8 @@ class Channel
     # @return [Boolean] true or false
     #
     def has_mode?(mode)
+        assert { { :mode => Symbol } }
+
         @modes.include?(mode) || @param_modes.include?(mode)
     end
 
@@ -206,6 +216,8 @@ class Channel
     # @return [String] the mode param's value
     #
     def mode_param(mode)
+        assert { { :mode => Symbol } }
+
         @param_modes[mode]
     end
 
@@ -215,15 +227,19 @@ class Channel
     # @return [Array] the list
     #
     def mode_list(mode)
+        assert { { :mode => Symbol } }
+
         @list_modes[mode]
     end
 
     # Is this hostmask in the ban list?
     #
     # @param [String] hostmask the hostmask to check for
-    # @return [Boolean] true or false
+    # @return [True, False]
     #
     def is_banned?(hostmask)
+        assert { { :hostmask => String } }
+
         @list_modes[:ban].include?(hostmask)
     end
 
@@ -242,10 +258,13 @@ class Channel
 
     # Deals with status modes
     #
+    # @param [Symbol] action :add or :del
     # @param [Symbol] mode Symbol representing a mode flag
     # @param [String] target the user this mode applies to
     #
     def parse_status_mode(action, mode, target)
+        assert { { :action => Symbol, :mode => Symbol, :target => String } }
+
         unless user = $users[target]
             $log.warn "cannot parse a status mode for an unknown user"
             $log.warn "#{target} -> #{mode} (#{self})"

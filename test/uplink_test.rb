@@ -12,6 +12,7 @@ require File.expand_path('teststrap', File.dirname(__FILE__))
 context :uplink do
   setup do
     $_uplink_block.call
+    $_logger_setup.call
     $uplink = Uplink.new($config.uplinks[0])
   end
 

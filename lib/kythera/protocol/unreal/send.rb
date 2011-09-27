@@ -52,6 +52,8 @@ module Protocol::Unreal
 
     # PONG source :destination
     def send_pong(param)
+        assert { { :param => String } }
+
         raw "PONG #{$config.me.name} :#{param}"
     end
 
@@ -70,12 +72,20 @@ module Protocol::Unreal
     end
 
     # :server.name SJOIN timestamp channel +modes[ modeparams] :memberlist
-    def send_sjoin(channel, timestamp, nick)
-        raw ":#{$config.me.name} SJOIN #{timestamp} #{channel} + :@#{nick}"
+    def send_sjoin(target, timestamp, nick)
+        assert { { :target => String, :timestamp => Fixnum, :nick => String } }
+
+        raw ":#{$config.me.name} SJOIN #{timestamp} #{target} + :@#{nick}"
     end
 
-    # :user MODE target modechange
-    def send_mode(nick, target, change)
-        raw ":#{nick} MODE #{target} #{change}"
+    # :origin MODE target mode
+    def send_mode(origin, target, mode)
+        assert { { :origin => String, :target => String, :mode => String } }
+
+        if origin
+            raw "MODE #{target} #{mode}"
+        else
+            raw ":#{origin} MODE #{target} #{mode}"
+        end
     end
 end

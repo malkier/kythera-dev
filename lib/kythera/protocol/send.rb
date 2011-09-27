@@ -11,33 +11,45 @@
 module Protocol
     private
 
-    # :source PRIVMSG target :message
-    def send_privmsg(source, target, message)
-        raw ":#{source} PRIVMSG #{target} :#{message}"
+    # :origin PRIVMSG target :message
+    def send_privmsg(origin, target, message)
+        assert { { :origin => String, :target => String, :message => String } }
+
+        raw ":#{origin} PRIVMSG #{target} :#{message}"
     end
 
-    # :source NOTICE target :message
-    def send_notice(source, target, message)
-        raw ":#{source} NOTICE #{target} :#{message}"
+    # :origin NOTICE target :message
+    def send_notice(origin, target, message)
+        assert { { :origin => String, :target => String, :message => String } }
+
+        raw ":#{origin} NOTICE #{target} :#{message}"
     end
 
     # :user QUIT :reason
-    def send_quit(user, reason)
-        raw ":#{user} QUIT :#{reason}"
+    def send_quit(origin, reason)
+        assert { { :origin => String, :reason => String } }
+
+        raw ":#{origin} QUIT :#{reason}"
     end
 
-    # :user TOPIC target :topic
-    def send_topic(user, target, topic)
-        raw ":#{user} TOPIC #{target} :#{topic}"
+    # :origin TOPIC target :topic
+    def send_topic(origin, target, topic)
+        assert { { :origin => String, :target => String, :topic => String } }
+
+        raw ":#{origin} TOPIC #{target} :#{topic}"
     end
 
-    # :user JOIN channel
-    def send_join(user, channel)
-        raw ":#{user} JOIN #{channel}"
+    # :user JOIN target
+    def send_join(origin, target)
+        assert { { :origin => String, :target => String } }
+
+        raw ":#{origin} JOIN #{target}"
     end
 
-    # :user PART channel :reason
-    def send_part(user, channel, reason = 'leaving')
-        raw ":#{user} PART #{channel} :#{reason}"
+    # :origin PART target :reason
+    def send_part(user, target, reason)
+        assert { { :origin => String, :target => String, :reason => String } }
+
+        raw ":#{origin} PART #{target} :#{reason}"
     end
 end

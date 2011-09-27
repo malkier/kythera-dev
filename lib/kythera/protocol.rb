@@ -21,7 +21,7 @@ module Protocol
 
     # Allows protocol module names to be case-insensitive
     def self.find(mod)
-        Protocol.const_get Protocol.constants.find { |c| c =~ /^#{mod}$/i }
+        Protocol.const_get(Protocol.constants.find { |c| c =~ /^#{mod}$/i })
     end
 
     public
@@ -36,102 +36,90 @@ module Protocol
 
     # Sends a PRIVMSG to a user
     #
-    # @param [User] user the user that's sending the message
-    # @param target either a User or a Channel or a String
+    # @param [String] origin the entity sending the message
+    # @param [String] target the entity receiving the message
     # @param [String] message the message to send
     #
-    def privmsg(user, target, message)
-        target = target.key if target.kind_of?(User)
-        target = target.name   if target.kind_of?(Channel)
-        send_privmsg(user.key, target, message)
+    def privmsg(origin, target, message)
+        assert { { :origin => String, :target => String, :message => String } }
+
+        send_privmsg(origin, target, message)
     end
 
     # Sends a NOTICE to a user
     #
-    # @param [User] user the user that's sending the notice
-    # @param target either a User or a Channel or a String
+    # @param [String] origin the entity sending the notice
+    # @param [String] target the entity receiving the notice
     # @param [String] message the message to send
     #
-    def notice(user, target, message)
-        target = target.key if target.kind_of?(User)
-        target = target.name   if target.kind_of?(Channel)
-        send_notice(user.key, target, message)
-    end
+    def notice(origin, target, message)
+        assert { { :origin => String, :target => String, :message => String } }
 
-    # Makes one of our clients join a channel
-    #
-    # @param [User] user the User we want to join
-    # @param channel can be a Channel or a String
-    #
-    def join(user, channel)
-        if channel.kind_of?(String)
-            if chanobj = $channels[channel]
-                channel = chanobj
-            else
-                # This is a nonexistent channel
-                channel = Channel.new(channel)
-            end
-        end
-
-        send_join(user.key, channel.name)
-
-        channel.add_user(user)
-
-        user.add_status_mode(channel, :operator)
-
-        $eventq.post(:mode_added_on_channel, :operator, user, channel)
+        send_notice(origin, target, message)
     end
 
     # Makes one of our clients part a channel
     #
-    # @param [User] use the User we want to part
-    # @param channel can be a Channel or a String
+    # @param [String] origin the entity parting the channel
+    # @param [String] target the channel to part
     # @param [String] reason reason for leaving channel
     #
-    def part(user, channel, reason = 'leaving')
-        if channel.kind_of?(String)
-            return unless channel = $channels[channel]
+    def part(origin, target, reason = 'leaving')
+        assert { { :origin => String, :target => String, :reason => String } }
+
+        unless user = $users[origin]
+            $log.warn 'cannot part nonexistent user from channel'
+            $log.warn "#{origin} -> #{target}"
+
+            return
         end
 
-        return unless @user.is_on?(channel)
+        # Part the chanel
+        send_part(origin, target, reason)
 
-        send_part(user.key, channel.name, reason)
-
+        # Keep state
         channel.delete_user(user)
     end
 
     # Makes one of our clients send a QUIT
     #
-    # @param [User] user which client to quit
+    # @param [String] origin the entity quitting
     # @param [String] reason quit reason if any
     #
-    def quit(user, reason = 'signed off')
-        send_quit(user.key, reason)
+    def quit(origin, reason = 'signed off')
+        assert { { :origin => String, :reason => String } }
+
+        send_quit(origin, reason)
     end
 
     # Makes one of our clients set a channel topic
     #
-    # @param [User] user topic setter
-    # @param channel can be a channel or a string
+    # @param [String] origin the entity setting the topic
+    # @param [String] target the channel to set the topic on
     # @param [String] topic channel topic
     #
-    def topic(user, channel, topic)
-        if channel.kind_of?(String)
-            return unless channel = $channels[channel]
-        end
+    def topic(origin, target, topic)
+        assert { { :origin => String, :target => String, :topic => String } }
 
-        send_topic(user.key, channel.name, topic)
+        send_topic(origin, target, topic)
     end
 
     private
 
     # Finds a User and Channel or errors
-    def find_user_and_channel(origin, name, command)
+    #
+    # @param [String] origin the user to find
+    # @param [String] target the channel name to find
+    # @return [User, Channel]
+    #
+    def find_user_and_channel(origin, target, command)
+        assert { { :origin => String, :target => String, :command => Symbol } }
+
         unless user = $users[origin]
             $log.error "got non-existent user in #{command}: #{origin}"
         end
 
-        unless channel = $channels[name]
+        unless channel = $channels[target]
             $log.error "got non-existent channel in #{command}: #{name}"
         end
 

@@ -25,6 +25,8 @@ class Server
 
     # Creates a new server. Should be patched by the protocol module.
     def initialize(name, description)
+        assert { { :name => String, :description => String } }
+
         @name        = name
         @description = description
         @users       = []
@@ -40,7 +42,7 @@ class Server
 
     # The value we use to represent our membership in a Hash
     def key
-        @name.irc_downcase
+        @name
     end
 
     # Adds a User as a member
@@ -48,6 +50,8 @@ class Server
     # @param [User] user the User to add
     #
     def add_user(user)
+        assert { :user }
+
         @users << user
         $log.debug "user joined #{@name}: #{user}"
     end
@@ -57,6 +61,8 @@ class Server
     # @param [User] user User object to delete
     #
     def delete_user(user)
+        assert { :user }
+
         @users.delete(user)
         $log.debug "user left #{@name}: #{user} (#{@users.length})"
     end

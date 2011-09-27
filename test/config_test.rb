@@ -22,6 +22,7 @@ context :configuration do
   context :daemon do
    setup do
      $_daemon_block.call
+     $_logger_setup.call
      $config.me
    end
 
@@ -30,7 +31,7 @@ context :configuration do
    asserts(:description)      .equals 'kythera unit tester'
    asserts(:admin_name)       .equals 'rakaur'
    asserts(:admin_email)      .equals 'rakaur@malkier.net'
-   asserts(:logging)          .equals :warn
+   asserts(:logging)          .equals :debug
    asserts(:unsafe_extensions).equals :die
    asserts(:reconnect_time)   .equals 10
    asserts(:mailer)           .equals '/usr/sbin/sendmail'

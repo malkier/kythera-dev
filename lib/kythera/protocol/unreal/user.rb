@@ -61,7 +61,7 @@ class Protocol::Unreal::User < User
 
     # Is this user an IRC operator?
     #
-    # @return [Boolean] true or false
+    # @return [True, False]
     #
     def operator?
         @modes.include?(:global_oper)

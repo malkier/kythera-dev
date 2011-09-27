@@ -46,6 +46,8 @@ module Protocol::TS6
 
     # PONG <NAME> :<PARAM>
     def send_pong(param)
+        assert { { :param => String } }
+
         raw "PONG #{$config.me.name} :#{param}"
     end
 
@@ -57,7 +59,7 @@ module Protocol::TS6
         uid   = "#{@config.sid}#{id}"
         modes = "+#{modes}"
 
-        @@current_uid.next!
+        @@current_uid = @@current_uid.next
 
         str  = "UID #{nick} 1 #{ts} #{modes} #{uname} #{host} #{ip} #{uid} :"
         str += real
@@ -70,21 +72,43 @@ module Protocol::TS6
 
     # :UID PRIVMSG <TARGET_UID> :<MESSAGE>
     def send_privmsg(origin, target, message)
+        assert { { :origin => String, :target => String, :message => String } }
+
         raw ":#{origin} PRIVMSG #{target} :#{message}"
     end
 
     # :UID NOTICE <TARGET_UID> :<MESSAGE>
     def send_notice(origin, target, message)
+        assert { { :origin => String, :target => String, :message => String } }
+
         raw ":#{origin} NOTICE #{target} :#{message}"
     end
 
     # SJOIN <TS> <CHANNAME> +<CHANMODES> :<UIDS>
-    def send_sjoin(channel, timestamp, uid)
-        raw "SJOIN #{timestamp} #{channel} + :@#{uid}"
+    def send_sjoin(target, timestamp, uid)
+        assert { { :origin => String, :timestamp => Fixnum, :uid => String } }
+
+        raw "SJOIN #{timestamp} #{target} + :@#{uid}"
     end
 
-    # :UID QUIT :<REASON>
-    def send_quit(uid, reason)
-        raw ":#{uid} QUIT :#{reason}"
+    # :<UID> JOIN <TS> <CHANNAME> +
+    def send_join(uid, target, timestamp)
+        assert { { :uid => String, :target => String, :timestamp => Fixnum } }
+
+        raw ":#{uid} JOIN #{timestamp} #{target} +"
+    end
+
+    # [:ORIGIN] TMODE <TS> <CHANNAME> <MODES> [PARAMS]
+    def send_tmode(origin, target, timestamp, modestr)
+        assert { { :target    => String,
+                   :timestamp => Fixnum,
+                   :modestr   => String } }
+
+        if origin
+            assert { { :origin => String } }
+            raw ":#{origin} TMODE #{timestamp} #{target} #{modestr}"
+        else
+            raw "TMODE #{timestamp} #{target} #{modestr}"
+        end
     end
 end

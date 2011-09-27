@@ -39,6 +39,12 @@ class User
 
     # Creates a new user. Should be patched by the protocol module.
     def initialize(server, nick, user, host, real, umodes)
+        assert {{ :nick   => String,
+                  :user   => String,
+                  :host   => String,
+                  :real   => String,
+                  :umodes => String }}
+
         @server   = server
         @nickname = nick
         @username = user
@@ -62,7 +68,7 @@ class User
 
     # The value we use to represent our membership in a Hash
     def key
-        @nickname.irc_downcase
+        @nickname
     end
 
     # String representation is just `@nickname`
@@ -73,15 +79,17 @@ class User
     # Does this user have the specified umode?
     #
     # @param [Symbol] mode the mode symbol
-    # @return [Boolean] true or false
+    # @return [True, False]
     #
     def has_mode?(mode)
+        assert { { :mode => Symbol } }
+
         @modes.include?(mode)
     end
 
     # Is this user an IRC operator?
     #
-    # @return [Boolean] true or false
+    # @return [True, False]
     #
     def operator?
         @modes.include?(:operator)
@@ -92,6 +100,8 @@ class User
     # @param [String] modes the mode string
     #
     def parse_modes(modes)
+        assert { { :modes => String } }
+
         action = nil # :add or :delete
 
         modes.each_char do |c|
@@ -133,6 +143,8 @@ class User
     # @param [Symbol] mode a Symbol representing the mode flag
     #
     def add_status_mode(channel, mode)
+        assert { { :channel => Channel, :mode => Symbol } }
+
         (@status_modes[channel] ||= []) << mode
 
         $log.debug "status mode added: #{@nickname}/#{channel} -> #{mode}"
@@ -144,6 +156,8 @@ class User
     # @param [Symbol] mode a Symbol representing the mode flag
     #
     def delete_status_mode(channel, mode)
+        assert { { :channel => Channel, :mode => Symbol } }
+
         unless @status_modes[channel]
             $log.warn "cannot remove mode from a channel with no known modes"
             $log.warn "#{channel} -> #{mode}"
@@ -161,6 +175,8 @@ class User
     # @param [Channel] channel the Channel object to clear modes for
     #
     def clear_status_modes(channel)
+        assert { :channel }
+
         unless @status_modes[channel]
             $log.warn "cannot clear modes from a channel with no known modes"
             $log.warn "#{channel} -> clear all modes"
@@ -173,8 +189,8 @@ class User
 
     # Are we on this channel?
     #
-    # @param [Channel] channel the Channel to check for this User
-    # @return [Boolean] true or false
+    # @param [String, Channel] channel the Channel to check for this User
+    # @return [True, False]
     #
     def is_on?(channel)
         channel = $channels[channel] if channel.kind_of?(String)
@@ -185,11 +201,15 @@ class User
     # Do you have the specified status mode?
     #
     # @param [Symbol] mode the mode symbol
-    # @param [Channel] channel the Channel
-    # @return [Boolean] true or false
+    # @param [String, Channel] channel the Channel
+    # @return [True, False]
     #
     def has_mode_on_channel?(mode, channel)
+        assert { { :mode => Symbol } }
+
         channel = $channels[channel] if channel.kind_of?(String)
+
+        return false unless @status_modes[channel]
 
         @status_modes[channel].include?(mode)
     end

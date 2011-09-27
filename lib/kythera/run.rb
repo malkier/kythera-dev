@@ -240,6 +240,8 @@ class Kythera
     # @param [String] wd the directory to move into once forked
     #
     def daemonize(wd)
+        assert { { :wd => String } }
+
         begin
             pid = fork
         rescue Exception => err

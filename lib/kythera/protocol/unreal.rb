@@ -32,31 +32,71 @@ module Protocol::Unreal
     # @param [String] real user's realname / gecos
     #
     def introduce_user(nick, user, host, real, modes = '')
-        modes += 'S' unless modes.include? 'S'
+        assert { { :nick  => String,
+                   :user  => String,
+                   :host  => String,
+                   :real  => String,
+                   :modes => String } }
+
+        modes += 'S' unless modes.include?('S')
+
         send_nick(nick, user, host, real, modes)
     end
 
     # Makes one of our clients join a channel
     #
-    # @param [User] user the User we want to join
-    # @param channel can be a Channel or a string
+    # @param [String] origin the entity joining the channel
+    # @param [String] target the channel to join
     #
-    def join(user, channel)
-        if channel.kind_of?(String)
-            if chanobj = $channels[channel]
-                channel = chanobj
-            else
-                # This is a nonexistent channel
-                channel = Channel.new(channel)
-            end
+    def join(origin, target)
+        assert { { :origin => String, :target => String } }
+
+        unless user = $users[origin]
+            $log.warn 'cannot join nonexistent user to channel'
+            $log.warn "#{origin} -> #{target}"
+
+            return
         end
 
+        unless channel = $channels[target]
+            # This is a nonexistent channel
+            channel = Channel.new(target)
+        end
+
+        # Join the channel
         send_sjoin(channel.name, channel.timestamp, user.nickname)
 
-        channel.add_user(user)
-
+        # SJOIN automatically ops them, keep state
         user.add_status_mode(channel, :operator)
-
         $eventq.post(:mode_added_on_channel, :operator, user, channel)
+
+        # Keep state
+        channel.add_user(user)
+    end
+
+    # Toggle a status mode for a User on a Channel
+    #
+    # @param [User] user the User to be opped/deopped
+    # @param [Channel] channel the Channel to op/deop on
+    # @param [Symbol] mode the mode to toggle
+    # @param [String] origin optionally specify a setter for the mode
+    #
+    def toggle_status_mode(user, channel, mode, origin = nil)
+        assert { [:user, :channel] }
+        assert { { :mode => Symbol } }
+
+        del = user.has_mode_on_channel?(mode, channel)
+        chr = Channel.status_modes.find { |k, v| v == mode }
+        str = "#{del ? '-' : '+'}#{chr} #{user.uid}"
+
+        if del
+            user.delete_status_mode(channel, mode)
+            $eventq.post(:mode_added_on_channel, mode, user, channel)
+        else
+            user.add_status_mode(channel, mode)
+            $eventq.post(:mode_deleted_on_channel, mode, user, channel)
+        end
+
+        send_mode(origin ? origin.nickname : nil, channel, str)
     end
 end

@@ -13,6 +13,7 @@ context :ts6 do
   setup do
     $_daemon_block.call
     $_uplink_block.call
+    $_logger_setup.call
     $uplink = Uplink.new($config.uplinks[0])
   end
 

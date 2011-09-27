@@ -53,6 +53,6 @@ class Protocol::InspIRCd::User < User
 
     # The value we use to represent our membership in a Hash
     def key
-        @uid.irc_downcase
+        @uid
     end
 end

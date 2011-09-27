@@ -27,7 +27,7 @@ class ShrikeService < Service
 
         result = eval(code)
 
-        @uplink.privmsg(@user, @config.channel, "#{result.inspect}")
+        @uplink.privmsg(@user.uid, @config.channel, "#{result.inspect}")
     end
 
     # Registers a username or channel

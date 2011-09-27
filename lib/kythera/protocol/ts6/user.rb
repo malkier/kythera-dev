@@ -29,6 +29,8 @@ class Protocol::TS6::User < User
 
     # Creates a new user and adds it to the list keyed by UID
     def initialize(server, nick, user, host, ip, real, umodes, uid, ts)
+        assert { { :ip => String, :uid => String } }
+
         @ip        = ip
         @uid       = uid
         @timestamp = ts.to_i
@@ -38,6 +40,6 @@ class Protocol::TS6::User < User
 
     # The value we use to represent our membership in a Hash
     def key
-        @uid.irc_downcase
+        @uid
     end
 end

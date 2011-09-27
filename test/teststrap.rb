@@ -17,7 +17,7 @@ require 'riot'
 
 # For all tests
 $config    = nil
-Log.logger = nil
+Log.logger = Log::NilLogger.instance
 
 # These are defined here for easy use in setup blocks
 $_daemon_block = proc do
@@ -28,7 +28,6 @@ $_daemon_block = proc do
       name              'kythera.test'
       description       'kythera unit tester'
       admin             :rakaur, 'rakaur@malkier.net'
-      logging           :warn
       unsafe_extensions :die
       reconnect_time    10
       verify_emails     false
@@ -51,4 +50,12 @@ $_uplink_block = proc do
       casemapping      :rfc1459
     end
   end
+end
+
+$_logger_setup = proc do
+  if $config and $config.me
+    $config.me.logging = :debug
+  end
+
+  $logger = Log::NilLogger.instance
 end

@@ -77,7 +77,7 @@ class EventQueue
 
     # Does the queue need emptied?
     #
-    # @return [Boolean] true or false
+    # @return [True, False]
     #
     def needs_run?
         @queue.empty? ? false : true
