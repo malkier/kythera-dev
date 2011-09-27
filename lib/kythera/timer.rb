@@ -20,8 +20,8 @@ class Timer
     # Creates a new timer to be executed within 10 seconds of +time+.
     #
     # @param [Fixnum] time time in seconds
-    # @param [Boolean] repeat keep executing every 'time' seconds?
-    # @param [Boolean] persist keep the timer around through disconnections?
+    # @param [True, False] repeat keep executing every 'time' seconds?
+    # @param [True, False] persist keep the timer around through disconnections?
     # @param [Proc] block the code block to execute
     #
     def initialize(time, repeat = false, persist = false, &block)

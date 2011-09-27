@@ -73,7 +73,7 @@ class Uplink
 
     # Returns whether we're connected or not
     #
-    # @return [Boolean] true or false
+    # @return [True, False]
     #
     def connected?
         @connected
@@ -81,7 +81,7 @@ class Uplink
 
     # Returns whether the sendq needs written
     #
-    # @return [Boolean] true or false
+    # @return [True, False]
     #
     def need_write?
         not @sendq.empty?
@@ -89,7 +89,7 @@ class Uplink
 
     # Sets our state to not connected
     #
-    # @param [Boolean] bool true or false
+    # @param [True, False] bool
     #
     def dead=(bool)
         if bool

@@ -47,16 +47,12 @@ class Protocol::Unreal::User < User
      # The user's virtual host/spoof
      attr_reader :vhost
 
-     # The user's fake/pseudorandom hostmask (for DoS protection)
-     attr_reader :cloakhost
-
     # Creates a new user and adds it to the list keyed by nick
-    def initialize(server, nn, un, hn, rn, umodes, ts, vhost = nil, cloak = nil)
+    def initialize(server, nick, user, host, real, umodes, ts, vhost = nil)
         @timestamp = ts.to_i
         @vhost     = vhost || host
-        @cloakhost = cloak || host
 
-        super(server, nn, un, hn, rn, umodes)
+        super(server, nick, user, host, real, umodes)
     end
 
     # Is this user an IRC operator?

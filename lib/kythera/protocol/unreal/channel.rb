@@ -65,7 +65,7 @@ class Protocol::Unreal::Channel < Channel
     # Is this hostmask in the except list?
     #
     # @param [String] hostmask the hostmask to check for
-    # @return [Boolean] true or false
+    # @return [True, False]
     #
     def is_excepted?(hostmask)
         assert { { :hostmask => String } }
@@ -76,7 +76,7 @@ class Protocol::Unreal::Channel < Channel
     # Is this hostmask in the invex list?
     #
     # @param [String] hostmask the hostmask to check for
-    # @return [Boolean] true or false
+    # @return [True, False]
     #
     def is_invexed?(hostmask)
         assert { { :hostmask => String } }

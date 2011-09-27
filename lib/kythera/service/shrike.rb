@@ -34,7 +34,7 @@ class ShrikeService < Service
 
     # Verify our configuration
     #
-    # @return [Boolean] true or false
+    # @return [True, False]
     #
     def self.verify_configuration
         c = $config.shrike
@@ -82,7 +82,7 @@ class ShrikeService < Service
     # Determines if someone is an SRA
     #
     # @param [String] nickname person to check
-    # @return [Boolean] true or false
+    # @return [True, False]
     #
     def is_sra?(nickname)
         @config.sras.include?(nickname)

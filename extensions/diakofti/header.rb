@@ -25,7 +25,7 @@ class DiakoftiHeader < Extension
 
     # Verify our configuration
     #
-    # @return [Boolean] true or false
+    # @return [True, False]
     #
     def self.verify_configuration(c)
         return false if not c or not c.port

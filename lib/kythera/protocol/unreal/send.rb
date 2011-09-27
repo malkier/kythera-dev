@@ -58,7 +58,7 @@ module Protocol::Unreal
     end
 
     # NICK nick hops timestamp username hostname server servicestamp usermodes
-    #      virtualhost cloakhost :realname
+    #      virtualhost :realname
     def send_nick(nick, user, host, real, modes)
         ts = Time.now.to_i
 

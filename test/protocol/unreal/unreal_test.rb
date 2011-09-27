@@ -102,7 +102,6 @@ context :unreal do
             asserts(:realname) .equals 'Eric Will'
             asserts(:timestamp).equals 1307151136
             asserts(:vhost)    .equals 'malkier.net'
-            asserts(:cloakhost).equals 'malkier.net'
           end
         end
       end
@@ -146,7 +145,6 @@ context :unreal do
         asserts(:realname) .equals 'Eric Will'
         asserts(:timestamp).equals 1307151136
         asserts(:vhost)    .equals 'malkier.net'
-        asserts(:cloakhost).equals 'malkier.net'
 
         asserts('is on #malkier') { topic.is_on?('#malkier') }
         denies('is on #6')   { topic.is_on?('#6')  }

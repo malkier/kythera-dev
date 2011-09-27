@@ -202,7 +202,7 @@ class Channel
     # Does this channel have the specified mode set?
     #
     # @param [Symbol] mode the mode symbol
-    # @return [Boolean] true or false
+    # @return [True, False]
     #
     def has_mode?(mode)
         assert { { :mode => Symbol } }

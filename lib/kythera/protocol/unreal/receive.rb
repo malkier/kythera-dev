@@ -87,8 +87,7 @@ module Protocol::Unreal
     #   parv[6] -> servicestamp
     #   parv[7] -> usermodes
     #   parv[8] -> virtualhost
-    #   parv[9] -> cloakhost
-    #   parv[10] -> realname
+    #   parv[9] -> realname
     #
     def irc_nick(origin, parv)
         if origin
@@ -122,7 +121,7 @@ module Protocol::Unreal
                 return
             end
 
-            u = User.new(s, p[0], p[3], p[4], p[10], p[7], p[2], p[8], p[9])
+            u = User.new(s, p[0], p[3], p[4], p[9], p[7], p[2], p[8])
 
             s.add_user(u)
         end

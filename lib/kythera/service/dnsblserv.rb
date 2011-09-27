@@ -31,7 +31,7 @@ class DNSBLService < Service
 
     # Verify our configuration
     #
-    # @return [Boolean] true or false
+    # @return [True, False]
     #
     def self.verify_configuration
         c = $config.dnsblserv

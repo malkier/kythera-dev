@@ -59,6 +59,7 @@ class Kythera
 
             puts "#{ME}: warning: debug mode enabled"
             puts "#{ME}: warning: all activity will be logged in the clear"
+            puts "#{ME}: warning: performance will be significantly impacted"
         end
 
         Log.logger = nil unless logging
