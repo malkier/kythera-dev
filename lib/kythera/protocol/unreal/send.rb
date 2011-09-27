@@ -88,4 +88,11 @@ module Protocol::Unreal
             raw ":#{origin} MODE #{target} #{mode}"
         end
     end
+
+    # :origin WALLOPS :message
+    def send_operwall(origin, message)
+        assert { { :origin => String, :message => String } }
+
+        raw ":#{origin} WALLOPS :#{message}"
+    end
 end
