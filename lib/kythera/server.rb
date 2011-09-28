@@ -40,6 +40,11 @@ class Server
 
     public
 
+    # String reprensentation
+    def to_s
+        @name
+    end
+
     # The value we use to represent our membership in a Hash
     def key
         @name

@@ -61,7 +61,7 @@ class Uplink
     # @return [String] name:port
     #
     def to_s
-        "#{@config.name}:#{@config.port}"
+        "#{self.class}:#{@config.name}"
     end
 
     # Returns the Uplink name from configuration
