@@ -10,10 +10,20 @@
 $LOAD_PATH.unshift File.expand_path('../',    File.dirname(__FILE__))
 $LOAD_PATH.unshift File.expand_path('../lib', File.dirname(__FILE__))
 
+# Require sequel, delete any old test db, and create the connection here
+require 'sequel'
+File.delete('db/test.db') rescue nil
+$db = Sequel.sqlite('db/test.db')
+
+# Run the migrations here, and then the models will have them to load
+Sequel.extension :migration
+Sequel::Migrator.run Sequel::Model.db, 'db/migrations'
+
 require 'rubygems'
 require 'kythera'
 require 'riot'
 #require 'riot/rr'
+Riot.reporter = Riot::VerboseStoryReporter
 
 # For all tests
 $config    = nil

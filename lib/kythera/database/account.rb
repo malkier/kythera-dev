@@ -39,23 +39,35 @@ module Database
         # When a login is already registered and somone attempts to re-register
         # it, this error will be raised.
         #
-        class LoginExistsError      < Exception; end
+        class LoginExistsError          < Exception; end
 
         #
         # When a bad password is given, this error will be raised.
         #
-        class PasswordMismatchError < Exception; end
+        class PasswordMismatchError     < Exception; end
+
+        #
+        # When an attempt is made to authenticate on an Account object that is
+        # already authenticated, this error will be raised.
+        #
+        class AlreadyAuthenticatedError < Exception; end
 
         #
         # When a bad validation token is given, this error will be raised.
         #
-        class BadValidationError    < Exception; end
+        class BadValidationError        < Exception; end
 
         #
         # When someone attempts to perform a function on a bad login, this error
         # will be raised.
         #
-        class NoSuchLoginError      < Exception; end
+        class NoSuchLoginError          < Exception; end
+
+        #
+        # When someone attempts to resolve a value that can't be resolved, this
+        # error will be raised.
+        #
+        class ResolveError              < Exception; end
 
         #
         # The list of resolve handlers which will be called by Account.resolve.
@@ -205,18 +217,18 @@ module Database
         #   account = Account.resolve('rakaur') # with registered handler
         #
         def self.resolve(acct_to_resolve)
-            return self if acct_to_resolve.kind_of?(self)
+            return acct_to_resolve if acct_to_resolve.kind_of?(self)
 
             if acct_to_resolve.kind_of?(Integer)
                 account = Account[acct_to_resolve] rescue nil
                 return account if account
             end
 
-            account = Account[:login => acct_to_resolve.to_s].first rescue nil
-            return acct if acct
+            account = Account[:login => acct_to_resolve.to_s] rescue nil
+            return account if account
 
             @@resolvers.each do |resolver|
-                account = resolver.call(acct_to_resolve) rescue nil
+                account = resolver.call(acct_to_resolve)
                 return account if account
             end
 
@@ -233,9 +245,9 @@ module Database
         # @raise [ResolveError] When no login matches what was requested
         # @raise [PasswordMismatchError] When the password is wrong
         # @example
-        #   account = Account.identify('rakaur', 'steveisawesome')
+        #   account = Account.authenticate('rakaur', 'steveisawesome')
         #
-        def self.identify(login, password)
+        def self.authenticate(login, password)
             account = resolve(login).authenticate(password)
         end
 
@@ -253,7 +265,7 @@ module Database
         #   Account.drop('rakaur', 'steveisawesome')
         #
         def self.drop(login, password)
-            account = resolve(login).authenticate(password)
+            account = authenticate(login, password)
             admin_drop(account)
         end
 
@@ -275,7 +287,7 @@ module Database
             @@droppers.each { |dropper| dropper.call(account) }
             @@users.delete(account.id)
 
-            account.account_fields.delete
+            AccountField.filter{ {:account => account} }.delete
             account.delete
         end
 
@@ -287,7 +299,7 @@ module Database
         #
         # @return [True, False] Whether the account has authenticated
         #
-        #   account = Account.identify('rakaur', 'steveisawesome')
+        #   account = Account.authenticate('rakaur', 'steveisawesome')
         #   account.authenticated?  # true
         #   account2 = Account.resolve('rakaur')
         #   account2.authenticated? # false
@@ -318,16 +330,22 @@ module Database
         # Sets the account to authenticated if the password matches. Note that
         # this method also automatically resets account.failed_logins and
         # account.last_login. So, if these values are of use to you, you should
-        # retrieve them before calling this method.
+        # retrieve them before calling this method. This method will not allow
+        # a user to re-authenticate if they have already authenticated. If they
+        # wish to attempt to do so (for whatever reason), then the logout!
+        # method should be called first.
         #
         # @param [String] password The password to verify
         # @return [Account] The account object (self)
         # @raise [PasswordMismatchError] If the password did not match
+        # @raise [AlreadyAuthenticatedError] If there's an attempt to re-auth
         # @example
         #   account = Account.resolve('rakaur')
         #   account.authenticate('steveisawesome')
         #
         def authenticate(password)
+            raise AlreadyAuthenticatedError if authenticated?
+
             if authenticates?(password)
                 self.update(:last_login => Time.now, :failed_logins => 0)
                 @authenticated = true
@@ -343,7 +361,7 @@ module Database
         # Sets the account to no longer be authenticated.
         #
         # @example
-        #   account = Account.identify('rakaur', 'steveisawesome')
+        #   account = Account.authenticate('rakaur', 'steveisawesome')
         #   account.authenticated? # true
         #   account.logout!
         #   account.authenticated? # false
@@ -425,7 +443,7 @@ module Database
         #   account[:website] # 'http://www.malkier.net/'
         #
         def [](key)
-            super
+            return super if self.class.columns.include?(key)
 
             field = account_fields.find { |f| key.to_s == f.key }
             field ? field.value : nil
@@ -449,7 +467,8 @@ module Database
         #   account[:website] = 'http://www.malkier.net/'
         #
         def []=(key, value)
-            super
+            return super if self.class.columns.include?(key)
+            return delete_field(key) unless value
 
             if field = account_fields.find { |f| key.to_s == f.key }
                 field.update(:value => value.to_s)
@@ -503,7 +522,7 @@ module Database
         #
         # @return [Array] The list of active users of this account
         # @example
-        #   user.account = Account.identify('rakaur', 'steveisawesome')
+        #   user.account = Account.authenticate('rakaur', 'steveisawesome')
         #   user.account.users << user
         #   account = Account.resolve('rakaur')
         #   account.users # [user]
