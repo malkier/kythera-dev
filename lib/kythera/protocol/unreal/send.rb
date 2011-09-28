@@ -73,7 +73,7 @@ module Protocol::Unreal
 
     # :server.name SJOIN timestamp channel +modes[ modeparams] :memberlist
     def send_sjoin(target, timestamp, nick)
-        assert { { :target => String, :timestamp => Fixnum, :nick => String } }
+        assert { { :target => String, :timestamp => Integer, :nick => String } }
 
         raw ":#{$config.me.name} SJOIN #{timestamp} #{target} + :@#{nick}"
     end

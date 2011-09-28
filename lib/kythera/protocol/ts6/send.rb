@@ -86,14 +86,14 @@ module Protocol::TS6
 
     # SJOIN <TS> <CHANNAME> +<CHANMODES> :<UIDS>
     def send_sjoin(target, timestamp, uid)
-        assert { { :origin => String, :timestamp => Fixnum, :uid => String } }
+        assert { { :origin => String, :timestamp => Integer, :uid => String } }
 
         raw "SJOIN #{timestamp} #{target} + :@#{uid}"
     end
 
     # :<UID> JOIN <TS> <CHANNAME> +
     def send_join(uid, target, timestamp)
-        assert { { :uid => String, :target => String, :timestamp => Fixnum } }
+        assert { { :uid => String, :target => String, :timestamp => Integer } }
 
         raw ":#{uid} JOIN #{timestamp} #{target} +"
     end
@@ -101,7 +101,7 @@ module Protocol::TS6
     # [:ORIGIN] TMODE <TS> <CHANNAME> <MODES> [PARAMS]
     def send_tmode(origin, target, timestamp, modestr)
         assert { { :target    => String,
-                   :timestamp => Fixnum,
+                   :timestamp => Integer,
                    :modestr   => String } }
 
         if origin

@@ -14,8 +14,15 @@ $uplink = nil
 
 # Represents the interface to the remote IRC server
 class Uplink
+    # An exception we raise when disconnected
+    class DisconnectedError < Exception
+    end
+
     # The configuration information
     attr_accessor :config
+
+    # Are we connected?
+    attr_accessor :connected
 
     # The TCPSocket
     attr_reader :socket
@@ -96,24 +103,6 @@ class Uplink
         not @sendq.empty?
     end
 
-    # Sets our state to not connected
-    #
-    # @param [True, False] bool
-    #
-    def dead=(bool)
-        if bool
-            $log.info "lost connection to #{@config.name}:#{@config.port}"
-
-            $eventq.post(:disconnected)
-
-            @socket.close if @socket
-            @recvq.clear
-
-            @connected = false
-            @socket    = nil
-        end
-    end
-
     # Connects to the uplink using the information in `@config`
     def connect
         $log.info "connecting to #{@config.host}:#{@config.port}"
@@ -124,14 +113,10 @@ class Uplink
 
             start_tls if @config.ssl
         rescue Exception => err
-            $log.error "connection failed: #{err}"
-            self.dead = true
-            return
+            raise DisconnectedError, err
         else
             $log.info "connected to #{@config.name}:#{@config.port}"
-
             @connected = true
-
             $eventq.post(:connected)
         end
     end
@@ -146,14 +131,10 @@ class Uplink
         rescue Errno::EAGAIN
             return # Will go back to select and try again
         rescue Exception => err
-            data = nil # Dead
+            raise DisconnectedError, err
         end
 
-        if not data or data.empty?
-            $log.error "read error from #{@config.name}: #{err}" if err
-            self.dead = true
-            return
-        end
+        raise DisconnectedError, "empty read" if not data or data.empty?
 
         # Passes every "line" to the block, including "\n"
         data.scan /(.+\n?)/ do |line|
@@ -181,8 +162,7 @@ class Uplink
             rescue Errno::EAGAIN
                 return # Will go back to select and try again
             rescue Exception => err
-                $log.error "write error to #{@config.name}: #{err}"
-                self.dead = true
+                raise DisconnectedError, err
             else
                 @sendq.shift
             end
@@ -256,8 +236,7 @@ class Uplink
             socket.connect
             socket.sync_close = true
         rescue Exception => err
-            $log.error 'SSL failed to connect'
-            self.dead = true
+            raise DisconnectedError, err
         else
             @socket = socket
         end
