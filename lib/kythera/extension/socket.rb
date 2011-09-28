@@ -18,7 +18,7 @@ class Extension::Socket
 
     # Create a new socket that gets automatically handled in the main loop
     def initialize(socket)
-        assert { :socket }
+        assert { { :socket => TCPSocket } }
 
         @recvq  = []
         @sendq  = []
