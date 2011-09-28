@@ -199,7 +199,11 @@ class Kythera
             $uplink = Uplink.new($config.uplinks[0])
         end
 
-        $uplink.connect
+        begin
+            $uplink.connect
+        rescue Uplink::DisconnectedError => err
+            $log.error "failed to connect to #{$uplink.config.name}: #{err}"
+        end
     end
 
     # Checks to see if we're running as root
