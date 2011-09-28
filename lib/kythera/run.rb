@@ -166,7 +166,10 @@ class Kythera
             begin
                 $eventq.run while $eventq.needs_run?
             rescue Uplink::DisconnectedError => err
-                $log.error "disconnected from #{$uplink.config.name}: #{err}"
+                host = $uplink.config.host
+                port = $uplink.config.port
+
+                $log.error "disconnected from #{host}:#{port}: #{err}"
                 $uplink.connected = false
             end
         end
@@ -202,7 +205,9 @@ class Kythera
         begin
             $uplink.connect
         rescue Uplink::DisconnectedError => err
-            $log.error "failed to connect to #{$uplink.config.name}: #{err}"
+            host = $uplink.config.host
+            port = $uplink.config.port
+            $log.error "#{err} [#{host}:#{port}]"
         end
     end
 
