@@ -84,7 +84,7 @@ module Protocol::InspIRCd
 
     # :<sid> FJOIN <channel> <timestamp> +<modes> <params> :<statusmodes,uuid>
     def send_fjoin(target, timestamp, uid)
-        assert { { :target => String, :timestamp => Fixnum, :uid => String } }
+        assert { { :target => String, :timestamp => Integer, :uid => String } }
 
         raw ":#{@config.sid} FJOIN #{target} #{timestamp} + o,#{uid}"
     end
@@ -92,7 +92,7 @@ module Protocol::InspIRCd
     # [:ORIGIN] FMODE <TARGET> <TIMESTAMP> <MODES> [PARAMS]
     def send_fmode(origin, target, timestamp, modestr)
         assert { { :target    => String,
-                   :timestamp => Fixnum,
+                   :timestamp => Integer,
                    :modestr   => String } }
 
         if origin

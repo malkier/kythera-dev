@@ -163,7 +163,15 @@ class Kythera
             end
 
             # Run the event loop until it's empty
-            $eventq.run while $eventq.needs_run?
+            begin
+                $eventq.run while $eventq.needs_run?
+            rescue Uplink::DisconnectedError => err
+                host = $uplink.config.host
+                port = $uplink.config.port
+
+                $log.error "disconnected from #{host}:#{port}: #{err}"
+                $uplink.connected = false
+            end
         end
     end
 
@@ -194,7 +202,13 @@ class Kythera
             $uplink = Uplink.new($config.uplinks[0])
         end
 
-        $uplink.connect
+        begin
+            $uplink.connect
+        rescue Uplink::DisconnectedError => err
+            host = $uplink.config.host
+            port = $uplink.config.port
+            $log.error "#{err} [#{host}:#{port}]"
+        end
     end
 
     # Checks to see if we're running as root
