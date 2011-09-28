@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 4; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # lib/kythera/user.rb: User class
@@ -18,6 +19,9 @@ class User
                      'w' => :wallop,
                      'o' => :operator }
 
+    # A list of Channels we're on
+    attr_reader :channels
+
     # The user's Server object
     attr_reader :server
 
@@ -33,27 +37,54 @@ class User
     # The user's gecos/realname
     attr_reader :realname
 
-    # The user's umodes
-    attr_reader :modes
-
     # A Hash keyed by Channel of the user's status modes
     attr_reader :status_modes
 
     # Creates a new user. Should be patched by the protocol module.
     def initialize(server, nick, user, host, real, umodes)
+        assert {{ :nick   => String,
+                  :user   => String,
+                  :host   => String,
+                  :real   => String,
+                  :umodes => String }}
+
         @server   = server
         @nickname = nick
         @username = user
         @hostname = host
         @realname = real
         @modes    = []
+        @channels = []
 
         @status_modes = {}
 
         # Do our user modes
         parse_modes(umodes)
 
-        $users[nick] = self
+        $users[key] = self
+
+        $eventq.post(:user_added, self)
+
+        $log.debug "new user: #{nick}!#{user}@#{host} (#{real})"
+    end
+
+    # Delete a user and remove it from all relevant lists
+    #
+    # @param [User] user User to delete
+    # @return [User] the deleted User
+    #
+    def self.delete_user(user)
+        assert { :user }
+
+        user.server.delete_user(user)
+        user.channels.dup.each { |channel| channel.delete_user(user) }
+
+        $log.debug "user deleted: #{user}"
+
+        $eventq.post(:user_deleted, user)
+
+        # Also returns the deleted user as a side effect
+        $users.delete(user.key)
     end
 
     public
@@ -68,9 +99,20 @@ class User
         @nickname
     end
 
+    # Does this user have the specified umode?
+    #
+    # @param [Symbol] mode the mode symbol
+    # @return [True, False]
+    #
+    def has_mode?(mode)
+        assert { { :mode => Symbol } }
+
+        @modes.include?(mode)
+    end
+
     # Is this user an IRC operator?
     #
-    # @return [Boolean] true or false
+    # @return [True, False]
     #
     def operator?
         @modes.include?(:operator)
@@ -81,6 +123,8 @@ class User
     # @param [String] modes the mode string
     #
     def parse_modes(modes)
+        assert { { :modes => String } }
+
         action = nil # :add or :delete
 
         modes.each_char do |c|
@@ -122,6 +166,8 @@ class User
     # @param [Symbol] mode a Symbol representing the mode flag
     #
     def add_status_mode(channel, mode)
+        assert { { :channel => Channel, :mode => Symbol } }
+
         (@status_modes[channel] ||= []) << mode
 
         $log.debug "status mode added: #{@nickname}/#{channel} -> #{mode}"
@@ -133,6 +179,8 @@ class User
     # @param [Symbol] mode a Symbol representing the mode flag
     #
     def delete_status_mode(channel, mode)
+        assert { { :channel => Channel, :mode => Symbol } }
+
         unless @status_modes[channel]
             $log.warn "cannot remove mode from a channel with no known modes"
             $log.warn "#{channel} -> #{mode}"
@@ -150,6 +198,8 @@ class User
     # @param [Channel] channel the Channel object to clear modes for
     #
     def clear_status_modes(channel)
+        assert { :channel }
+
         unless @status_modes[channel]
             $log.warn "cannot clear modes from a channel with no known modes"
             $log.warn "#{channel} -> clear all modes"
@@ -162,23 +212,27 @@ class User
 
     # Are we on this channel?
     #
-    # @param [Channel] channel the Channel to check for this User
-    # @return [Boolean] true or false
+    # @param [String, Channel] channel the Channel to check for this User
+    # @return [True, False]
     #
     def is_on?(channel)
         channel = $channels[channel] if channel.kind_of?(String)
 
-        channel.members[key]
+        !! channel.members[key]
     end
 
     # Do you have the specified status mode?
     #
     # @param [Symbol] mode the mode symbol
-    # @param [Channel] channel the Channel
-    # @return [Boolean] true or false
+    # @param [String, Channel] channel the Channel
+    # @return [True, False]
     #
     def has_mode_on_channel?(mode, channel)
+        assert { { :mode => Symbol } }
+
         channel = $channels[channel] if channel.kind_of?(String)
+
+        return false unless @status_modes[channel]
 
         @status_modes[channel].include?(mode)
     end

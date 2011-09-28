@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 4; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # lib/kythera/protocol/inspircd/channel.rb: InspIRCd-specific Channel class
@@ -55,22 +56,9 @@ class Protocol::InspIRCd::Channel < Channel
     attr_reader :timestamp
 
     # Creates a new channel and adds it to the list keyed by name
-    def initialize(name, timestamp=nil)
-        @name      = name
+    def initialize(name, timestamp = nil)
         @timestamp = (timestamp || Time.now).to_i
-
-        # Keyed by UID
-        @members = IRCHash.new
-
-        clear_modes
-
-        $log.error "new channel #{@name} already exists!" if $channels[name]
-
-        $channels[name] = self
-
-        $log.debug "new channel: #{@name} (#{timestamp})"
-
-        $eventq.post(:channel_added, self)
+        super(name)
     end
 
     public
@@ -78,7 +66,7 @@ class Protocol::InspIRCd::Channel < Channel
     # Is this hostmask in the chanfilter list?
     #
     # @param [String] hostmask the hostmask to check for
-    # @return [Boolean] true or false
+    # @return [True, False]
     #
     def is_chanfiltered?(hostmask)
         @list_modes[:chanfilter].include?(hostmask)
@@ -87,7 +75,7 @@ class Protocol::InspIRCd::Channel < Channel
     # Is this hostmask in the except list?
     #
     # @param [String] hostmask the hostmask to check for
-    # @return [Boolean] true or false
+    # @return [True, False]
     #
     def is_excepted?(hostmask)
         @list_modes[:except].include?(hostmask)
@@ -96,7 +84,7 @@ class Protocol::InspIRCd::Channel < Channel
     # Is this hostmask in the invex list?
     #
     # @param [String] hostmask the hostmask to check for
-    # @return [Boolean] true or false
+    # @return [True, False]
     #
     def is_invexed?(hostmask)
         @list_modes[:invex].include?(hostmask)

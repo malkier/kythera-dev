@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 4; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # lib/kythera/event.rb: implements the event loop
@@ -76,7 +77,7 @@ class EventQueue
 
     # Does the queue need emptied?
     #
-    # @return [Boolean] true or false
+    # @return [True, False]
     #
     def needs_run?
         @queue.empty? ? false : true

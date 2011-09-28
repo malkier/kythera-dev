@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 4; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # lib/kythera/protocol/receive.rb: implements protocol basics
@@ -9,6 +10,23 @@
 
 module Protocol
     private
+
+    # Handles an incoming SQUIT (server disconnection)
+    #
+    # parv[0] -> server leaving
+    # parv[1] -> server's uplink's name
+    #
+    def irc_squit(origin, parv)
+        unless server = $servers.delete(parv[0])
+            $log.error "received SQUIT for unknown SID: #{parv[0]}"
+            return
+        end
+
+        # Remove all their users to comply with CAPAB QS
+        server.users.dup.each { |user| User.delete_user(user) }
+
+        $log.debug "server leaving: #{parv[0]}"
+    end
 
     # Handles an incoming JOIN
     #
@@ -39,13 +57,12 @@ module Protocol
     # parv[0] -> quit message
     #
     def irc_quit(origin, parv)
-        unless user = $users.delete(origin)
+        unless user = $users[origin]
             $log.error "received QUIT for unknown user: #{origin}"
             return
         end
 
-        user.server.delete_user(user)
-        $eventq.post(:user_deleted, user, parv[0])
+        User.delete_user(user)
 
         $log.debug "user quit: #{user} [#{origin}]"
     end

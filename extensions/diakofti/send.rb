@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 4; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # extensions/diakofti/send.rb: methods for sending data

@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 4; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # lib/kythera/server.rb: Server class
@@ -14,35 +15,48 @@ $servers = IRCHash.new
 # This is just a base class; protocol module should subclass this
 class Server
     # The server's name
-    attr_accessor :name
+    attr_reader :name
 
     # The server's description
-    attr_accessor :description
+    attr_reader :description
 
     # The Users on this server
     attr_reader :users
 
     # Creates a new server. Should be patched by the protocol module.
-    def initialize(name)
-        @name   = name
-        @users  = []
+    def initialize(name, description)
+        assert { { :name => String, :description => String } }
 
-        if $servers[name]
-            $log.error "new server replacing server with same name!"
-        end
+        @name        = name
+        @description = description
+        @users       = []
 
-        $servers[name] = self
+        $servers[key] = self
 
-        $log.debug "new server initialized: #{@name}"
+        $eventq.post(:server_added, self)
+
+        $log.debug "new server initialized: #{@name} [#{@description}]"
     end
 
     public
+
+    # String reprensentation
+    def to_s
+        @name
+    end
+
+    # The value we use to represent our membership in a Hash
+    def key
+        @name
+    end
 
     # Adds a User as a member
     #
     # @param [User] user the User to add
     #
     def add_user(user)
+        assert { :user }
+
         @users << user
         $log.debug "user joined #{@name}: #{user}"
     end
@@ -52,6 +66,8 @@ class Server
     # @param [User] user User object to delete
     #
     def delete_user(user)
+        assert { :user }
+
         @users.delete(user)
         $log.debug "user left #{@name}: #{user} (#{@users.length})"
     end

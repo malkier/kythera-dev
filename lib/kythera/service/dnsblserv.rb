@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 4; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # lib/kythera/service/dnsblserv.rb: provides DNSBL checking
@@ -30,7 +31,7 @@ class DNSBLService < Service
 
     # Verify our configuration
     #
-    # @return [Boolean] true or false
+    # @return [True, False]
     #
     def self.verify_configuration
         c = $config.dnsblserv
@@ -43,12 +44,7 @@ class DNSBLService < Service
     end
 
     # Called by the daemon when we connect to the uplink
-    #
-    # @param [Uplink] Uplink interface to the IRC server
-    #
-    def initialize(uplink)
-        super # Prepare uplink object
-
+    def initialize
         # Shortcut to our configuration info
         @config = $config.dnsblserv
 

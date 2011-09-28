@@ -1,3 +1,5 @@
+# -*- Mode: Ruby; tab-width: 2; indent-tabs-mode: nil; -*-
+#
 # = Secure random number generator interface.
 #
 # This library is an interface for secure random number generator which is

@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 4; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # lib/kythera/protocol/unreal/user.rb: UnrealIRCd-specific User class
@@ -11,9 +12,6 @@ require 'kythera'
 
 # This subclasses the base User class in `kythera/user.rb`
 class Protocol::Unreal::User < User
-    # The user's timestamp
-    attr_reader :timestamp, :vhost, :cloakhost
-
     # Unreal's user modes
     @@user_modes = { 'A' => :server_admin,
                      'a' => :services_admin,
@@ -25,7 +23,7 @@ class Protocol::Unreal::User < User
                      'H' => :hide_ircop,
                      'h' => :helper,
                      'i' => :invisible,
-                     'N' => :netadmin,
+                     'N' => :net_admin,
                      'O' => :local_oper,
                      'o' => :global_oper,
                      'p' => :hide_whois_channels,
@@ -43,42 +41,25 @@ class Protocol::Unreal::User < User
                      'x' => :hidden_host,
                      'z' => :ssl }
 
+     # The user's timestamp
+     attr_accessor :timestamp
+
+     # The user's virtual host/spoof
+     attr_reader :vhost
+
     # Creates a new user and adds it to the list keyed by nick
-    def initialize(server, nick, user, host, real, umodes, ts, vhost = nil,
-                   cloakhost = nil)
-        @server    = server
-        @nickname  = nick
-        @username  = user
-        @hostname  = host
-        @realname  = real
+    def initialize(server, nick, user, host, real, umodes, ts, vhost = nil)
         @timestamp = ts.to_i
-        @modes     = []
+        @vhost     = vhost || host
 
-        @vhost     = vhost     || host
-        @cloakhost = cloakhost || host
-
-        @status_modes = {}
-
-        # Do our user modes
-        parse_modes(umodes)
-
-        $users[nick] = self
-
-        $log.debug "new user: #{nick}!#{user}@#{host} (#{real})"
-
-        $eventq.post(:user_added, self)
+        super(server, nick, user, host, real, umodes)
     end
 
     # Is this user an IRC operator?
     #
-    # @return [Boolean] true or false
+    # @return [True, False]
     #
     def operator?
         @modes.include?(:global_oper)
-    end
-
-    # The value we use to represent our membership in a Hash
-    def key
-        @nickname
     end
 end

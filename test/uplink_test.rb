@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 2; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # test/uplink_test.rb: tests the Uplink class
@@ -11,6 +12,7 @@ require File.expand_path('teststrap', File.dirname(__FILE__))
 context :uplink do
   setup do
     $_uplink_block.call
+    $_logger_setup.call
     $uplink = Uplink.new($config.uplinks[0])
   end
 
@@ -27,6 +29,6 @@ context :uplink do
 
     asserts_topic.kind_of Array
     denies_topic.empty
-    asserts_topic.size 218
+    asserts_topic.size 226
   end
 end

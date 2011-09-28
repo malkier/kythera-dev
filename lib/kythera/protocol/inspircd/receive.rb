@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 4; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # lib/kythera/protocol/inspircd/receive.rb: implements the InspIRCd protocol
@@ -31,34 +32,24 @@ module Protocol::InspIRCd
     #     parv[4] -> description
     #
     def irc_server(origin, parv)
-        if origin
-            # New server introduction
-            server = Server.new(parv[3])
-        else
-            if parv[1] != @config.receive_password
-                $log.error "incorrect password received from `#{@config.name}`"
-                self.dead = true
-            else
-                server = Server.new(parv[3])
-            end
+        Server.new(parv[3], parv[0], parv[4])
 
-            # Make sure their name matches what we expect
-            unless parv[0] == @config.name
-                $log.error "name mismatch from uplink"
-                $log.error "#{parv[0]} != #{@config.name}"
+        return if origin # Anything else is authentication
 
-                self.dead = true
-
-                return
-            end
+        unless parv[1] == @config.receive_password
+            $log.error "incorrect password received from `#{@config.name}`"
+            self.dead = true
+            return
         end
 
-        server.name        = parv[0]
-        server.description = parv[4]
+        # Make sure their name matches what we expect
+        unless parv[0] == @config.name
+            $log.error "name mismatch from uplink"
+            $log.error "#{parv[0]} != #{@config.name}"
 
-        $log.debug "new server: #{parv[0]}"
-
-        $eventq.post(:server_added, server)
+            self.dead = true
+            return
+        end
     end
 
     # Handles an incoming CAPAB
@@ -118,14 +109,14 @@ module Protocol::InspIRCd
     def irc_uid(origin, parv)
         p = parv
 
-        unless s = $servers[origin]
+        unless server = $servers[origin]
             $log.error "got UID from unknown SID: #{origin}"
             return
         end
 
-        u = User.new(s, p[2], p[5], p[4], p[6], p[-1], p[8], p[0], p[1])
+        u = User.new(server, p[2], p[5], p[4], p[6], p[-1], p[8], p[0], p[1])
 
-        s.add_user(u)
+        server.add_user(u)
     end
 
     # Handles an incoming FJOIN
@@ -179,6 +170,7 @@ module Protocol::InspIRCd
 
             channel.add_user(user)
 
+            # Only do status modes if the TS is right
             if their_ts <= channel.timestamp
                 modes.each do |m|
                     mode = Channel.status_modes[m]
@@ -209,7 +201,7 @@ module Protocol::InspIRCd
     #
     def irc_fmode(origin, parv)
         if channel = $channels[parv[0]]
-            their_ts = parv[0].to_i
+            their_ts = parv[1].to_i
             my_ts    = channel.timestamp
 
             # Simple TS rules
@@ -218,6 +210,8 @@ module Protocol::InspIRCd
                 modes  = params.delete_at(0)
 
                 channel.parse_modes(modes, params)
+            else
+                $log.warn "invalid ts for #{channel} (#{their_ts} > #{my_ts})"
             end
         else
             unless user = $users[parv[0]]
@@ -237,8 +231,6 @@ module Protocol::InspIRCd
     # parv[1] -> ts
     #
     def irc_nick(origin, parv)
-        return unless parv.length == 2 # We don't want TS5 introductions
-
         unless user = $users[origin]
             $log.error "got nick change for non-existent UID: #{origin}"
             return
@@ -248,5 +240,6 @@ module Protocol::InspIRCd
         $log.debug "nick change: #{user} -> #{parv[0]} [#{origin}]"
 
         user.nickname = parv[0]
+        user.timestamp = parv[1].to_i
     end
 end

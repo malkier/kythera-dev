@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 2; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # test/protocol/ts6_test.rb: tests the Protocol::TS6 module
@@ -9,20 +10,23 @@
 require File.expand_path('../../teststrap', File.dirname(__FILE__))
 
 context :inspircd do
-  setup do
+  hookup do
     $_daemon_block.call
     $_uplink_block.call
-    $uplink = Uplink.new($config.uplinks[0])
+    $_logger_setup.call
+
+    require 'kythera/protocol/inspircd'
+    $config.uplinks[0].protocol = :inspircd
   end
 
-  hookup do
-    require 'kythera/protocol/inspircd'
-    $uplink.config.protocol = :inspircd
+  setup do
+    $uplink = Uplink.new($config.uplinks[0])
   end
 
   denies_topic.nil
   asserts_topic.kind_of Uplink
-  asserts('protocol') { topic.config.protocol }.equals :inspircd
+  asserts('protocol')   { topic.config.protocol     }.equals :inspircd
+  asserts('casemapping') { topic.config.casemapping }.equals :rfc1459
 
   context :parse do
     hookup do
@@ -40,19 +44,19 @@ context :inspircd do
     asserts('channels') { $channels.clear; $channels }.empty
     asserts('servers')  { $servers.clear;  $servers  }.empty
 
-    asserts(:burst) { topic.instance_variable_get(:@recvq) }.size 220
+    asserts(:burst) { topic.instance_variable_get(:@recvq) }.size 228
     asserts('parses') { topic.send(:parse) }
 
-    asserts('has 11 servers')   { $servers .length == 11  }
-    asserts('has 100 users')    { $users   .length == 100 }
-    asserts('has 100 channels') { $channels.length == 100 }
+    asserts('has 10 servers')   { $servers .length == 10 }
+    asserts('has 89 users')     { $users   .length == 89 }
+    asserts('has 100 channels') { $channels.length == 90 }
 
     context :servers do
       setup { $servers.values }
 
       denies_topic.nil
       denies_topic.empty
-      asserts(:size) { topic.length }.equals 11
+      asserts(:size) { topic.length }.equals 10
 
       context :first do
         setup { topic.find { |s| s.sid == '0X0' } }
@@ -73,7 +77,7 @@ context :inspircd do
       end
 
       context :second do
-        setup { topic.find { |s| s.sid == '0AA' } }
+        setup { $servers['0AA'] }
 
         denies_topic.nil
         asserts_topic.kind_of Server
@@ -106,20 +110,34 @@ context :inspircd do
           end
         end
       end
+
+      context :quit do
+          setup { $servers['0AI'] }
+          asserts_topic.nil
+      end
     end
 
     context :users do
       setup { $users.values }
 
       denies_topic.empty
-      asserts(:size) { topic.length }.equals 100
+      asserts(:size) { topic.length }.equals 89
 
       context :first do
         setup { topic.find { |u| u.uid == '0AAAAAAAA' } }
 
         denies_topic.nil
         asserts_topic.kind_of User
+
         asserts(:operator?)
+        asserts('invisible?')  { topic.has_mode?(:invisible)  }
+        asserts('wallop?')     { topic.has_mode?(:wallop)     }
+        asserts('bot?')        { topic.has_mode?(:bot)        }
+        asserts('censor?')     { topic.has_mode?(:censor)     }
+        asserts('unethical?')  { topic.has_mode?(:unethical)  }
+        asserts('registered?') { topic.has_mode?(:registered) }
+        asserts('show_whois?') { topic.has_mode?(:show_whois) }
+        denies('cloaked?')     { topic.has_mode?(:cloaked)    }
 
         asserts(:uid)      .equals '0AAAAAAAA'
         asserts(:nickname) .equals 'rakaur'
@@ -130,6 +148,7 @@ context :inspircd do
         asserts(:timestamp).equals 1307151136
 
         asserts('is on #malkier') { topic.is_on?('#malkier') }
+        denies('is on #cecpml')   { topic.is_on?('#cecpml')  }
 
         asserts('is an operator on #malkier') do
           topic.has_mode_on_channel?(:operator, '#malkier')
@@ -147,13 +166,32 @@ context :inspircd do
           topic.has_mode_on_channel?(:protected, '#malkier')
         end
       end
+
+      context :last do
+        setup { $users['0AJAAAAAJ'] }
+
+        asserts(:uid).equals '0AJAAAAAJ'
+        asserts(:nickname).equals 'test_nick'
+        asserts(:timestamp).equals 1316970148
+        asserts('is on #malkier') { topic.is_on?('#malkier') }
+      end
+
+      context :quit do
+        setup { $users['0AJAAAAAI'] }
+        asserts_topic.nil
+      end
+
+      context :squit do
+        setup { $users['0AIAAAAAJ'] }
+        asserts_topic.nil
+      end
     end
 
     context :channels do
       setup { $channels.values }
 
       denies_topic.empty
-      asserts(:size) { topic.length }.equals 100
+      asserts(:size) { topic.length }.equals 90
 
       context :first do
         setup { topic.find { |c| c.name == '#malkier' } }
@@ -163,6 +201,8 @@ context :inspircd do
 
         asserts(:name).equals '#malkier'
         asserts('is flood protected') { topic.has_mode?(:flood_protection) }
+        asserts('is secret')          { topic.has_mode?(:secret)           }
+        denies('is join_flood')       { topic.has_mode?(:join_flood)       }
         asserts('is keyed')           { topic.has_mode?(:keyed)            }
         asserts('is limited ')        { topic.has_mode?(:limited)          }
         asserts('is allow invite')    { topic.has_mode?(:allow_invite)     }
@@ -176,12 +216,18 @@ context :inspircd do
         asserts('key')   { topic.mode_param(:keyed) }.equals 'partypants'
         asserts('limit') { topic.mode_param(:limited) }.equals "15"
 
-        asserts('dk is banned') { topic.is_banned?('*!xiphias@khaydarin.net') }
-        asserts('jk is execpt') { topic.is_excepted?('*!justin@othius.com') }
-        asserts('wp is banned') { topic.is_invexed?('*!nenolod@nenolod.net') }
+        denies('ts is banned')   { topic.is_banned?('*!invalid@time.stamp')    }
+        asserts('dk is banned')  { topic.is_banned?('*!xiphias@khaydarin.net') }
+        asserts('jk is execpt')  { topic.is_excepted?('*!justin@othius.com')   }
+        asserts('wp is invexed') { topic.is_invexed?('*!nenolod@nenolod.net')  }
 
         asserts('rakaur is member') { topic.members['0AAAAAAAA'] }
-        asserts('member count')     { topic.members.length }.equals 6
+        asserts('member count')     { topic.members.length }.equals 7
+      end
+
+      context :squit do
+        setup { $channels['#qpwqcs'] }
+        asserts_topic.nil
       end
     end
   end

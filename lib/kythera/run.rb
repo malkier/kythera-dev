@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 4; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # lib/kythera/run.rb: start up operations
@@ -58,6 +59,7 @@ class Kythera
 
             puts "#{ME}: warning: debug mode enabled"
             puts "#{ME}: warning: all activity will be logged in the clear"
+            puts "#{ME}: warning: performance will be significantly impacted"
         end
 
         Log.logger = nil unless logging
@@ -239,6 +241,8 @@ class Kythera
     # @param [String] wd the directory to move into once forked
     #
     def daemonize(wd)
+        assert { { :wd => String } }
+
         begin
             pid = fork
         rescue Exception => err

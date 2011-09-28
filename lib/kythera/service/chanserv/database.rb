@@ -401,7 +401,7 @@ module Database
             # ChannelService::PRIVILEGES so that you can perform checks on them
             # quickly.
             #
-            # @return [Boolean]
+            # @return [True, False]
             # @example
             #   account = Account.resolve('sycobuny@malkier.net')
             #   account.cs.drop?
@@ -419,7 +419,7 @@ module Database
             # on them quickly.
             #
             # @param [Channel] channel The channel to check a privilege for
-            # @return [Boolean]
+            # @return [True, False]
             # @example
             #   account = Account.resolve('sycobuny@malkier.net')
             #   channel = Channel.resolve('#malkier')

@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 2; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # test/config_test.rb: tests the configuration
@@ -21,6 +22,7 @@ context :configuration do
   context :daemon do
    setup do
      $_daemon_block.call
+     $_logger_setup.call
      $config.me
    end
 
@@ -29,7 +31,7 @@ context :configuration do
    asserts(:description)      .equals 'kythera unit tester'
    asserts(:admin_name)       .equals 'rakaur'
    asserts(:admin_email)      .equals 'rakaur@malkier.net'
-   asserts(:logging)          .equals :warn
+   asserts(:logging)          .equals :debug
    asserts(:unsafe_extensions).equals :die
    asserts(:reconnect_time)   .equals 10
    asserts(:mailer)           .equals '/usr/sbin/sendmail'
@@ -57,11 +59,10 @@ context :configuration do
      asserts(:port)            .equals 6667
      asserts(:name)            .equals 'test.server.com'
      asserts(:priority)        .equals 1
-     asserts(:sid)             .equals '0X0'
+     asserts(:sid)             .equals '0XX'
      asserts(:send_password)   .equals 'unit_tester'
      asserts(:receive_password).equals 'unit_tester'
      asserts(:network)         .equals 'testing'
-     asserts(:casemapping)     .equals :rfc1459
    end
   end
 end

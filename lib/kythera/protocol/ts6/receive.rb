@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 4; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # lib/kythera/protocol/ts6/receive.rb: implements the TS6 protocol
@@ -24,7 +25,9 @@ module Protocol::TS6
             $log.error "incorrect password received from `#{@config.name}`"
             self.dead = true
         else
-            Server.new(parv[3])
+            # Because the SID and the name isn't ever seen in one place, we
+            # have to hack this together, and it blows to the max
+            $state.uplink_sid = parv[3]
 
             # Start the burst timer
             $state.bursting = Time.now
@@ -52,7 +55,7 @@ module Protocol::TS6
         end
 
         # No origin means we're handshaking, so this must be our uplink
-        server = $servers.values.first
+        Server.new($state.uplink_sid, parv[0], parv[2])
 
         # Make sure their name matches what we expect
         unless parv[0] == @config.name
@@ -63,13 +66,6 @@ module Protocol::TS6
 
             return
         end
-
-        server.name        = parv[0]
-        server.description = parv[2]
-
-        $log.debug "new server: #{parv[0]}"
-
-        $eventq.post(:server_added, server)
     end
 
     # Handles an incoming SVINFO
@@ -118,28 +114,7 @@ module Protocol::TS6
     # parv[3] -> description
     #
     def irc_sid(origin, parv)
-        server             = Server.new(parv[2])
-        server.name        = parv[0]
-        server.description = parv[3]
-
-        $eventq.post(:server_added, server)
-    end
-
-    # Handles an incoming SQUIT (server disconnection)
-    #
-    # parv[0] -> SID leaving
-    # parv[1] -> server's uplink's name
-    #
-    def irc_squit(origin, parv)
-        unless server = $servers.delete(parv[0])
-            $log.error "received SQUIT for unknown SID: #{parv[0]}"
-            return
-        end
-
-        # Remove all their users to comply with CAPAB QS
-        server.users.each { |u| $users.delete u.uid }
-
-        $log.debug "server leaving: #{parv[0]}"
+        server = Server.new(parv[2], parv[0], parv[3])
     end
 
     # Handles an incoming UID (user introduction)
@@ -157,14 +132,14 @@ module Protocol::TS6
     def irc_uid(origin, parv)
         p = parv
 
-        unless s = $servers[origin]
+        unless server = $servers[origin]
             $log.error "got UID from unknown SID: #{origin}"
             return
         end
 
-        u = User.new(s, p[0], p[4], p[5], p[6], p[8], p[3], p[7], p[2])
+        u = User.new(server, p[0], p[4], p[5], p[6], p[8], p[3], p[7], p[2])
 
-        s.add_user(u)
+        server.add_user(u)
     end
 
     # Handles an incoming NICK
@@ -184,6 +159,7 @@ module Protocol::TS6
         $log.debug "nick change: #{user} -> #{parv[0]} [#{origin}]"
 
         user.nickname = parv[0]
+        user.timestamp = parv[1].to_i
     end
 
     # Handles an incoming SJOIN (channel burst)
@@ -249,6 +225,7 @@ module Protocol::TS6
 
             channel.add_user(user)
 
+            # Only apply status modes if the TS is right
             if their_ts <= channel.timestamp
                 if op
                     user.add_status_mode(channel, :operator)
@@ -326,7 +303,6 @@ module Protocol::TS6
 
     # Handles an incoming BMASK
     #
-    # [09/23 23:53:48] (D) -> :0XX BMASK 1315447449 #malkier b :michael!xiphias@khaydarin.net test!test@test*
     # parv[0] -> timestamp
     # parv[1] -> channel
     # parv[2] -> mode char

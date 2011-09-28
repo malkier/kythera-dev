@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 4; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # lib/kythera/service/nickserv/database.rb: database models for nickserv
@@ -196,7 +197,7 @@ module Database
             #
             # Checks whether an account is held; ie, permanent.
             #
-            # @return [Boolean] Whether the account is permanent.
+            # @return [True, False]
             # @example
             #   account = Account.resolve('rakaur')
             #   Nickname.hold?(account) # true
@@ -268,7 +269,7 @@ module Database
             #
             # Shortcut for determining whether the nickname's account is held.
             #
-            # @return [Boolean] Whether this nickname's account is held.
+            # @return [True, False]
             # @example
             #   account = Account.resolve('rakaur')
             #   account.ns.hold?

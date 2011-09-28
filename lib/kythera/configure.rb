@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 4; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # lib/configure.rb: configuration DSL implementation
@@ -183,6 +184,8 @@ module Kythera::Configuration
         ul.extend(Kythera::Configuration::Uplink)
         ul.instance_eval(&block)
 
+        ul.name ||= host.to_s
+
         (@uplinks ||= []) << ul
 
         $config.uplinks.sort! { |a, b| a.priority <=> b.priority }
@@ -350,6 +353,7 @@ module Kythera::Configuration::Uplink
     end
 
     def casemapping(mapping)
+        self.casemapping_override = true
         self.casemapping = mapping.to_sym
     end
 end

@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 4; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # lib/kythera/protocol/inspircd/send.rb: implements the InspIRCd protocol
@@ -38,6 +39,9 @@ module Protocol::InspIRCd
         str  = "SERVER #{$config.me.name} #{@config.send_password} 0 "
         str += "#{@config.sid} :#{$config.me.description}"
 
+        # Keep track of our own server, it counts!
+        Server.new(@config.sid, $config.me.name, $config.me.description)
+
         raw str
     end
 
@@ -51,6 +55,13 @@ module Protocol::InspIRCd
         raw ":#{@config.sid} ENDBURST"
     end
 
+    # :<source> PONG <source> :<destination>
+    def send_pong(dest)
+        assert { { :dest => String } }
+
+        raw ":#{@config.sid} PONG #{@config.sid} :#{dest}"
+    end
+
     # :<sid> UID <uid> <timestamp> <nick> <hostname> <displayed-hostname>
     #            <ident> <ip> <signon time> +<modes [mode params]> :<gecos>
     def send_uid(nick, user, host, real, modes = '')
@@ -60,23 +71,35 @@ module Protocol::InspIRCd
         uid   = "#{@config.sid}#{id}"
         modes = "+#{modes}"
 
-        @@current_uid.next!
+        @@current_uid = @@current_uid.next
 
         str  = ":#{@config.sid} UID #{uid} #{ts} #{nick} #{host} #{host} "
         str += "#{user} #{ip} #{ts} #{modes} :#{real}"
 
         raw str
 
-        User.new(nil, nick, user, host, ip, real, modes, uid, ts)
+        me = $servers[@config.sid]
+        User.new(me, nick, user, host, ip, real, modes, uid, ts)
     end
 
     # :<sid> FJOIN <channel> <timestamp> +<modes> <params> :<statusmodes,uuid>
-    def send_fjoin(channel, timestamp, uid)
-        raw ":#{@config.sid} FJOIN #{channel} #{timestamp} + o,#{uid}"
+    def send_fjoin(target, timestamp, uid)
+        assert { { :target => String, :timestamp => Fixnum, :uid => String } }
+
+        raw ":#{@config.sid} FJOIN #{target} #{timestamp} + o,#{uid}"
     end
 
-    # :<source> PONG <source> :<destination>
-    def send_pong(dest)
-        raw ":#{@config.sid} PONG #{@config.sid} :#{dest}"
+    # [:ORIGIN] FMODE <TARGET> <TIMESTAMP> <MODES> [PARAMS]
+    def send_fmode(origin, target, timestamp, modestr)
+        assert { { :target    => String,
+                   :timestamp => Fixnum,
+                   :modestr   => String } }
+
+        if origin
+            assert { { :origin => String } }
+            raw ":#{origin} FMODE #{target} #{timestamp} #{modestr}"
+        else
+            raw "FMODE #{target} #{timestamp} #{modestr}"
+        end
     end
 end

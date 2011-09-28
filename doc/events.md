@@ -28,6 +28,12 @@ List of Events
     * params:
       * the socket that is ready
 
+	* extension\_socket\_dead
+	  * the socket is dead
+	  * post this from your extension when you need your socket to be cleaned up
+	  * params:
+	    * the socket that is dead
+
   * connected
     * we are connected to the uplink
     * params:

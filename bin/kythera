@@ -128,20 +128,15 @@ configure do
         network :malkier
 
         # The protocol that your ircd speaks for server-to-server links.
+        #
+        # While you can have multiple uplinks, you cannot have different
+        # protocols for different uplinks. Things will crash and burn.
+        #
         # For ircd-ratbox and charybdis this is `ts6`
         # For UnrealIRCd this is `unreal`
         # For InspIRCd this is `inspircd`
         #
         protocol :ts6
-
-        # This is sort of a technical setting. The original IRC protocol
-        # was designed in Finland and had a slight quirk with the mapping
-        # of a few characters. Strict IRCds honor this. Some new IRCds do not.
-        # Almost all TSora IRCds (ircd-ratbox, ircd-hybrid, etc) will want
-        # the original, "rfc1459," and others such as bahamut and Unreal
-        # will want "ascii."
-        #
-        casemapping :rfc1459
     end
 
     # Still reading... :)

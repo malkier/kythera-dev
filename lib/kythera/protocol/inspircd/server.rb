@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 4; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # lib/kythera/protocol/inspircd/server.rb: InspIRCd-specific Server class
@@ -15,14 +16,13 @@ class Protocol::InspIRCd::Server < Server
     attr_reader :sid
 
     # Creates a new Server and adds it to the list keyed by SID
-    def initialize(sid)
-        @sid    = sid
-        @users  = []
+    def initialize(sid, name, description)
+        @sid = sid
+        super(name, description)
+    end
 
-        $log.error 'new server replacing server with same SID' if $servers[sid]
-
-        $servers[sid] = self
-
-        $log.debug "new server initialized: #{@sid}"
+    # The value we use to represent our membership in a Hash
+    def key
+        @sid
     end
 end

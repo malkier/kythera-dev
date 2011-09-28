@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 4; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # lib/kythera/uplink.rb: represents the interface to the remote IRC server
@@ -32,11 +33,20 @@ class Uplink
         $eventq.handle(:socket_writable) { write }
         $eventq.handle(:recvq_ready)     { parse }
 
-        $eventq.handle(:connected) { send_handshake }
-        $eventq.handle(:connected) { Service.instantiate(self) }
+        $eventq.handle(:connected) { send_handshake      }
+        $eventq.handle(:connected) { Service.instantiate }
 
         $eventq.handle(:end_of_burst) do |delta|
             $log.info "finished synching to network in #{delta}s"
+        end
+
+        unless @config.casemapping_override
+            case @config.protocol
+            when :unreal
+                @config.casemapping = :ascii
+            else
+                @config.casemapping = :rfc1459
+            end
         end
 
         # Include the methods for the protocol we're using
@@ -51,7 +61,7 @@ class Uplink
     # @return [String] name:port
     #
     def to_s
-        "#{@config.name}:#{@config.port}"
+        "#{self.class}:#{@config.name}"
     end
 
     # Returns the Uplink name from configuration
@@ -72,7 +82,7 @@ class Uplink
 
     # Returns whether we're connected or not
     #
-    # @return [Boolean] true or false
+    # @return [True, False]
     #
     def connected?
         @connected
@@ -80,7 +90,7 @@ class Uplink
 
     # Returns whether the sendq needs written
     #
-    # @return [Boolean] true or false
+    # @return [True, False]
     #
     def need_write?
         not @sendq.empty?
@@ -88,7 +98,7 @@ class Uplink
 
     # Sets our state to not connected
     #
-    # @param [Boolean] bool true or false
+    # @param [True, False] bool
     #
     def dead=(bool)
         if bool

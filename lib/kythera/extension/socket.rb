@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 4; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # lib/kythera/extension/socket.rb: extensions socket interface
@@ -17,6 +18,8 @@ class Extension::Socket
 
     # Create a new socket that gets automatically handled in the main loop
     def initialize(socket)
+        assert { :socket }
+
         @recvq  = []
         @sendq  = []
         @socket = socket
@@ -55,7 +58,7 @@ class Extension::Socket
 
     # Do we need to read?
     #
-    # @return [Boolean] true or false
+    # @return [True, False]
     #
     def need_read?
         true
@@ -63,7 +66,7 @@ class Extension::Socket
 
     # Do we need to write?
     #
-    # @return [Boolean] true or false
+    # @return [True, False]
     #
     def need_write?
         not @sendq.empty?

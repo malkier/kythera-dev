@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 4; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # lib/kythera/protocol/unreal/send.rb: implements UnrealIRCd's protocol
@@ -33,6 +34,9 @@ module Protocol::Unreal
 
     # SERVER server.name 1 :server description
     def send_server
+        # Keep track of our own server, it counts!
+        Server.new($config.me.name, $config.me.description)
+
         raw "SERVER #{$config.me.name} 1 :#{$config.me.description}"
     end
 
@@ -48,11 +52,13 @@ module Protocol::Unreal
 
     # PONG source :destination
     def send_pong(param)
+        assert { { :param => String } }
+
         raw "PONG #{$config.me.name} :#{param}"
     end
 
     # NICK nick hops timestamp username hostname server servicestamp usermodes
-    #      virtualhost cloakhost :realname
+    #      virtualhost :realname
     def send_nick(nick, user, host, real, modes)
         ts = Time.now.to_i
 
@@ -61,16 +67,32 @@ module Protocol::Unreal
 
         raw str
 
+        s = $servers[$config.me.name]
         User.new(nil, nick, user, host, real, modes, ts)
     end
 
     # :server.name SJOIN timestamp channel +modes[ modeparams] :memberlist
-    def send_sjoin(channel, timestamp, nick)
-        raw ":#{$config.me.name} SJOIN #{timestamp} #{channel} + :@#{nick}"
+    def send_sjoin(target, timestamp, nick)
+        assert { { :target => String, :timestamp => Fixnum, :nick => String } }
+
+        raw ":#{$config.me.name} SJOIN #{timestamp} #{target} + :@#{nick}"
     end
 
-    # :user MODE target modechange
-    def send_mode(nick, target, change)
-        raw ":#{nick} MODE #{target} #{change}"
+    # :origin MODE target mode
+    def send_mode(origin, target, mode)
+        assert { { :origin => String, :target => String, :mode => String } }
+
+        if origin
+            raw "MODE #{target} #{mode}"
+        else
+            raw ":#{origin} MODE #{target} #{mode}"
+        end
+    end
+
+    # :origin WALLOPS :message
+    def send_operwall(origin, message)
+        assert { { :origin => String, :message => String } }
+
+        raw ":#{origin} WALLOPS :#{message}"
     end
 end

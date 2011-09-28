@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 4; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # lib/kythera/protocol/unreal/receive.rb: implements UnrealIRCd's protocol
@@ -47,10 +48,7 @@ module Protocol::Unreal
     #   parv[2] -> description
     #
     def irc_server(origin, parv)
-        # No origin means that we're handshaking, so this must be our uplink.
         unless origin
-            server = Server.new(parv[0])
-
             # Make sure their name matches what we expect
             unless parv[0] == @config.name
                 $log.error "name mismatch from uplink"
@@ -60,16 +58,9 @@ module Protocol::Unreal
 
                 return
             end
-
-            server.description = parv[2]
-
-            $log.debug "new server: #{parv[0]}"
-
-            $eventq.post(:server_added, server)
-        else
-            server             = Server.new(parv[0])
-            server.description = parv[2]
         end
+
+        server = Server.new(parv[0], parv[2])
     end
 
     # Handles an incoming PING
@@ -96,8 +87,7 @@ module Protocol::Unreal
     #   parv[6] -> servicestamp
     #   parv[7] -> usermodes
     #   parv[8] -> virtualhost
-    #   parv[9] -> cloakhost
-    #   parv[10] -> realname
+    #   parv[9] -> realname
     #
     def irc_nick(origin, parv)
         if origin
@@ -108,7 +98,21 @@ module Protocol::Unreal
 
             $log.debug "nick change: #{user} -> #{parv[0]}"
 
-            user.nickname = parv[0]
+            oldnick = user.nickname
+            newnick = parv[0]
+
+            user.nickname  = newnick
+            user.timestamp = parv[1].to_i
+
+            # We have to rekey lists we're in, which really sucks
+            $users.delete(oldnick)
+            $users[newnick] = user
+
+            $channels.values.each do |channel|
+                next unless channel.members[oldnick]
+                channel.members.delete(oldnick)
+                channel.members[newnick] = user
+            end
         else
             p = parv
 
@@ -117,7 +121,7 @@ module Protocol::Unreal
                 return
             end
 
-            u = User.new(s, p[0], p[3], p[4], p[10], p[7], p[2], p[8], p[9])
+            u = User.new(s, p[0], p[3], p[4], p[9], p[7], p[2], p[8])
 
             s.add_user(u)
         end
@@ -162,8 +166,10 @@ module Protocol::Unreal
         # See benchmark/theory/multiprefix_parsing.rb
         #
         members.each do |nick|
-            # List modes
+            # Only do list modes if the TS is right
             if %w(& " ').include?(nick[0].chr)
+                next unless their_ts <= channel.timestamp
+
                 c, mask = nick.split('', 2)
 
                 case c
@@ -212,6 +218,7 @@ module Protocol::Unreal
 
             channel.add_user(user)
 
+            # Only apply status modes if the TS is right
             if their_ts <= channel.timestamp
                 if op
                   user.add_status_mode(channel, :operator)

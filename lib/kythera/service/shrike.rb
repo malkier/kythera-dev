@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 4; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # lib/kythera/service/shrike.rb: implements shrike's X
@@ -33,7 +34,7 @@ class ShrikeService < Service
 
     # Verify our configuration
     #
-    # @return [Boolean] true or false
+    # @return [True, False]
     #
     def self.verify_configuration
         c = $config.shrike
@@ -46,33 +47,30 @@ class ShrikeService < Service
     end
 
     # This is all we do for now :)
-    #
-    # @param [Uplink] uplink the interface to the IRC server
-    #
-    def initialize(uplink)
-        super # Prepare the uplink object
-
+    def initialize
         @config = $config.shrike
 
         $log.debug "Shrike service loaded (version #{VERSION})"
 
         # Introduce our user in the burst
         $eventq.handle(:start_of_burst) do
-            if @uplink.config.protocol == :ts6
+            if $uplink.config.protocol == :ts6
                 modes = 'oD'
             else
                 modes = 'o'
             end
 
             # Introduce our client to the network
-            @user = @uplink.introduce_user(@config.nickname, @config.username,
+            @user = $uplink.introduce_user(@config.nickname, @config.username,
                                            @config.hostname, @config.realname,
                                            modes)
         end
 
         # Join our configuration channel
-        $eventq.handle(:end_of_burst) do
-            @uplink.join(@user, @config.channel) if @config.channel
+        $eventq.handle(:end_of_burst) do |delta|
+            $uplink.join(@user.key, @config.channel) if @config.channel
+            $uplink.operwall(@user.key,
+                             "finished synching to network in #{delta}s")
         end
     end
 
@@ -81,7 +79,7 @@ class ShrikeService < Service
     # Determines if someone is an SRA
     #
     # @param [String] nickname person to check
-    # @return [Boolean] true or false
+    # @return [True, False]
     #
     def is_sra?(nickname)
         @config.sras.include?(nickname)
@@ -95,7 +93,7 @@ class ShrikeService < Service
         if self.respond_to?(meth, true)
             self.send(meth, user, params)
         else
-            @uplink.notice(@user, user, "Invalid command: \2#{cmd}\2")
+            $uplink.notice(@user.key, user.key, "Invalid command: \2#{cmd}\2")
         end
     end
 end

@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 4; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # lib/kythera/protocol/ts6/server.rb: TS6-specific Server class
@@ -14,14 +15,17 @@ class Protocol::TS6::Server < Server
     attr_reader :sid
 
     # Creates a new Server and adds it to the list keyed by SID
-    def initialize(sid)
-        @sid    = sid
-        @users  = []
+    def initialize(sid, name, description)
+        assert { { :sid => String } }
 
-        $log.error "new server replacing server with same SID!" if $servers[sid]
+        @sid = sid
+        super(name, description)
+    end
 
-        $servers[sid] = self
+    public
 
-        $log.debug "new server initialized: #{@sid}"
+    # The value we use to represent our membership in a Hash
+    def key
+        @sid
     end
 end

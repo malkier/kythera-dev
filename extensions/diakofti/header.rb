@@ -1,3 +1,4 @@
+# -*- Mode: Ruby; tab-width: 4; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
 # extensions/diakofti/header.rb: diakofti header
@@ -24,7 +25,7 @@ class DiakoftiHeader < Extension
 
     # Verify our configuration
     #
-    # @return [Boolean] true or false
+    # @return [True, False]
     #
     def self.verify_configuration(c)
         return false if not c or not c.port
