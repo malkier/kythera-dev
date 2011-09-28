@@ -163,7 +163,12 @@ class Kythera
             end
 
             # Run the event loop until it's empty
-            $eventq.run while $eventq.needs_run?
+            begin
+                $eventq.run while $eventq.needs_run?
+            rescue Uplink::DisconnectedError => err
+                $log.error "disconnected from #{$uplink.config.name}: #{err}"
+                $uplink.connected = false
+            end
         end
     end
 
