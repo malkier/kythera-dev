@@ -13,11 +13,11 @@ $LOAD_PATH.unshift File.expand_path('../lib', File.dirname(__FILE__))
 require 'rubygems'
 require 'kythera'
 require 'riot'
-#require 'riot/rr'
 
 # For all tests
-$config    = nil
-Log.logger = Log::NilLogger.instance
+$config       = nil
+Log.logger    = Log::NilLogger.instance
+Riot.reporter = Riot::VerboseStoryReporter
 
 # These are defined here for easy use in setup blocks
 $_daemon_block = proc do
