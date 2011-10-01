@@ -14,6 +14,9 @@ class Kythera
     def initialize
         puts "#{ME}: version #{VERSION} [#{RUBY_PLATFORM}]"
 
+        # Record start time (for Protocol::P10)
+        $state.start_time = Time.now
+
         # Run through some startup tests
         check_for_root
         check_ruby_version
@@ -110,6 +113,17 @@ class Kythera
             # If it's true we're connectED, if it's nil we're connectING
             connect until $uplink and $uplink.connected?
 
+            # Run the event loop until it's empty
+            begin
+                $eventq.run while $eventq.needs_run?
+            rescue Uplink::DisconnectedError => err
+                host = $uplink.config.host
+                port = $uplink.config.port
+
+                $log.error "disconnected from #{host}:#{port}: #{err}"
+                $uplink.connected = false
+            end
+
             # Sockets to check for waiting data
             readfds = []
 
@@ -141,36 +155,24 @@ class Kythera
             # Wait up to 60 seconds for our socket to become readable/writable
             ret = IO.select(readfds, writefds, [], timeout)
 
-            # This means select timed out and there's no activity on the socket
-            next unless ret
-
-            # Readable sockets
-            ret[0].each do |socket|
-               if socket == $uplink.socket
-                   $eventq.post(:socket_readable)
-               else
-                   $eventq.post(:extension_socket_readable, socket)
-               end
-            end
-
-            # Writable sockets
-            ret[1].each do |socket|
-                if socket == $uplink.socket
-                    $eventq.post(:socket_writable)
-                else
-                    $eventq.post(:extension_socket_writable, socket)
+            if ret
+                # Readable sockets
+                ret[0].each do |socket|
+                   if socket == $uplink.socket
+                       $eventq.post(:socket_readable)
+                   else
+                       $eventq.post(:extension_socket_readable, socket)
+                   end
                 end
-            end
 
-            # Run the event loop until it's empty
-            begin
-                $eventq.run while $eventq.needs_run?
-            rescue Uplink::DisconnectedError => err
-                host = $uplink.config.host
-                port = $uplink.config.port
-
-                $log.error "disconnected from #{host}:#{port}: #{err}"
-                $uplink.connected = false
+                # Writable sockets
+                ret[1].each do |socket|
+                    if socket == $uplink.socket
+                        $eventq.post(:socket_writable)
+                    else
+                        $eventq.post(:extension_socket_writable, socket)
+                    end
+                end
             end
         end
     end

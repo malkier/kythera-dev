@@ -58,7 +58,7 @@ class Uplink
 
         # Include the methods for the protocol we're using
         extend Protocol
-        extend Protocol.find(@config.protocol) if @config.protocol
+        extend Protocol.find(@config.protocol)
     end
 
     public
@@ -192,6 +192,15 @@ class Uplink
                 # Remove the origin from the line, and eat the colon
                 origin, line = line.split(RE_SPACE, 2)
                 origin = origin[NO_COL]
+            elsif @config.protocol == :p10
+                # P10 doesn't prefix it's "origin" with a colon
+                origin, line = line.split(RE_SPACE, 2)
+
+                # Every command except these two have an origin
+                if origin == "PASS" or origin == "SERVER"
+                    line   = "#{origin} #{line}"
+                    origin = nil
+                end
             else
                 origin = nil
             end
@@ -202,7 +211,9 @@ class Uplink
             parv << args unless args.nil?
 
             # Some IRCds have commands like '&' that we translate for methods
-            cmd = TOKENS[cmd] if defined?(TOKENS)
+            tcmd = TOKENS[cmd.to_sym] if defined?(TOKENS)
+
+            cmd = tcmd if tcmd
 
             # Downcase it and turn it into a Symbol
             cmd = "irc_#{cmd.downcase}".to_sym

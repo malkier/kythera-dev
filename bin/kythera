@@ -93,7 +93,7 @@ configure do
     #
     # You can have as many of these as you like.
     #
-    uplink 'moridin.ericw.org', 6699 do
+    uplink 'moridin.ericw.org', 6687 do
         # How important is this uplink vs other uplinks? Can be anything
         # Can be any number, positive or negative. If missing, it's
         # assumed to be zero.
@@ -113,16 +113,11 @@ configure do
         # Use this only if you have configured your IRCd appropriately.
         #ssl
 
-        # The server ID we should send to the uplink. If you're using `ts6`
-        # above, this must be set. The format is [0-9][A-Z0-9][A-Z0-9].
-        #
-        sid '0X0'
-
         # The password we send to the uplink upon connection.
         send_password :send_linkage
 
         # The password we expect from the uplink upon connection.
-        receive_password :receive_linkage
+        receive_password :send_linkage
 
         # The name of the uplink's network
         network :malkier
@@ -132,11 +127,24 @@ configure do
         # While you can have multiple uplinks, you cannot have different
         # protocols for different uplinks. Things will crash and burn.
         #
-        # For ircd-ratbox and charybdis this is `ts6`
-        # For UnrealIRCd this is `unreal`
-        # For InspIRCd this is `inspircd`
+        # ircd-ratbox -- ts6
+        # charybdis   -- ts6
+        # shadowircd  -- ts6
+        # ircu        -- p10
+        # UnrealIRCd  -- unreal
+        # InspIRCd    -- inspircd
         #
-        protocol :ts6
+        protocol :p10
+
+        # The server ID we should send to the uplink.
+        #
+        # If you're using :ts6 above, this must be set. The format is:
+        #     [0-9][A-Z0-9][A-Z0-9]
+        #
+        # If you're using :p10 above, this must be set. The format is:
+        #     [A-Z][A-Z]
+        #
+        sid :KS
     end
 
     # Still reading... :)
