@@ -101,6 +101,10 @@ module Protocol::P10
         end
 
         if parv[5][0].chr == '+'
+            # P10 breaks my dick once again by sending umodes with params
+            # XXX - attach their Account to this...
+            account = parv.delete_at(6) if parv[5].include?('r')
+
             u = User.new(server, p[0], p[3], p[4], p[6], p[8], p[5], p[7], p[2])
         else
             u = User.new(server, p[0], p[3], p[4], p[5], p[7], '+', p[6], p[2])

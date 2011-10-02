@@ -89,7 +89,7 @@ module Protocol::P10
                :PROTO    => :proto }
 
     # The same tokens reversed, for SENDING commands
-    RTokens = Hash[*Tokens.collect { |token, cmd| [cmd, token] }.flatten]
+    Tokens.update(Tokens.invert)
 
     private
 

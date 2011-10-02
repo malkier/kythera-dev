@@ -15,6 +15,7 @@ class Protocol::P10::User < User
     @@user_modes = { 'a' => :administrator,
                      'i' => :invisible,
                      'o' => :operator,
+                     'r' => :registered,
                      'w' => :wallop }
 
     # The user's IP address

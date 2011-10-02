@@ -11,7 +11,6 @@ require 'kythera'
 
 # This subclasses the base Channel class in `kythera/channel.rb`
 class Protocol::P10::Channel < Channel
-
     # The channel's timestamp
     attr_reader :timestamp
 

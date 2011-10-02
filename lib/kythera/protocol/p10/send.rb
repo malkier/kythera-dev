@@ -37,17 +37,17 @@ module Protocol::P10
 
     # <SID> EB
     def send_end_of_burst
-        raw "#{@config.sid} #{RTokens[:end_of_burst]}"
+        raw "#{@config.sid} #{Tokens[:end_of_burst]}"
     end
 
     # <SID> EA
     def send_end_of_burst_ack
-        raw "#{@config.sid} #{RTokens[:end_of_burst_ack]}"
+        raw "#{@config.sid} #{Tokens[:end_of_burst_ack]}"
     end
 
     # <SID> Z <SID> :ts
     def send_pong(ts)
-        raw "#{@config.sid} #{RTokens[:pong]} #{@config.sid} :#{ts}"
+        raw "#{@config.sid} #{Tokens[:pong]} #{@config.sid} :#{ts}"
     end
 
     # <SID> N <nick> <hops> <ts> <user> <host> +<modes> <ip> <uid> :<real>
@@ -58,7 +58,7 @@ module Protocol::P10
         id    = Protocol::P10.integer_to_uid(@@current_uid)
         uid   = "#{@config.sid}#{id}"
         modes = "+#{modes}"
-        cmd   = RTokens[:nick]
+        cmd   = Tokens[:nick]
 
         @@current_uid = @@current_uid.next
 
@@ -75,20 +75,20 @@ module Protocol::P10
     def send_join(uid, target)
         assert { { :uid => String, :target => String } }
 
-        raw "#{uid} #{RTokens[:join]} #{target}"
+        raw "#{uid} #{Tokens[:join]} #{target}"
     end
 
     # <SID> WA :message
     def send_operwall(uid, message)
         assert { { :uid => String, :message => String } }
 
-        raw "#{uid} #{RTokens[:wallops]} :#{message}"
+        raw "#{uid} #{Tokens[:wallops]} :#{message}"
     end
 
     # <SID> P <target> :<message>
     def send_privmsg(uid, target, message)
         assert { { :uid => String, :target => String, :message => String } }
 
-        raw "#{uid} #{RTokens[:privmsg]} #{target} :#{message}"
+        raw "#{uid} #{Tokens[:privmsg]} #{target} :#{message}"
     end
 end
