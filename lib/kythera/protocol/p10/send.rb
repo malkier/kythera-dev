@@ -19,12 +19,12 @@ module Protocol::P10
         send_server
     end
 
-    # PASS :[PASS]
+    # PASS :<PASS>
     def send_pass
         raw "PASS :#{@config.send_password}"
     end
 
-    # SERVER [NAME] [HOPS] [START TIME] [LINK TIME] [PROTOCOL] [NUMERIC] :[DESC]
+    # <SID> <NAME> <HOPS> <START TIME> <LINK TIME> <PROTOCOL> <NUMERIC> :<DESC>
     def send_server
         n    = $config.me.name
         st   = $state.start_time.to_i
@@ -35,22 +35,22 @@ module Protocol::P10
         raw "SERVER #{n} 1 #{st} #{lt} J10 #{sid}]]] :#{desc}"
     end
 
-    # SERVER EB
+    # <SID> EB
     def send_end_of_burst
-        raw "#{@config.sid} EB"
+        raw "#{@config.sid} #{RTokens[:end_of_burst]}"
     end
 
-    # SERVER EA
+    # <SID> EA
     def send_end_of_burst_ack
-        raw "#{@config.sid} EA"
+        raw "#{@config.sid} #{RTokens[:end_of_burst_ack]}"
     end
 
-    # SEVER Z SERVER :ts
+    # <SID> Z <SID> :ts
     def send_pong(ts)
-        raw "#{@config.sid} Z #{@config.sid} :#{ts}"
+        raw "#{@config.sid} #{RTokens[:pong]} #{@config.sid} :#{ts}"
     end
 
-    # AB N rakaur 1 1317437038 rakaur ericw.org +oiwg DMmN60 ABAAA :watching the weather change
+    # <SID> N <nick> <hops> <ts> <user> <host> +<modes> <ip> <uid> :<real>
     def send_nick(nick, user, host, real, modes)
         ts    = Time.now.to_i
         ip    = @config.bind_host || '255.255.255.255'
@@ -58,15 +58,37 @@ module Protocol::P10
         id    = Protocol::P10.integer_to_uid(@@current_uid)
         uid   = "#{@config.sid}#{id}"
         modes = "+#{modes}"
+        cmd   = RTokens[:nick]
 
         @@current_uid = @@current_uid.next
 
-        str  = "#{@config.sid} N #{nick} 1 #{ts} #{user} #{host} #{modes} #{ip}"
-        str += " #{uid} :#{real}"
+        str  = "#{@config.sid} #{cmd} #{nick} 1 #{ts} #{user} #{host} #{modes} "
+        str += "#{ip} #{uid} :#{real}"
 
         raw str
 
         me = $servers[@config.sid]
         User.new(me, nick, user, host, ip, real, modes, uid, ts)
+    end
+
+    # <SID> J <target>
+    def send_join(uid, target)
+        assert { { :uid => String, :target => String } }
+
+        raw "#{uid} #{RTokens[:join]} #{target}"
+    end
+
+    # <SID> WA :message
+    def send_operwall(uid, message)
+        assert { { :uid => String, :message => String } }
+
+        raw "#{uid} #{RTokens[:wallops]} :#{message}"
+    end
+
+    # <SID> P <target> :<message>
+    def send_privmsg(uid, target, message)
+        assert { { :uid => String, :target => String, :message => String } }
+
+        raw "#{uid} #{RTokens[:privmsg]} #{target} :#{message}"
     end
 end

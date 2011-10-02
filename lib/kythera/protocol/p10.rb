@@ -13,6 +13,7 @@ module Protocol::P10
 end
 
 require 'kythera/protocol/p10/token'
+require 'kythera/protocol/p10/channel'
 require 'kythera/protocol/p10/receive'
 require 'kythera/protocol/p10/send'
 require 'kythera/protocol/p10/server'
@@ -52,6 +53,6 @@ module Protocol::P10
     def join(origin, target)
         assert { { :origin => String, :target => String } }
 
-        raw "#{origin} J #{target}"
+        send_join(origin, target)
     end
 end

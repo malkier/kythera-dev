@@ -210,10 +210,11 @@ class Uplink
             cmd  = parv.delete_at(0)
             parv << args unless args.nil?
 
-            # Some IRCds have commands like '&' that we translate for methods
-            tcmd = TOKENS[cmd.to_sym] if defined?(TOKENS)
-
-            cmd = tcmd if tcmd
+            # P10 uses tokens for commands
+            if @config.protocol == :p10
+                token = Protocol::P10::Tokens[cmd.to_sym]
+                cmd = token if token
+            end
 
             # Downcase it and turn it into a Symbol
             cmd = "irc_#{cmd.downcase}".to_sym

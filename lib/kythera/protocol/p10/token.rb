@@ -10,9 +10,15 @@
 
 require 'kythera'
 
-# Defines the P10 tokens
-class Uplink
-    TOKENS = { :P    => :privmsg,
+# Defines the P10 tokens and other special methods
+module Protocol::P10
+    include Protocol
+
+    # The list of chars in p10's braindead base64 implementation
+    P10_CHR = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789[]"
+
+    # P10 token map
+    Tokens = { :P    => :privmsg,
                :H    => :who,
                :W    => :whois,
                :X    => :whowas,
@@ -81,11 +87,9 @@ class Uplink
                :HASH     => :hash,
                :DNS      => :dns,
                :PROTO    => :proto }
-end
 
-module Protocol::P10
-    P10_CHR = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789[]"
-    REMOVE_FIRST = 1 .. -1
+    # The same tokens reversed, for SENDING commands
+    RTokens = Hash[*Tokens.collect { |token, cmd| [cmd, token] }.flatten]
 
     private
 
