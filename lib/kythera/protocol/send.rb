@@ -12,7 +12,7 @@ module Protocol
     private
 
     # :origin OPERWALL :message
-    def send_operwall(origin, message)
+    def send_wallop(origin, message)
         assert { { :origin => String, :message => String } }
 
         raw ":#{origin} OPERWALL :#{message}"

@@ -24,8 +24,8 @@ class Protocol::InspIRCd::Channel < Channel
                        'g' => :chanfilter,
                        'I' => :invex }
 
-    @@param_modes  = { 'l' => :limited,
-                       'k' => :keyed,
+    @@param_modes  = { 'k' => :keyed,
+                       'l' => :limited,
                        'f' => :flood_protection,
                        'F' => :nick_flood,
                        'j' => :join_flood,

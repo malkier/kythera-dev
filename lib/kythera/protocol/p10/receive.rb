@@ -95,6 +95,23 @@ module Protocol::P10
     def irc_nick(origin, parv)
         p = parv
 
+        # This is a nickname change
+        if parv.length == 2
+           unless user = $users[origin]
+               $log.error "got nick change for non-existent UID: #{origin}"
+               return
+           end
+
+           $eventq.post(:nickname_changed, user, parv[0])
+           $log.debug "nick change: #{user} -> #{parv[0]} [#{origin}]"
+
+           user.nickname  = parv[0]
+           user.timestamp = parv[1].to_i
+
+           return
+        end
+
+        # Otherwise, it's a user introduction
         unless server = $servers[origin]
             $log.error "got UID from unknown SID: #{origin}"
             return
@@ -143,7 +160,7 @@ module Protocol::P10
         modes   = '+'
         params  = []
         members = ''
-        bans    = ''
+        bans    = []
 
         # Since pretty much any param can be pretty much anything, we have
         # to actually loop through each one to test it for various things
@@ -166,12 +183,15 @@ module Protocol::P10
             end
         end
 
+        # If there's no modes and no bans, it has to be for members...
+        members = parv[2] if modes == '+' and bans.empty?
+
         # Parse channel modes
         if their_ts <= channel.timestamp
-            channel.parse_modes(modes, params) unless modes == '0'
+            channel.parse_modes(modes, params)
 
             # Parse channel bans
-            bans = bans[REMOVE_FIRST].split(' ')
+            bans = bans[REMOVE_FIRST].split(' ') unless bans.empty?
 
             bans.each do |hostmask|
                 channel.parse_modes('+b', [hostmask])
@@ -213,6 +233,53 @@ module Protocol::P10
                     $eventq.post(:mode_added_on_channel, :voice, user, channel)
                 end
             end
+        end
+    end
+
+    # Creates a new channel
+    # This is apparently limited to the first time a channel is ever created
+    # so that if you leave it and rejoin (and re-create) it, you get a JOIN.
+    # P10 is so fucking retarded.
+    #
+    # parv[0] -> channel
+    # parv[1] -> ts
+    #
+    def irc_create(origin, parv)
+        return unless user = $users[origin]
+
+        channel = Channel.new(parv[0], parv[1])
+
+        channel.add_user(user)
+    end
+
+    # Changes a mode on a user or channel
+    #
+    # parv[0]  -> target
+    # parv[1]  -> modes
+    # parv[-1] -> ts (if target is a channel)
+    #
+    def irc_mode(origin, parv)
+        # This is a umode
+        if parv.length == 2
+            return unless user = $users[origin]
+            user.parse_modes(parv[1])
+            return
+        end
+
+        # Otherwise it's a channel
+        return unless channel = $channels[parv[0]]
+
+        their_ts = parv[-1].to_i
+        my_ts    = channel.timestamp
+
+        # Simple TS rules
+        if their_ts <= my_ts
+            params = parv[GET_MODE_PARAMS]
+            modes  = params.delete_at(0)
+
+            channel.parse_modes(modes, params)
+        else
+            $log.warn "invalid ts for #{channel} (#{their_ts} > #{my_ts})"
         end
     end
 end

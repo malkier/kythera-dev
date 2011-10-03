@@ -23,6 +23,9 @@ require 'kythera/protocol/p10/user'
 module Protocol::P10
     include Protocol
 
+    # Special constant for grabbing mode params in MODE
+    GET_MODE_PARAMS = 1 .. -2
+
     # The current UID for Services
     @@current_uid = 0
 

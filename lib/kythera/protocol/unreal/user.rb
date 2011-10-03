@@ -27,7 +27,7 @@ class Protocol::Unreal::User < User
                      'O' => :local_oper,
                      'o' => :global_oper,
                      'p' => :hide_whois_channels,
-                     'q' => :unkickable,
+                     'q' => :invulnerable,
                      'R' => :registered_privmsg,
                      'r' => :registered,
                      'S' => :service,

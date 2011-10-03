@@ -19,7 +19,7 @@ class Protocol::InspIRCd::User < User
                      'w' => :wallop,
                      'B' => :bot,
                      'c' => :common_chans,
-                     'd' => :chan_deaf,
+                     'd' => :deaf,
                      'g' => :callerid,
                      'G' => :censor,
                      'h' => :help_op,
@@ -31,7 +31,7 @@ class Protocol::InspIRCd::User < User
                      'R' => :registered_privmsg,
                      'S' => :strip_color,
                      'W' => :show_whois,
-                     'x' => :cloaked }
+                     'x' => :hidden_host }
 
     # The user's IP address
     attr_reader :ip

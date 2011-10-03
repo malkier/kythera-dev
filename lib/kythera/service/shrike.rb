@@ -69,7 +69,7 @@ class ShrikeService < Service
         # Join our configuration channel
         $eventq.handle(:end_of_burst) do |delta|
             $uplink.join(@user.key, @config.channel) if @config.channel
-            $uplink.operwall(@user.key,
+            $uplink.wallop(@user.key,
                              "finished synching to network in #{delta}s")
         end
     end

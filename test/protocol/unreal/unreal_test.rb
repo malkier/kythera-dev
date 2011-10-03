@@ -134,7 +134,7 @@ context :unreal do
         asserts('helper?')     { topic.has_mode?(:helper)     }
         asserts('invisible?')  { topic.has_mode?(:invisible)  }
         asserts('net_admin?')  { topic.has_mode?(:net_admin)  }
-        asserts('unkickable?') { topic.has_mode?(:unkickable) }
+        asserts('invulnerable?') { topic.has_mode?(:invulnerable) }
         asserts('registered?') { topic.has_mode?(:registered) }
         asserts('no_ctcp?')    { topic.has_mode?(:no_ctcp)    }
         asserts('webtv?')      { topic.has_mode?(:webtv)      }

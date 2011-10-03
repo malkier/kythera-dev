@@ -109,17 +109,6 @@ class Channel
                     @list_modes[mode].delete(param)
                 end
 
-            # Always has a param (some send the key, some send '*')
-            elsif c == 'k'
-                mode  = :keyed
-                param = params.shift
-
-                if action == :add
-                    @param_modes[:keyed] = param
-                else
-                  @param_modes.delete(:keyed)
-                end
-
             # Has a param when +, doesn't when -
             elsif @@param_modes.include?(c)
                 mode   = @@param_modes[c]

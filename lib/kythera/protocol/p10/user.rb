@@ -12,11 +12,14 @@ require 'kythera'
 # This sublcasses the base User class in `kythera/user.rb`
 class Protocol::P10::User < User
     # Ratbox user modes
-    @@user_modes = { 'a' => :administrator,
+    @@user_modes = { 'd' => :deaf,
+                     'g' => :debug,
                      'i' => :invisible,
+                     'k' => :invulnerable,
                      'o' => :operator,
                      'r' => :registered,
-                     'w' => :wallop }
+                     'w' => :wallop,
+                     'x' => :hidden_host }
 
     # The user's IP address
     attr_reader :ip

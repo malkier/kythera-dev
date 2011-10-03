@@ -155,7 +155,7 @@ module Protocol::TS6
         $eventq.post(:nickname_changed, user, parv[0])
         $log.debug "nick change: #{user} -> #{parv[0]} [#{origin}]"
 
-        user.nickname = parv[0]
+        user.nickname  = parv[0]
         user.timestamp = parv[1].to_i
     end
 

@@ -11,6 +11,15 @@ require 'kythera'
 
 # This subclasses the base Channel class in `kythera/channel.rb`
 class Protocol::P10::Channel < Channel
+    # Standard IRC cmodes requiring a param
+    @@param_modes  = { 'A' => :admin_key,
+                       'D' => :hidden_joins,
+                       'k' => :keyed,
+                       'l' => :limited,
+                       'R' => :registered,
+                       'r' => :registered_only,
+                       'U' => :user_key }
+
     # The channel's timestamp
     attr_reader :timestamp
 

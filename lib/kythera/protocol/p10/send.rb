@@ -79,7 +79,7 @@ module Protocol::P10
     end
 
     # <SID> WA :message
-    def send_operwall(uid, message)
+    def send_wallop(uid, message)
         assert { { :uid => String, :message => String } }
 
         raw "#{uid} #{Tokens[:wallops]} :#{message}"
@@ -90,5 +90,12 @@ module Protocol::P10
         assert { { :uid => String, :target => String, :message => String } }
 
         raw "#{uid} #{Tokens[:privmsg]} #{target} :#{message}"
+    end
+
+    # <SID> O <target> :<message>
+    def send_notice(uid, target, message)
+        assert { { :uid => String, :target => String, :message => String } }
+
+        raw "#{uid} #{Tokens[:notice]} #{target} :#{message}"
     end
 end

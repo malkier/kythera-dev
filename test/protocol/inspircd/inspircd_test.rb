@@ -137,7 +137,7 @@ context :inspircd do
         asserts('unethical?')  { topic.has_mode?(:unethical)  }
         asserts('registered?') { topic.has_mode?(:registered) }
         asserts('show_whois?') { topic.has_mode?(:show_whois) }
-        denies('cloaked?')     { topic.has_mode?(:cloaked)    }
+        denies('hidden_host?')     { topic.has_mode?(:hidden_host)    }
 
         asserts(:uid)      .equals '0AAAAAAAA'
         asserts(:nickname) .equals 'rakaur'
