@@ -122,9 +122,9 @@ module Protocol::P10
             # XXX - attach their Account to this...
             account = parv.delete_at(6) if parv[5].include?('r')
 
-            u = User.new(server, p[0], p[3], p[4], p[6], p[8], p[5], p[7], p[2])
+            u = User.new(server, p[0], p[3], p[4], p[6], p[8], p[5], p[2], p[7])
         else
-            u = User.new(server, p[0], p[3], p[4], p[5], p[7], '+', p[6], p[2])
+            u = User.new(server, p[0], p[3], p[4], p[5], p[7], '+', p[2], p[6])
         end
 
         server.add_user(u)

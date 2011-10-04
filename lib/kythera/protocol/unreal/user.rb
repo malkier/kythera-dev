@@ -40,17 +40,13 @@ class Protocol::Unreal::User < User
                      'x' => :hidden_host,
                      'z' => :ssl }
 
-     # The user's timestamp
-     attr_accessor :timestamp
-
      # The user's virtual host/spoof
      attr_reader :vhost
 
     # Creates a new user and adds it to the list keyed by nick
     def initialize(server, nick, user, host, real, umodes, ts, vhost = nil)
-        @timestamp = ts.to_i
-        @vhost     = vhost || host
+        @vhost = vhost || host
 
-        super(server, nick, user, host, real, umodes)
+        super(server, nick, user, host, real, umodes, ts)
     end
 end

@@ -24,22 +24,18 @@ class Protocol::P10::User < User
     # The user's IP address
     attr_reader :ip
 
-    # The user's timestamp
-    attr_accessor :timestamp
-
     # The user's UID
     attr_reader :uid
 
     # Creates a new user and adds it to the list keyed by UID
-    def initialize(server, nick, user, host, ip, real, umodes, uid, ts)
+    def initialize(server, nick, user, host, ip, real, umodes, ts, uid)
         assert { { :ip => String, :uid => String } }
 
-        @ip        = Protocol::P10.base64_decode(ip)
-        @ip        = IPAddr.new(@ip, Socket::AF_INET).to_s
-        @uid       = uid
-        @timestamp = ts.to_i
+        @ip  = Protocol::P10.base64_decode(ip)
+        @ip  = IPAddr.new(@ip, Socket::AF_INET).to_s
+        @uid = uid
 
-        super(server, nick, user, host, real, umodes)
+        super(server, nick, user, host, real, umodes, ts)
     end
 
     # The value we use to represent our membership in a Hash

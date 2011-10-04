@@ -134,7 +134,7 @@ module Protocol::TS6
             return
         end
 
-        u = User.new(server, p[0], p[4], p[5], p[6], p[8], p[3], p[7], p[2])
+        u = User.new(server, p[0], p[4], p[5], p[6], p[8], p[3], p[2], p[7])
 
         server.add_user(u)
     end

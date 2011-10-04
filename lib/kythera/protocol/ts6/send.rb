@@ -66,7 +66,7 @@ module Protocol::TS6
         raw str
 
         me = $servers[@config.sid]
-        User.new(me, nick, uname, host, ip, real, modes, uid, ts)
+        User.new(me, nick, uname, host, ip, real, modes, ts, uid)
     end
 
     # :UID PRIVMSG <TARGET_UID> :<MESSAGE>

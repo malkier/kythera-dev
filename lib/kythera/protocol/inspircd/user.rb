@@ -36,19 +36,15 @@ class Protocol::InspIRCd::User < User
     # The user's IP address
     attr_reader :ip
 
-    # The user's timestamp
-    attr_accessor :timestamp
-
     # The user's UID
     attr_reader :uid
 
     # Creates a new user and adds it to the list keyed by UID
-    def initialize(server, nick, user, host, ip, real, umodes, uid, ts)
-        @ip        = ip
-        @uid       = uid
-        @timestamp = ts.to_i
+    def initialize(server, nick, user, host, ip, real, umodes, ts, uid)
+        @ip  = ip
+        @uid = uid
 
-        super(server, nick, user, host, real, umodes)
+        super(server, nick, user, host, real, umodes, ts)
     end
 
     # The value we use to represent our membership in a Hash

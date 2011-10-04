@@ -111,7 +111,7 @@ module Protocol::InspIRCd
             return
         end
 
-        u = User.new(server, p[2], p[5], p[4], p[6], p[-1], p[8], p[0], p[1])
+        u = User.new(server, p[2], p[5], p[4], p[6], p[-1], p[8], p[1], p[0])
 
         server.add_user(u)
     end

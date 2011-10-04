@@ -67,7 +67,7 @@ module Protocol::P10
         raw str
 
         me = $servers[@config.sid]
-        User.new(me, nick, user, host, ip, real, modes, uid, ts)
+        User.new(me, nick, user, host, ip, real, modes, ts, uid)
     end
 
     # <UID> C <target>

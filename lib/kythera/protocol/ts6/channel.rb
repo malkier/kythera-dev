@@ -16,15 +16,6 @@ class Protocol::TS6::Channel < Channel
                      'e' => :except,
                      'I' => :invex }
 
-    # The channel's timestamp
-    attr_reader :timestamp
-
-    # Creates a new channel and adds it to the list keyed by name
-    def initialize(name, timestamp = nil)
-        @timestamp = (timestamp || Time.now).to_i
-        super(name)
-    end
-
     public
 
     # Is this hostmask in the except list?
@@ -47,20 +38,5 @@ class Protocol::TS6::Channel < Channel
         assert { { :hostmask => String } }
 
         @list_modes[:invex].include?(hostmask)
-    end
-
-    # Writer for `@timestamp`
-    #
-    # @param timestamp new timestamp
-    #
-    def timestamp=(timestamp)
-        if timestamp.to_i > @timestamp
-            $log.warn "changing timestamp to a later value?"
-            $log.warn "#{@name} -> #{timestamp} > #{@timestamp}"
-        end
-
-        $log.debug "#{@name}: timestamp changed: #{@timestamp} -> #{timestamp}"
-
-        @timestamp = timestamp.to_i
     end
 end

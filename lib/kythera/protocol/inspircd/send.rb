@@ -78,7 +78,7 @@ module Protocol::InspIRCd
         raw str
 
         me = $servers[@config.sid]
-        User.new(me, nick, user, host, ip, real, modes, uid, ts)
+        User.new(me, nick, user, host, ip, real, modes, ts, uid)
     end
 
     # :<sid> FJOIN <channel> <timestamp> +<modes> <params> :<statusmodes,uuid>
