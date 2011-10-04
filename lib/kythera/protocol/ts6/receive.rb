@@ -111,7 +111,7 @@ module Protocol::TS6
     # parv[3] -> description
     #
     def irc_sid(origin, parv)
-        server = Server.new(parv[2], parv[0], parv[3])
+        Server.new(parv[2], parv[0], parv[3])
     end
 
     # Handles an incoming UID (user introduction)

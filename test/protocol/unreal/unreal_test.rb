@@ -109,8 +109,8 @@ context :unreal do
       end
 
       context :quit do
-          setup { $servers['test.server8.com'] }
-          asserts_topic.nil
+        setup { $servers['test.server8.com'] }
+        asserts_topic.nil
       end
     end
 
@@ -228,7 +228,7 @@ context :unreal do
       context :squit do
         setup { $channels['#79'] }
         denies_topic.nil
-        asserts { topic.members.length }.equals 41
+        asserts('channel #79 has 41 users') { topic.members.length }.equals 41
       end
     end
   end

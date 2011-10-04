@@ -41,19 +41,36 @@ module Protocol::P10
     # parv[7] -> description
     #
     def irc_server(origin, parv)
-        if origin
-            # If we have an origin, then this is a new server introduction
-            return
-        else
-            # No origin means we're handshaking, so this must be our uplink
-            Server.new(parv[5][0 ... 2], parv[0], parv[7])
+        Server.new(parv[5][0 ... 2], parv[0], parv[7])
 
+        # No origin means we're handshaking, so this must be our uplink
+        unless origin
             # Make sure their name matches what we expect
             unless parv[0] == @config.name
                 e = "name mismatch from uplink (#{parv[0]} != #{@config.name})"
                 raise Uplink::DisconnectedError, e
             end
         end
+    end
+
+    # This messages signals the departure of a server
+    #
+    # parv[0] -> server name
+    # parv[1] -> ts
+    # parv[2] -> reason
+    #
+    def irc_squit(origin, parv)
+        unless server = $servers.values.find { |s| s.name == parv[0] }
+            $log.error "received SQUIT for unknown server: #{parv[0]}"
+            return
+        end
+
+        return unless server = $servers.delete(server.sid)
+
+        # Remove all their users to comply with CAPAB QS
+        server.users.dup.each { |user| User.delete_user(user) }
+
+        $log.debug "server leaving: #{parv[0]} (#{parv[2]})"
     end
 
 
@@ -69,15 +86,16 @@ module Protocol::P10
 
     # This message signals the end of burst
     def irc_end_of_burst(origin, parv)
-        send_end_of_burst
-        send_end_of_burst_ack
-
         if $state.bursting
+            send_end_of_burst
+
             delta = Time.now - $state.bursting
             $state.bursting = false
 
             $eventq.post(:end_of_burst, delta)
         end
+
+        send_end_of_burst_ack
     end
 
     # This message introduces a user to the network

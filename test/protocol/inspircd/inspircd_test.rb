@@ -112,8 +112,8 @@ context :inspircd do
       end
 
       context :quit do
-          setup { $servers['0AI'] }
-          asserts_topic.nil
+        setup { $servers['0AI'] }
+        asserts_topic.nil
       end
     end
 
