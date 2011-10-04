@@ -47,11 +47,15 @@ class Channel
     # A Hash of members keyed by nickname
     attr_reader :members
 
-    # Creates a new channel. Should be patched by the protocol module.
-    def initialize(name)
+    # The channel's timestamp
+    attr_reader :timestamp
+
+    # Creates a new channel; can be extended by the protocol module
+    def initialize(name, timestamp = nil)
         assert { { :name => String } }
 
-        @name = name
+        @name      = name
+        @timestamp = (timestamp || Time.now).to_i
 
         # Keyed by nickname by default
         @members = IRCHash.new
@@ -70,6 +74,21 @@ class Channel
     # String representation is just `@name`
     def to_s
         @name
+    end
+
+    # Writer for `@timestamp`
+    #
+    # @param timestamp new timestamp
+    #
+    def timestamp=(timestamp)
+        if timestamp.to_i > @timestamp
+            $log.warn "changing timestamp to a later value?"
+            $log.warn "#{@name} -> #{timestamp} > #{@timestamp}"
+        end
+
+        $log.debug "#{@name}: timestamp changed: #{@timestamp} -> #{timestamp}"
+
+        @timestamp = timestamp.to_i
     end
 
     # Parses a mode string and updates channel state
@@ -107,17 +126,6 @@ class Channel
                     @list_modes[mode] << param
                 else
                     @list_modes[mode].delete(param)
-                end
-
-            # Always has a param (some send the key, some send '*')
-            elsif c == 'k'
-                mode  = :keyed
-                param = params.shift
-
-                if action == :add
-                    @param_modes[:keyed] = param
-                else
-                  @param_modes.delete(:keyed)
                 end
 
             # Has a param when +, doesn't when -

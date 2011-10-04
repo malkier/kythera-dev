@@ -37,18 +37,14 @@ module Protocol::InspIRCd
         return if origin # Anything else is authentication
 
         unless parv[1] == @config.receive_password
-            $log.error "incorrect password received from `#{@config.name}`"
-            self.dead = true
-            return
+            e = "incorrect password received from `#{@config.name}`"
+            raise Uplink::DisconnectedError, e
         end
 
         # Make sure their name matches what we expect
         unless parv[0] == @config.name
-            $log.error "name mismatch from uplink"
-            $log.error "#{parv[0]} != #{@config.name}"
-
-            self.dead = true
-            return
+            e = "name mismatch from uplink (#{parv[0]} != #{@config.name})"
+            raise Uplink::DisconnectedError, e
         end
     end
 
@@ -71,12 +67,13 @@ module Protocol::InspIRCd
         ts_delta = parv[0].to_i - Time.now.to_i
 
         if ts_delta >= 60
-            $log.warn "#{@config.name} has excessive TS delta"
-            $log.warn "#{parv[3]} - #{Time.now.to_i} = #{ts_delta}"
+            e  = "#{@config.name} has excessive TS delta "
+            e += "(#{parv[0]} - #{Time.now.to_i} = #{ts_delta})"
+            raise Uplink::DisconnectedError, e
         elsif ts_delta >= 300
-            $log.error "#{@config.name} TS delta exceeds five minutes"
-            $log.error "#{parv[3]} - #{Time.now.to_i} = #{ts_delta}"
-            self.dead = true
+            e  = "#{@config.name} TS delta exceeds five minutes"
+            e += "(#{parv[0]} - #{Time.now.to_i} = #{ts_delta})"
+            raise Uplink::DisconnectedError, e
         end
     end
 
@@ -114,7 +111,7 @@ module Protocol::InspIRCd
             return
         end
 
-        u = User.new(server, p[2], p[5], p[4], p[6], p[-1], p[8], p[0], p[1])
+        u = User.new(server, p[2], p[5], p[4], p[6], p[-1], p[8], p[1], p[0])
 
         server.add_user(u)
     end
@@ -239,7 +236,7 @@ module Protocol::InspIRCd
         $eventq.post(:nickname_changed, user, parv[0])
         $log.debug "nick change: #{user} -> #{parv[0]} [#{origin}]"
 
-        user.nickname = parv[0]
+        user.nickname  = parv[0]
         user.timestamp = parv[1].to_i
     end
 end

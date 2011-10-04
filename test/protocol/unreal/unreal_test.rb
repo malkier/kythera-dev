@@ -109,8 +109,8 @@ context :unreal do
       end
 
       context :quit do
-          setup { $servers['test.server8.com'] }
-          asserts_topic.nil
+        setup { $servers['test.server8.com'] }
+        asserts_topic.nil
       end
     end
 
@@ -127,19 +127,19 @@ context :unreal do
         asserts_topic.kind_of User
 
         asserts(:operator?)
-        asserts('co_admin?')   { topic.has_mode?(:co_admin)   }
-        asserts('deaf?')       { topic.has_mode?(:deaf)       }
-        asserts('censored?')   { topic.has_mode?(:censored)   }
-        asserts('hide_ircop?') { topic.has_mode?(:hide_ircop) }
-        asserts('helper?')     { topic.has_mode?(:helper)     }
-        asserts('invisible?')  { topic.has_mode?(:invisible)  }
-        asserts('net_admin?')  { topic.has_mode?(:net_admin)  }
-        asserts('unkickable?') { topic.has_mode?(:unkickable) }
-        asserts('registered?') { topic.has_mode?(:registered) }
-        asserts('no_ctcp?')    { topic.has_mode?(:no_ctcp)    }
-        asserts('webtv?')      { topic.has_mode?(:webtv)      }
-        asserts('see_whois?')  { topic.has_mode?(:see_whois)  }
-        denies('service?')     { topic.has_mode?(:service)    }
+        asserts('co_admin?')        { topic.has_mode?(:co_admin)         }
+        asserts('deaf?')            { topic.has_mode?(:deaf)             }
+        asserts('censored?')        { topic.has_mode?(:censored)         }
+        asserts('hidden_operator?') { topic.has_mode?(:hidden_operator)  }
+        asserts('helper?')          { topic.has_mode?(:helper)           }
+        asserts('invisible?')       { topic.has_mode?(:invisible)        }
+        asserts('net_admin?')       { topic.has_mode?(:net_admin)        }
+        asserts('invulnerable?')    { topic.has_mode?(:invulnerable)     }
+        asserts('registered?')      { topic.has_mode?(:registered)       }
+        asserts('no_ctcp?')         { topic.has_mode?(:no_ctcp)          }
+        asserts('webtv?')           { topic.has_mode?(:webtv)            }
+        asserts('see_whois?')       { topic.has_mode?(:see_whois)        }
+        denies('service?')          { topic.has_mode?(:service)          }
 
         asserts(:nickname) .equals 'rakaur'
         asserts(:username) .equals 'rakaur'
@@ -149,7 +149,7 @@ context :unreal do
         asserts(:vhost)    .equals 'malkier.net'
 
         asserts('is on #malkier') { topic.is_on?('#malkier') }
-        denies('is on #6')   { topic.is_on?('#6')  }
+        denies('is on #6')        { topic.is_on?('#6')       }
 
         asserts('is an operator on #malkier') do
           topic.has_mode_on_channel?(:operator, '#malkier')
@@ -228,7 +228,7 @@ context :unreal do
       context :squit do
         setup { $channels['#79'] }
         denies_topic.nil
-        asserts { topic.members.length }.equals 41
+        asserts('channel #79 has 41 users') { topic.members.length }.equals 41
       end
     end
   end

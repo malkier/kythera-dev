@@ -22,8 +22,8 @@ module Protocol::TS6
     #
     def irc_pass(origin, parv)
         if parv[0] != @config.receive_password
-            $log.error "incorrect password received from `#{@config.name}`"
-            self.dead = true
+            e = "incorrect password received from `#{@config.name}`"
+            raise Uplink::DisconnectedError, e
         else
             # Because the SID and the name isn't ever seen in one place, we
             # have to hack this together, and it blows to the max
@@ -59,12 +59,8 @@ module Protocol::TS6
 
         # Make sure their name matches what we expect
         unless parv[0] == @config.name
-            $log.error "name mismatch from uplink"
-            $log.error "#{parv[0]} != #{@config.name}"
-
-            self.dead = true
-
-            return
+            e = "name mismatch from uplink (#{parv[0]} != #{@config.name})"
+            raise Uplink::DisconnectedError, e
         end
     end
 
@@ -79,15 +75,16 @@ module Protocol::TS6
         ts_delta = parv[3].to_i - Time.now.to_i
 
         if parv[0].to_i < 6
-            $log.error "#{@config.name} doesn't support TS6"
-            self.dead = true
+            e = "#{config.name} doesn't support TS6"
+            raise Uplink::DisconnectedError, e
         elsif ts_delta >= 60
-            $log.warn "#{@config.name} has excessive TS delta"
-            $log.warn "#{parv[3]} - #{Time.now.to_i} = #{ts_delta}"
+            e  = "#{@config.name} has excessive TS delta "
+            e += "(#{parv[3]} - #{Time.now.to_i} = #{ts_delta})"
+            raise Uplink::DisconnectedError, e
         elsif ts_delta >= 300
-            $log.error "#{@config.name} TS delta exceeds five minutes"
-            $log.error "#{parv[3]} - #{Time.now.to_i} = #{ts_delta}"
-            self.dead = true
+            e  = "#{@config.name} TS delta exceeds five minutes"
+            e += "(#{parv[3]} - #{Time.now.to_i} = #{ts_delta})"
+            raise Uplink::DisconnectedError, e
         end
     end
 
@@ -114,7 +111,7 @@ module Protocol::TS6
     # parv[3] -> description
     #
     def irc_sid(origin, parv)
-        server = Server.new(parv[2], parv[0], parv[3])
+        Server.new(parv[2], parv[0], parv[3])
     end
 
     # Handles an incoming UID (user introduction)
@@ -137,7 +134,7 @@ module Protocol::TS6
             return
         end
 
-        u = User.new(server, p[0], p[4], p[5], p[6], p[8], p[3], p[7], p[2])
+        u = User.new(server, p[0], p[4], p[5], p[6], p[8], p[3], p[2], p[7])
 
         server.add_user(u)
     end
@@ -158,7 +155,7 @@ module Protocol::TS6
         $eventq.post(:nickname_changed, user, parv[0])
         $log.debug "nick change: #{user} -> #{parv[0]} [#{origin}]"
 
-        user.nickname = parv[0]
+        user.nickname  = parv[0]
         user.timestamp = parv[1].to_i
     end
 

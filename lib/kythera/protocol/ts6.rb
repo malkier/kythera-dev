@@ -27,23 +27,6 @@ module Protocol::TS6
 
     public
 
-    # Introduces a pseudo-client to the network
-    #
-    # @param [String] nick user's nickname
-    # @param [String] user user's username
-    # @param [String] host user's hostname
-    # @param [String] real user's realname / gecos
-    #
-    def introduce_user(nick, user, host, real, modes = '')
-        assert { { :nick  => String,
-                   :user  => String,
-                   :host  => String,
-                   :real  => String,
-                   :modes => String } }
-
-        send_uid(nick, user, host, real, modes)
-    end
-
     # Makes one of our clients join a channel
     #
     # @param [String] origin the entity joining the channel

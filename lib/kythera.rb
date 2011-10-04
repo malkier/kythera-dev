@@ -98,6 +98,7 @@ class IRCHash < Hash
 end
 
 # Require all the Ruby stdlib stuff we need
+require 'ipaddr'
 require 'logger'
 require 'optparse'
 require 'ostruct'

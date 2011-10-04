@@ -23,8 +23,8 @@ module Protocol::Unreal
         $state.bursting = Time.now
 
         if parv[0] != @config.receive_password.to_s
-            $log.error "incorrect password received from `#{@config.name}`"
-            self.dead = true
+            e = "incorrect password received from `#{@config.name}`"
+            raise Uplink::DisconnectedError, e
         end
     end
 
@@ -51,12 +51,8 @@ module Protocol::Unreal
         unless origin
             # Make sure their name matches what we expect
             unless parv[0] == @config.name
-                $log.error "name mismatch from uplink"
-                $log.error "#{parv[0]} != #{@config.name}"
-
-                self.dead = true
-
-                return
+                e = "name mismatch from uplink (#{parv[0]} != #{@config.name})"
+                raise Uplink::DisconnectedError, e
             end
         end
 
@@ -96,6 +92,7 @@ module Protocol::Unreal
                 return
             end
 
+            $eventq.post(:nickname_changed, user, parv[0])
             $log.debug "nick change: #{user} -> #{parv[0]}"
 
             oldnick = user.nickname

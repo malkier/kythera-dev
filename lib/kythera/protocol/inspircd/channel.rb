@@ -24,8 +24,8 @@ class Protocol::InspIRCd::Channel < Channel
                        'g' => :chanfilter,
                        'I' => :invex }
 
-    @@param_modes  = { 'l' => :limited,
-                       'k' => :keyed,
+    @@param_modes  = { 'k' => :keyed,
+                       'l' => :limited,
                        'f' => :flood_protection,
                        'F' => :nick_flood,
                        'j' => :join_flood,
@@ -51,15 +51,6 @@ class Protocol::InspIRCd::Channel < Channel
                        'u' => :auditorium,
                        'y' => :oper_prefix,
                        'z' => :ssl_only }
-
-    # The channel's timestamp
-    attr_reader :timestamp
-
-    # Creates a new channel and adds it to the list keyed by name
-    def initialize(name, timestamp = nil)
-        @timestamp = (timestamp || Time.now).to_i
-        super(name)
-    end
 
     public
 
@@ -88,21 +79,5 @@ class Protocol::InspIRCd::Channel < Channel
     #
     def is_invexed?(hostmask)
         @list_modes[:invex].include?(hostmask)
-    end
-
-
-    # Writer for `@timestamp`
-    #
-    # @param timestamp new timestamp
-    #
-    def timestamp=(timestamp)
-        if timestamp.to_i > @timestamp
-            $log.warn "changing timestamp to a later value?"
-            $log.warn "#{@name} -> #{timestamp} > #{@timestamp}"
-        end
-
-        $log.debug "#{@name}: timestamp changed: #{@timestamp} -> #{timestamp}"
-
-        @timestamp = timestamp.to_i
     end
 end

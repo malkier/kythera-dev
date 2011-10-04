@@ -1,30 +1,33 @@
 # -*- Mode: Ruby; tab-width: 4; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
-# lib/kythera/protocol/inspircd.rb: implements the InspIRCd protocol
+# lib/kythera/protocol/p10.rb: implements the P10 protocol
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
-# Copyright (c) 2011 Andrew Herbig <goforit7arh@gmail.com>
 # Rights to this code are documented in doc/license.txt
 #
 
 require 'kythera'
 
-module Protocol::InspIRCd
+module Protocol::P10
 end
 
-require 'kythera/protocol/inspircd/channel'
-require 'kythera/protocol/inspircd/receive'
-require 'kythera/protocol/inspircd/send'
-require 'kythera/protocol/inspircd/server'
-require 'kythera/protocol/inspircd/user'
+require 'kythera/protocol/p10/token'
+require 'kythera/protocol/p10/channel'
+require 'kythera/protocol/p10/receive'
+require 'kythera/protocol/p10/send'
+require 'kythera/protocol/p10/server'
+require 'kythera/protocol/p10/user'
 
-# Implements InspIRCd protocol-specific methods
-module Protocol::InspIRCd
+# Implements P10 protocol-specific methods
+module Protocol::P10
     include Protocol
 
+    # Special constant for grabbing mode params in MODE
+    GET_MODE_PARAMS = 1 .. -2
+
     # The current UID for Services
-    @@current_uid = 'AAAAAA'
+    @@current_uid = 0
 
     public
 
@@ -48,15 +51,22 @@ module Protocol::InspIRCd
             channel = Channel.new(target)
         end
 
-        # Join the channel
-        send_fjoin(channel.name, channel.timestamp, user.uid)
+        # Do we need to create the channel?
+        if channel.members.empty?
+            ret = send_create(user.uid, channel.name, channel.timestamp)
+
+            # CREATE automatically ops them, keep state
+            user.add_status_mode(channel, :operator)
+            $eventq.post(:mode_added_on_channel, :operator, user, channel)
+        else
+            ret = send_join(user.uid, channel.name, channel.timestamp)
+            toggle_status_mode(user, channel, :operator)
+        end
 
         # Keep state
         channel.add_user(user)
 
-        # FJOIN will automatically op them, keep state
-        user.add_status_mode(channel, :operator)
-        $eventq.post(:mode_added_on_channel, :operator, user, channel)
+        ret
     end
 
     # Toggle a status mode for a User on a Channel
@@ -69,9 +79,10 @@ module Protocol::InspIRCd
     def toggle_status_mode(user, channel, mode, origin = nil)
         assert { [:user, :channel] }
         assert { { :mode => Symbol } }
+        assert { { :origin => String } } if origin
 
         del = user.has_mode_on_channel?(mode, channel)
-        chr = Channel.status_modes.find { |k, v| v == mode }
+        chr = Channel.status_modes.find { |k, v| v == mode }[0]
         str = "#{del ? '-' : '+'}#{chr} #{user.uid}"
 
         if del
@@ -82,6 +93,8 @@ module Protocol::InspIRCd
             $eventq.post(:mode_deleted_on_channel, mode, user, channel)
         end
 
-        send_fmode(origin ? origin.uid : nil, channel, channel.timestamp, str)
+        name, ts = channel.name, channel.timestamp
+
+        send_opmode(origin ? origin : @config.sid, name, str, ts)
     end
 end

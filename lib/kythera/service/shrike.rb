@@ -54,11 +54,8 @@ class ShrikeService < Service
 
         # Introduce our user in the burst
         $eventq.handle(:start_of_burst) do
-            if $uplink.config.protocol == :ts6
-                modes = 'oD'
-            else
-                modes = 'o'
-            end
+            modes = [:bot,          :deaf,     :hidden_operator,
+                     :invulnerable, :operator, :service]
 
             # Introduce our client to the network
             @user = $uplink.introduce_user(@config.nickname, @config.username,
@@ -69,7 +66,7 @@ class ShrikeService < Service
         # Join our configuration channel
         $eventq.handle(:end_of_burst) do |delta|
             $uplink.join(@user.key, @config.channel) if @config.channel
-            $uplink.operwall(@user.key,
+            $uplink.wallop(@user.key,
                              "finished synching to network in #{delta}s")
         end
     end

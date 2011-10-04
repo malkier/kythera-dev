@@ -19,6 +19,14 @@ class User
                      'w' => :wallop,
                      'o' => :operator }
 
+    # Attribute reader for `@@user_modes`
+    #
+    # @return [Hash] a list of all user modes
+    #
+    def self.user_modes
+        @@user_modes
+    end
+
     # A list of Channels we're on
     attr_reader :channels
 
@@ -37,24 +45,28 @@ class User
     # The user's gecos/realname
     attr_reader :realname
 
+    # The user's timestamp
+    attr_accessor :timestamp
+
     # A Hash keyed by Channel of the user's status modes
     attr_reader :status_modes
 
     # Creates a new user. Should be patched by the protocol module.
-    def initialize(server, nick, user, host, real, umodes)
-        assert {{ :nick   => String,
-                  :user   => String,
-                  :host   => String,
-                  :real   => String,
-                  :umodes => String }}
+    def initialize(server, nick, user, host, real, umodes, timestamp = nil)
+        assert { { :nick   => String,
+                   :user   => String,
+                   :host   => String,
+                   :real   => String,
+                   :umodes => String } }
 
-        @server   = server
-        @nickname = nick
-        @username = user
-        @hostname = host
-        @realname = real
-        @modes    = []
-        @channels = []
+        @server    = server
+        @nickname  = nick
+        @username  = user
+        @hostname  = host
+        @realname  = real
+        @timestamp = (timestamp || Time.now).to_i
+        @modes     = []
+        @channels  = []
 
         @status_modes = {}
 

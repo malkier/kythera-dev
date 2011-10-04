@@ -72,7 +72,7 @@ class EventQueue
     #
     def persistently_handle(event, &block)
         (@persistents[event] ||= []) << block
-        #$log.debug "registered handler for event: #{event}"
+        #$log.debug "registered persistent handler for event: #{event}"
     end
 
     # Does the queue need emptied?

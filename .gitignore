@@ -2,3 +2,4 @@
 .rvmrc
 var/*.log*
 db/*.db
+.bundle

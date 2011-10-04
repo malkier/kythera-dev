@@ -1,7 +1,7 @@
 # -*- Mode: Ruby; tab-width: 4; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
-# lib/kythera/protocol/ts6/user.rb: TS6-specific User class
+# lib/kythera/protocol/p10/user.rb: P10-specific User class
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
 # Rights to this code are documented in doc/license.txt
@@ -10,13 +10,16 @@
 require 'kythera'
 
 # This sublcasses the base User class in `kythera/user.rb`
-class Protocol::TS6::User < User
+class Protocol::P10::User < User
     # Ratbox user modes
-    @@user_modes = { 'a' => :administrator,
+    @@user_modes = { 'd' => :deaf,
+                     'g' => :debug,
                      'i' => :invisible,
+                     'k' => :invulnerable,
                      'o' => :operator,
+                     'r' => :registered,
                      'w' => :wallop,
-                     'D' => :deaf }
+                     'x' => :hidden_host }
 
     # The user's IP address
     attr_reader :ip
@@ -28,7 +31,8 @@ class Protocol::TS6::User < User
     def initialize(server, nick, user, host, ip, real, umodes, ts, uid)
         assert { { :ip => String, :uid => String } }
 
-        @ip  = ip
+        @ip  = Protocol::P10.base64_decode(ip)
+        @ip  = IPAddr.new(@ip, Socket::AF_INET).to_s
         @uid = uid
 
         super(server, nick, user, host, real, umodes, ts)
