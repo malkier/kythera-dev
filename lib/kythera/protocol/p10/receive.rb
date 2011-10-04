@@ -207,7 +207,15 @@ module Protocol::P10
             uid, modes = uid.split(':')
 
             if modes
-                op    = modes.include?('o') ? true : false
+                m = modes
+
+                # We'll just count the dumb OPLEVELS stuff as +o
+                if m.include?('o') or m.include?('0') or m.include?('1')
+                    op = true
+                else
+                    op = false
+                end
+
                 voice = modes.include?('v') ? true : false
             end
 
@@ -276,6 +284,11 @@ module Protocol::P10
         if their_ts <= my_ts
             params = parv[GET_MODE_PARAMS]
             modes  = params.delete_at(0)
+
+            # If OPLEVELS is enabled we can have colons in the UID, and
+            # we really don't care about OPLEVELS so let's just ignore it
+            #
+            params.collect! { |param| param.split(':')[0] }
 
             channel.parse_modes(modes, params)
         else
