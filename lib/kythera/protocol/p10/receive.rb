@@ -142,6 +142,9 @@ module Protocol::P10
     # If there aren't users, parv[2] could be the ban list or nothing.
     #
     def irc_burst(origin, parv)
+        # Zannels are more of p10's absolute retardedness
+        return if parv.length == 2
+
         their_ts = parv[1].to_i
 
         # Do we already have this channel?
@@ -245,9 +248,6 @@ module Protocol::P10
     end
 
     # Creates a new channel
-    # This is apparently limited to the first time a channel is ever created
-    # so that if you leave it and rejoin (and re-create) it, you get a JOIN.
-    # P10 is so fucking retarded.
     #
     # parv[0] -> channel
     # parv[1] -> ts

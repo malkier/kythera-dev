@@ -26,6 +26,34 @@ module Protocol
 
     public
 
+    # Introduces a pseudo-client to the network
+    #
+    # @param [String] nick user's nickname
+    # @param [String] user user's username
+    # @param [String] host user's hostname
+    # @param [String] real user's realname / gecos
+    #
+    def introduce_user(nick, user, host, real, modes = [])
+        assert { { :nick  => String,
+                   :user  => String,
+                   :host  => String,
+                   :real  => String,
+                   :modes => Array } }
+
+        # Translate the mode symbols into an IRC mode string
+        imodes = User.user_modes.invert
+        modes  = modes.sort.collect { |m| imodes[m] }.join('')
+
+        # Some protocols use NICK, some use UID, and I like DRY
+        if respond_to?(:send_nick, true)
+            send_nick(nick, user, host, real, modes)
+        elsif respond_to?(:send_uid, true)
+            send_uid(nick, user, host, real, modes)
+        else
+            nil
+        end
+    end
+
     # Sends a string straight to the uplink
     #
     # @param [String] string message to send

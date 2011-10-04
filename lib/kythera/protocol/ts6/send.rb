@@ -52,16 +52,15 @@ module Protocol::TS6
     end
 
     # UID <NICK> 1 <TS> +<UMODES> <USER> <HOST> <IP> <UID> :<REAL>
-    def send_uid(nick, uname, host, real, modes = '')
+    def send_uid(nick, uname, host, real, modes)
         ts    = Time.now.to_i
         ip    = @config.bind_host || '255.255.255.255'
         id    = @@current_uid
         uid   = "#{@config.sid}#{id}"
-        modes = "+#{modes}"
 
         @@current_uid = @@current_uid.next
 
-        str  = "UID #{nick} 1 #{ts} #{modes} #{uname} #{host} #{ip} #{uid} :"
+        str  = "UID #{nick} 1 #{ts} +#{modes} #{uname} #{host} #{ip} #{uid} :"
         str += real
 
         raw str

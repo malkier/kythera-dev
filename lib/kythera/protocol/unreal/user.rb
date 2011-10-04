@@ -20,13 +20,12 @@ class Protocol::Unreal::User < User
                      'd' => :deaf,
                      'G' => :censored,
                      'g' => :oper_talk,
-                     'H' => :hide_ircop,
+                     'H' => :hidden_operator,
                      'h' => :helper,
                      'i' => :invisible,
                      'N' => :net_admin,
-                     'O' => :local_oper,
-                     'o' => :global_oper,
-                     'p' => :hide_whois_channels,
+                     'o' => :operator,
+                     'p' => :hidden_channels,
                      'q' => :invulnerable,
                      'R' => :registered_privmsg,
                      'r' => :registered,
@@ -53,13 +52,5 @@ class Protocol::Unreal::User < User
         @vhost     = vhost || host
 
         super(server, nick, user, host, real, umodes)
-    end
-
-    # Is this user an IRC operator?
-    #
-    # @return [True, False]
-    #
-    def operator?
-        @modes.include?(:global_oper)
     end
 end

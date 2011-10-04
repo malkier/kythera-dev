@@ -57,13 +57,12 @@ module Protocol::P10
         ip    = Protocol::P10.base64_encode(IPAddr.new(ip).to_i, 0)
         id    = Protocol::P10.integer_to_uid(@@current_uid)
         uid   = "#{@config.sid}#{id}"
-        modes = "+#{modes}"
         cmd   = Tokens[:nick]
 
         @@current_uid = @@current_uid.next
 
-        str  = "#{@config.sid} #{cmd} #{nick} 1 #{ts} #{user} #{host} #{modes} "
-        str += "#{ip} #{uid} :#{real}"
+        str  = "#{@config.sid} #{cmd} #{nick} 1 #{ts} #{user} #{host} +#{modes}"
+        str += " #{ip} #{uid} :#{real}"
 
         raw str
 
@@ -71,31 +70,48 @@ module Protocol::P10
         User.new(me, nick, user, host, ip, real, modes, uid, ts)
     end
 
-    # <SID> J <target>
-    def send_join(uid, target)
-        assert { { :uid => String, :target => String } }
+    # <UID> C <target>
+    def send_create(uid, target, timestamp)
+        assert { { :uid => String, :target => String, :timestamp => Integer } }
 
-        raw "#{uid} #{Tokens[:join]} #{target}"
+        raw "#{uid} #{Tokens[:create]} #{target} #{timestamp}"
     end
 
-    # <SID> WA :message
+    # <UID> J <target>
+    def send_join(uid, target, timestamp)
+        assert { { :uid => String, :target => String, :timestamp => Integer } }
+
+        raw "#{uid} #{Tokens[:join]} #{target} #{timestamp}"
+    end
+
+    # <UID> WA :message
     def send_wallop(uid, message)
         assert { { :uid => String, :message => String } }
 
         raw "#{uid} #{Tokens[:wallops]} :#{message}"
     end
 
-    # <SID> P <target> :<message>
+    # <UID> P <target> :<message>
     def send_privmsg(uid, target, message)
         assert { { :uid => String, :target => String, :message => String } }
 
         raw "#{uid} #{Tokens[:privmsg]} #{target} :#{message}"
     end
 
-    # <SID> O <target> :<message>
+    # <UID> O <target> :<message>
     def send_notice(uid, target, message)
         assert { { :uid => String, :target => String, :message => String } }
 
         raw "#{uid} #{Tokens[:notice]} #{target} :#{message}"
+    end
+
+    # <UID> OM <target> <modestr> <ts>
+    def send_opmode(uid, target, modestr, timestamp)
+        assert { { :uid       => String,
+                   :target    => String,
+                   :modestr   => String,
+                   :timestamp => Integer } }
+
+        raw "#{uid} #{Tokens[:opmode]} #{target} #{modestr} #{timestamp}"
     end
 end

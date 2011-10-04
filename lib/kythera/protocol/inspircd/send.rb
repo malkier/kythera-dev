@@ -64,17 +64,16 @@ module Protocol::InspIRCd
 
     # :<sid> UID <uid> <timestamp> <nick> <hostname> <displayed-hostname>
     #            <ident> <ip> <signon time> +<modes [mode params]> :<gecos>
-    def send_uid(nick, user, host, real, modes = '')
+    def send_uid(nick, user, host, real, modes)
         ts    = Time.now.to_i
         ip    = @config.bind_host || '255.255.255.255'
         id    = @@current_uid
         uid   = "#{@config.sid}#{id}"
-        modes = "+#{modes}"
 
         @@current_uid = @@current_uid.next
 
         str  = ":#{@config.sid} UID #{uid} #{ts} #{nick} #{host} #{host} "
-        str += "#{user} #{ip} #{ts} #{modes} :#{real}"
+        str += "#{user} #{ip} #{ts} +#{modes} :#{real}"
 
         raw str
 

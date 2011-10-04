@@ -19,6 +19,14 @@ class User
                      'w' => :wallop,
                      'o' => :operator }
 
+    # Attribute reader for `@@user_modes`
+    #
+    # @return [Hash] a list of all user modes
+    #
+    def self.user_modes
+        @@user_modes
+    end
+
     # A list of Channels we're on
     attr_reader :channels
 

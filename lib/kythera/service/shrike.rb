@@ -54,11 +54,8 @@ class ShrikeService < Service
 
         # Introduce our user in the burst
         $eventq.handle(:start_of_burst) do
-            if $uplink.config.protocol == :ts6
-                modes = 'oD'
-            else
-                modes = 'o'
-            end
+            modes = [:bot,          :deaf,     :hidden_operator,
+                     :invulnerable, :operator, :service]
 
             # Introduce our client to the network
             @user = $uplink.introduce_user(@config.nickname, @config.username,

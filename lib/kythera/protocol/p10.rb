@@ -31,23 +31,6 @@ module Protocol::P10
 
     public
 
-    # Introduces a pseudo-client to the network
-    #
-    # @param [String] nick user's nickname
-    # @param [String] user user's username
-    # @param [String] host user's hostname
-    # @param [String] real user's realname / gecos
-    #
-    def introduce_user(nick, user, host, real, modes = '')
-        assert { { :nick  => String,
-                   :user  => String,
-                   :host  => String,
-                   :real  => String,
-                   :modes => String } }
-
-        send_nick(nick, user, host, real, modes)
-    end
-
     # Makes one of our clients join a channel
     #
     # @param [String] origin the entity joining the channel
@@ -56,6 +39,62 @@ module Protocol::P10
     def join(origin, target)
         assert { { :origin => String, :target => String } }
 
-        send_join(origin, target)
+        unless user = $users[origin]
+            $log.warn 'cannot join nonexistent user to channel'
+            $log.warn "#{origin} -> #{target}"
+
+            return
+        end
+
+        unless channel = $channels[target]
+            # This is a nonexistent channel
+            channel = Channel.new(target)
+        end
+
+        # Do we need to create the channel?
+        if channel.members.empty?
+            ret = send_create(user.uid, channel.name, channel.timestamp)
+
+            # CREATE automatically ops them, keep state
+            user.add_status_mode(channel, :operator)
+            $eventq.post(:mode_added_on_channel, :operator, user, channel)
+        else
+            ret = send_join(user.uid, channel.name, channel.timestamp)
+            toggle_status_mode(user, channel, :operator)
+        end
+
+        # Keep state
+        channel.add_user(user)
+
+        ret
+    end
+
+    # Toggle a status mode for a User on a Channel
+    #
+    # @param [User] user the User to be opped/deopped
+    # @param [Channel] channel the Channel to op/deop on
+    # @param [Symbol] mode the mode to toggle
+    # @param [String] origin optionally specify a setter for the mode
+    #
+    def toggle_status_mode(user, channel, mode, origin = nil)
+        assert { [:user, :channel] }
+        assert { { :mode => Symbol } }
+        assert { { :origin => String } } if origin
+
+        del = user.has_mode_on_channel?(mode, channel)
+        chr = Channel.status_modes.find { |k, v| v == mode }[0]
+        str = "#{del ? '-' : '+'}#{chr} #{user.uid}"
+
+        if del
+            user.delete_status_mode(channel, mode)
+            $eventq.post(:mode_added_on_channel, mode, user, channel)
+        else
+            user.add_status_mode(channel, mode)
+            $eventq.post(:mode_deleted_on_channel, mode, user, channel)
+        end
+
+        name, ts = channel.name, channel.timestamp
+
+        send_opmode(origin ? origin : @config.sid, name, str, ts)
     end
 end
