@@ -217,7 +217,7 @@ class Uplink
             end
 
             # Downcase it and turn it into a Symbol
-            cmd = "irc_#{cmd.downcase}".to_sym
+            cmd = "irc_#{cmd.to_s.downcase}".to_sym
 
             # Call the protocol-specific handler
             if self.respond_to?(cmd, true)
