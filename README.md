@@ -103,12 +103,17 @@ Kythera can, in theory, support any IRCd. So long as a protocol module has
 been written, your IRCd should work. Kythera ships with support for several
 IRCds. These include:
 
-  * ircd-ratbox (tested with 2.2.9)
-  * charybdis (tested with 3.2.1)
-  * UnrealIRCd (tested with 3.2.8.1)
-  * InspIRCd (tested with 1.2.8)
+|-------------+------------+----------|
+| ircd        | version    | protocol |
+|-------------|------------|----------+
+| charybdis   | 3.2.1      | ts6      |
+| InspIRCd    | 1.2.8      | inspircd |
+| ircd-ratbox | 2.2.9      | ts6      |
+| ircu        | 2.10.12.14 | p10      |
+| UnrealIRCd  | 3.2.8.1    | unreal   |
+|-------------+------------+----------|
 
-Other TS6-based IRCds may work. For now, the TS6 module only provides support
+Other TS6-based IRCds *might* work. For now, the TS6 module only provides support
 for TS6-only networks. If you link a non-TS6 server, Kythera will ignore it.
 
 ## Credits ##
@@ -116,11 +121,15 @@ for TS6-only networks. If you link a non-TS6 server, Kythera will ignore it.
 This application is completely original. I'm sure to receive patches from other
 contributors from time to time, and this will be indicated in SCM commits.
 
-    Lead Developer  rakaur    Eric Will          rakaur@malkier.net
-    Developer       sycobuny  Stephen Belcher    sycobuny@malkier.net
-    Developer       andrew    Andrew Herbig      goforit7arh@gmail.com
-    Contributor     xiphias   Michael Rodriguez  xiphias@khaydarin.net
-    Tester          rintaun   Matt Lanigan       rintaun@projectxero.net
+|----------------+----------+-------------------+-------------------------|
+| role           | nickname | realname          | email                   |
+|----------------|----------|-------------------|-------------------------|
+| Lead Developer | rakaur   | Eric Will         | rakaur@malkier.net      |
+| Developer      | andrew   | Andrew Herbig     | goforit7arh@gmail.com   |
+| Developer      | sycobuny | Stephen Belcher   | sbelcher@gmail.com      |
+| Contributor    | xiphias  | Michael Rodriguez | xiphias@khaydarin.net   |
+| Tester         | rintaun  | Matt Lanigan      | rintaun@projectxero.net |
+|----------------+----------+-------------------+-------------------------|
     
 ## Contact and Support ##
 
