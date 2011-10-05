@@ -4,7 +4,7 @@
 # test/protocol/p10/p10_test.rb: tests the Protocol::P10 module
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
-# Rights to this code are documented in doc/license.txt
+# Rights to this code are documented in doc/license.md
 #
 
 require File.expand_path('../../teststrap', File.dirname(__FILE__))
@@ -39,6 +39,10 @@ context :p10 do
     asserts('responds to irc_server') { topic.respond_to?(:irc_server, true) }
     asserts('responds to irc_nick')   { topic.respond_to?(:irc_nick,   true) }
     asserts('responds to irc_burst')  { topic.respond_to?(:irc_burst,  true) }
+    asserts('responds to irc_part')   { topic.respond_to?(:irc_part,   true) }
+    asserts('responds to irc_quit')   { topic.respond_to?(:irc_quit,   true) }
+    asserts('responds to irc_mode')   { topic.respond_to?(:irc_mode,   true) }
+    asserts('responds to irc_squit')  { topic.respond_to?(:irc_squit,  true) }
 
     asserts('users')    { $users.clear;    $users    }.empty
     asserts('channels') { $channels.clear; $channels }.empty

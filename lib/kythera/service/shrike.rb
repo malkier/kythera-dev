@@ -4,7 +4,7 @@
 # lib/kythera/service/shrike.rb: implements shrike's X
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
-# Rights to this code are documented in doc/license.txt
+# Rights to this code are documented in doc/license.md
 #
 
 require 'kythera'
@@ -36,9 +36,7 @@ class ShrikeService < Service
     #
     # @return [True, False]
     #
-    def self.verify_configuration
-        c = $config.shrike
-
+    def self.verify_configuration(c)
         unless c and c.nickname and c.username and c.hostname and c.realname
             false
         else
@@ -47,8 +45,8 @@ class ShrikeService < Service
     end
 
     # This is all we do for now :)
-    def initialize
-        @config = $config.shrike
+    def initialize(config)
+        @config = config
 
         $log.debug "Shrike service loaded (version #{VERSION})"
 

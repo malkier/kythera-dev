@@ -4,7 +4,7 @@
 # lib/kythera.rb: pre-startup routines
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
-# Rights to this code are documented in doc/license.txt
+# Rights to this code are documented in doc/license.md
 #
 
 # Check for latest RubyGems version

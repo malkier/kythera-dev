@@ -4,7 +4,7 @@
 # lib/kythera/extension/socket.rb: extensions socket interface
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
-# Rights to this code are documented in doc/license.txt
+# Rights to this code are documented in doc/license.md
 #
 
 require 'kythera'
@@ -35,7 +35,7 @@ class Extension::Socket
         end
 
         # Call #parse if we have read data available for processing
-        $eventq.persistently_handle(:extension_socket_recvq_ready) do |socket|
+        $eventq.persistently_handle(:extension_socket_parsable) do |socket|
             parse if socket == @socket
         end
 
@@ -86,7 +86,7 @@ class Extension::Socket
             @socket.close
             $extension_sockets.delete(self)
         else
-            $eventq.post(:extension_socket_recvq_ready, @socket)
+            $eventq.post(:extension_socket_parsable, @socket)
         end
     end
 

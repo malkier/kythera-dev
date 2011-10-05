@@ -4,7 +4,7 @@
 # test/protocol/unreal_test.rb: tests the Protocol::Unreal module
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
-# Rights to this code are documented in doc/license.txt
+# Rights to this code are documented in doc/license.md
 #
 
 require File.expand_path('../../teststrap', File.dirname(__FILE__))
@@ -39,6 +39,11 @@ context :unreal do
     asserts('responds to irc_server') { topic.respond_to?(:irc_server, true) }
     asserts('responds to irc_nick')   { topic.respond_to?(:irc_nick,   true) }
     asserts('responds to irc_sjoin')  { topic.respond_to?(:irc_sjoin,  true) }
+    asserts('responds to irc_ping')   { topic.respond_to?(:irc_ping,   true) }
+    asserts('responds to irc_part')   { topic.respond_to?(:irc_part,   true) }
+    asserts('responds to irc_quit')   { topic.respond_to?(:irc_quit,   true) }
+    asserts('responds to irc_mode')   { topic.respond_to?(:irc_mode,   true) }
+    asserts('responds to irc_squit')  { topic.respond_to?(:irc_squit,  true) }
 
     asserts('users')    { $users.clear;    $users    }.empty
     asserts('channels') { $channels.clear; $channels }.empty
@@ -228,7 +233,7 @@ context :unreal do
       context :squit do
         setup { $channels['#79'] }
         denies_topic.nil
-        asserts('channel #79 has 41 users') { topic.members.length }.equals 41
+        asserts('channel #79 member count') { topic.members.length }.equals 41
       end
     end
   end

@@ -1,147 +1,105 @@
     kythera: services for IRC networks
 
     Copyright (c) 2011 Eric Will <rakaur@malkier.net>
-    Rights to this code are documented in doc/license.txt
+    Rights to this code are documented in doc/license.md
 
 List of Events
 ==============
 
-  * socket_readable
-    * there is data on the socket ready to be read
-    * params:
-      * _none_
+Kythera has an event system for edge cases where it does not provide some other
+high level API to accomplish your task. This is a list of those events.
 
-  * socket_writable
-    * the socket is ready to be written to
-    * params:
-      * _none_
+IRC Command Events
+-------------------
 
-  * extension\_socket\_readable
-    * there is data on the socket ready to be read
-    * this is raised only for `Extension::Socket`
-    * params:
-      * the socket that is ready
+In addition to the events listed in the tables below, an event is posted for
+every single command received from the server. These events are named with an
+"irc\_" prefix, followed by the name of the command (e.g.: irc_join). Two
+parameters are provided, named "origin" and "parv." The "origin" parameter is a
+String containing the server name, nick!user@host, or protocol-specific ID of
+the entity that sent the command. The "parv" parameter is an Array consisting
+of space-tokenized parameters to the command. For example:
 
-  * extension\_socket\_writable
-    * the socket is ready to be written to
-    * this is raised only for `Extension::Socket`
-    * params:
-      * the socket that is ready
+    :rakaur!rakaur@malkier.net PRIVMSG #malkier :hello world
 
-	* extension\_socket\_dead
-	  * the socket is dead
-	  * post this from your extension when you need your socket to be cleaned up
-	  * params:
-	    * the socket that is dead
+Will result in:
 
-  * connected
-    * we are connected to the uplink
-    * params:
-      * _none_
+    origin = "rakaur!rakaur@malkier.net"
+    parv   = ["#malkier", "hello world"]
 
-  * disconnected
-    * we have been disconnected from the uplink
-    * params:
-      * _none_
+This fairly low-level event system allows you to hook into any IRC command
+rather than be limited to the ones below, but at the cost of having to do some
+of your own parsing. For example, an "irc\_mode" event is going to give you
+the raw mode string (e.g.: "+knt key") rather than a parsed-out version. This
+is the cost of doing business, I'm afraid.
 
-  * recvq_ready
-    * the recvq has data ready to be parsed
-    * params:
-      * _none_
-  
-  * extension\_socket\_recvq\_ready
-    * the recvq has data ready to be parsed
-    * params:
-      * the socket that is ready
+The rest of the higher-level events are documented below.
 
-  * start\_of\_burst
-    * the service is starting to receive/send the connection burst
-    * params:
-      * A `Time` object representing the time the burst began
+Extension Events
+----------------
 
-  * end\_of\_burst
-    * the service has finished processing the connection burst
-    * params:
-      * A Float containing the time it took to process the burst
+    |----------------------------+------------+-----------------------|
+    |         event name         | parameters |      posted when      |
+    |----------------------------|------------|-----------------------|
+    | extension_socket_dead      | TCPSocket  | extension socket died |
+    | extension_socket_readable  | TCPSocket  | socket ready to read  |
+    | extension_socket_parsable  | TCPSocket  | socket ready to parse |
+    | extension_socket_writable  | TCPSocket  | socket ready to write |
+    |----------------------------+------------+-----------------------|
 
-  * irc\_*
-    * any command received by the uplink is posted as irc\_[command]
-      * e.g.: PRIVMSG = irc_privmsg
-      * e.g.: PING = irc_ping
-      * params:
-        * the origin, usually a server, nick!user@host, or protocol-specific ID
-        * parv, an Array of space-tokenized paramaters after the IRC command
+Network Events
+--------------
 
-  * server_added
-    * a server has joined the network
-    * params:
-      * a `Server` object
+    |----------------------------+------------+-----------------------|
+    |         event name         | parameters |      posted when      |
+    |----------------------------|------------|-----------------------|
+    | connected                  | none       | connected to uplink   |
+    | end_of_burst               | burst time | IRC burst is finished |
+    | extension_socket_dead      | TCPSocket  | extension socket died |
+    | extension_socket_readable  | TCPSocket  | socket ready to read  |
+    | extension_socket_parsable  | TCPSocket  | socket ready to parse |
+    | extension_socket_writable  | TCPSocket  | socket ready to write |
+    | start_of_burst             | start time | IRC burst has started |
+    | uplink_parsable            | none       | uplink ready to parse |
+    | uplink_readable            | none       | uplink ready to read  |
+    | uplink_writable            | none       | uplink ready to write |
+    |----------------------------+------------+-----------------------|
 
-  * server_deleted
-    * a server has left the network
-    * params:
-      * a `Server` object
+Channel Events
+--------------
 
-  * user_added
-    * a new `User` object has been created
-    * params:
-      * a `User` object
+    |-------------------------+------------------------+-----------------------|
+    |       event name        |       parameters       |      posted when      |
+    |-------------------------|------------------------|-----------------------|
+    | channel_added           | Channel                | Channel created       |
+    | channel_deleted         | Channel                | Channel abandoned     |
+    | user_joined_channel     | User, Channel          | User joined a Channel |
+    | user_parted_channel     | User, Channel          | User parted a Channel |
+    | mode_added_on_channel   | Symbol, param, Channel | set +mode on Channel  |
+    | mode_deleted_on_channel | Symbol, param, Channel | set -mode on Channel  |
+    |-------------------------+------------------------+-----------------------|
 
-  * user_deleted
-    * a user has left the network
-    * params:
-      * a `User` object
+User Events
+-----------
 
-  * channel_added
-    * a new `Channel` object has been created
-    * params:
-      * a `Channel` object
+    |------------------------+----------------+-----------------------|
+    |       event name       |   parameters   |      posted when      |
+    |------------------------|----------------|-----------------------|
+    | user_added             | User           | user connected        |
+    | user_deleted           | User           | user departed         |
+    | user_joined_channel    | User, Channel  | User joined a Channel |
+    | user_parted_channel    | User, Channel  | User parted a Channel |
+    | mode_added_to_user     | Symbol, User   | set +mode on User     |
+    | mode_deleted_from_user | Symbol, User   | set -mode on User     |
+    | nickname_changed       | User, new nick | user /nick'd          |
+    |------------------------+----------------+-----------------------|
 
-  * channel_deleted
-    * all users have left a channel
-    * params:
-      * a `Channel` object
+Server Events
+--------------
 
-  * user\_joined\_channel
-    * a user joined a channel
-    * params:
-      * a `User` object
-      * a `Channel` object
-
-  * user\_parted\_channel
-    * a user parted a channel
-    * params:
-      * a `User` object
-      * a `Channel` object
-
-  * mode\_added\_on\_channel
-    * a mode has been added on a channel
-    * params:
-      * mode symbol
-      * mode params, or `nil`
-      * a `Channel` object
-
-  * mode\_deleted\_on\_channel
-    * a mode has been deleted on a channel
-    * params:
-      * mode symbol
-      * mode params, or `nil`
-      * a `Channel` object
-
-  * mode\_added\_to\_user
-    * a mode has been added to a user
-    * params:
-      * mode symbol
-      * a `User` object
-
-  * mode\_deleted\_from\_user
-    * a mode has been deleted from a user
-    * params:
-      * mode symbol
-      * a `User` object
-
-  * nickname_changed
-    * a user has changed their nickname
-    * params:
-      * a `User` object, with the old nick
-      * the new nick
+    |----------------+------------+-------------------|
+    |   event name   | parameters |    posted when    |
+    |----------------|------------|-------------------|
+    | server_added   | Server     | server connected  |
+    | server_deleted | Server     | server departed   |
+    |----------------+------------+-------------------|

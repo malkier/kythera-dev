@@ -4,7 +4,7 @@
 # lib/kythera/uplink.rb: represents the interface to the remote IRC server
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
-# Rights to this code are documented in doc/license.txt
+# Rights to this code are documented in doc/license.md
 #
 
 require 'kythera'
@@ -36,9 +36,9 @@ class Uplink
         @socket    = nil
 
         # Set up some event handlers
-        $eventq.handle(:socket_readable) { read  }
-        $eventq.handle(:socket_writable) { write }
-        $eventq.handle(:recvq_ready)     { parse }
+        $eventq.handle(:uplink_readable) { read  }
+        $eventq.handle(:uplink_writable) { write }
+        $eventq.handle(:uplink_parsable) { parse }
 
         $eventq.handle(:connected) { send_handshake      }
         $eventq.handle(:connected) { Service.instantiate }
@@ -148,7 +148,9 @@ class Uplink
             end
         end
 
-        $eventq.post(:recvq_ready) if @recvq[-1] and @recvq[-1][-1].chr == "\n"
+        if @recvq[-1] and @recvq[-1][-1].chr == "\n"
+            $eventq.post(:uplink_parsable)
+        end
     end
 
     # Writes the each "line" in the sendq to the socket

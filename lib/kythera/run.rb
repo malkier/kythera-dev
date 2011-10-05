@@ -4,7 +4,7 @@
 # lib/kythera/run.rb: start up operations
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
-# Rights to this code are documented in doc/license.txt
+# Rights to this code are documented in doc/license.md
 #
 
 require 'kythera'
@@ -159,7 +159,7 @@ class Kythera
                 # Readable sockets
                 ret[0].each do |socket|
                    if socket == $uplink.socket
-                       $eventq.post(:socket_readable)
+                       $eventq.post(:uplink_readable)
                    else
                        $eventq.post(:extension_socket_readable, socket)
                    end
@@ -168,7 +168,7 @@ class Kythera
                 # Writable sockets
                 ret[1].each do |socket|
                     if socket == $uplink.socket
-                        $eventq.post(:socket_writable)
+                        $eventq.post(:uplink_writable)
                     else
                         $eventq.post(:extension_socket_writable, socket)
                     end

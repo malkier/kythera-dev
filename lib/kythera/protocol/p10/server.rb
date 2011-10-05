@@ -4,7 +4,7 @@
 # lib/kythera/protocol/p10/server.rb: P10-specific Server class
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
-# Rights to this code are documented in doc/license.txt
+# Rights to this code are documented in doc/license.md
 #
 
 require 'kythera'
