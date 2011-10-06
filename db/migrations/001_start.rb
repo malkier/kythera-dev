@@ -14,7 +14,7 @@ Sequel.migration do
             primary_key :id
 
             # Their unique id is their email address
-            String :login,    :unique => true, :null => false
+            String :email,    :unique => true, :null => false
             String :salt,     :unique => true, :null => false
             String :password, :null   => false
 
@@ -29,7 +29,7 @@ Sequel.migration do
             Integer :failed_logins, :null => false, :default => 0
 
             # Index the login for faster lookups
-            index :login
+            index :email
         end
 
         create_table :account_fields do
@@ -37,6 +37,7 @@ Sequel.migration do
             String  :key
             String  :value
 
+            unique [:account_id, :key]
             primary_key [:account_id, :key]
             foreign_key [:account_id], :accounts
         end

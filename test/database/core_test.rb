@@ -63,13 +63,23 @@ context :database do
     $db.run 'DELETE FROM accounts'
   end
 
+  context 'creates account objects' do
+    setup do
+      Database::Account.new
+    end
+
+    asserts_topic.kind_of? Database::Account
+    asserts(:users).kind_of? Array
+    asserts(:users).empty
+  end
+
   context 'registers accounts' do
     setup do
       register.call(:sycobuny)
     end
 
     asserts_topic.kind_of Database::Account
-    asserts(:login).equals 'sycobuny@malkier.net'
+    asserts(:email).equals 'sycobuny@malkier.net'
     asserts(:registered) { check_timestamp.call(topic.registered) }
     asserts(:last_login) { check_timestamp.call(topic.last_login) }
 
@@ -83,7 +93,11 @@ context :database do
   context 'sets up an account resolver' do
     setup do
       Database::Account.register_resolver do |value|
-        value == :success ? Database::Account.first : nil
+        if value == :success
+          Database::Account[:email => 'sycobuny@malkier.net']
+        else
+          nil
+        end
       end
       register.call(:sycobuny)
     end
@@ -97,20 +111,32 @@ context :database do
     end.raises(Database::Account::ResolveError)
   end
 
+  context 'sets up an account helper' do
+    setup do
+      Database::Account.helper [:ht], AccountsTestHelper::HelperTest
+      register.call(:sycobuny)
+    end
+
+    asserts(:ht).kind_of? AccountsTestHelper::HelperTest
+    asserts('ht method returns the account') do
+      topic.ht.test == topic
+    end
+  end
+
   context 'resolves accounts by existing methods' do
     setup do
       register.call(:sycobuny)
     end
 
     helper(:id)    { topic.id    }
-    helper(:login) { topic.login }
+    helper(:email) { topic.email }
 
     asserts('resolves account by ID') do
       Database::Account.resolve(id) == topic
     end
 
-    asserts('resolves account by login') do
-      Database::Account.resolve(login) == topic
+    asserts('resolves account by email') do
+      Database::Account.resolve(email) == topic
     end
 
     asserts('resolves account by existing object') do
@@ -137,7 +163,7 @@ context :database do
     end.raises(Database::Account::PasswordMismatchError)
 
     asserts('authenticates a user with the right password') do
-      Database::Account.authenticate('sycobuny@malkier.net', 'test').login ==
+      Database::Account.authenticate('sycobuny@malkier.net', 'test').email ==
       'sycobuny@malkier.net'
     end
   end
@@ -193,6 +219,24 @@ context :database do
         end
       end
     end
+
+    context 'calls a before_drop handler' do
+      setup do
+        val = nil
+
+        Database::Account.before_drop do
+          val = 'Successful execution!'
+        end
+
+        # just to make sure we didn't just execute the before_drop
+        val = nil
+
+        Database::Account.admin_drop('sycobuny@malkier.net')
+        val
+      end
+
+      asserts_topic.equals 'Successful execution!'
+    end
   end
 
   context 'authenticates existing account objects' do
@@ -238,5 +282,114 @@ context :database do
         topic.authenticate('test')
       end.raises(Database::Account::AlreadyAuthenticatedError)
     end
+
+    context '- tells when accounts are authenticated' do
+      setup do
+        t = Database::Account.resolve('sycobuny@malkier.net')
+        t.authenticate('test')
+        t
+      end
+
+      asserts(:authenticated?)
+      denies('new object is authenticated') do
+        Database::Account.resolve(topic.email).authenticated?
+      end
+    end
+
+    context '- logs out authenticated accounts' do
+      setup do
+        t = Database::Account.resolve('sycobuny@malkier.net')
+        t.authenticate('test')
+        t.logout!
+        t
+      end
+
+      denies(:authenticated?)
+    end
+  end
+
+  context 'verifies accounts' do
+    setup do
+      register.call(:sycobuny)
+      t = Database::Account.resolve('sycobuny@malkier.net')
+      t.verification = 'test_verification'
+      t.save
+
+      Database::Account.resolve('sycobuny@malkier.net')
+    end
+
+    denies(:verified?)
+    denies('checks with bad token') { topic.verifies?('bad_verification') }
+    denies(:verified?) # just to make sure nothing was written
+    denies('new object is verified') do
+      Database::Account.resolve('sycobuny@malkier.net').verified?
+    end
+
+    asserts('checks with good token') { topic.verifies?('test_verification') }
+    denies(:verified?) # just to make sure nothing was written
+    denies('new object is verified') do
+      Database::Account.resolve('sycobuny@malkier.net').verified?
+    end
+
+    asserts do
+      topic.verify('bad_verification')
+    end.raises(Database::Account::BadVerificationError)
+    denies(:verified?) # just to make sure nothing was written
+    denies('new object is verified') do
+      Database::Account.resolve('sycobuny@malkier.net').verified?
+    end
+
+    asserts('verifies with good token') { topic.verify('test_verification') }
+    asserts(:verified?)
+    asserts('new object is verified') do
+      Database::Account.resolve('sycobuny@malkier.net').verified?
+    end
+  end
+
+  context 'has associated fields' do
+    setup do
+      t = register.call(:sycobuny)
+      t[:website]  = 'http://www.xzion.net/'
+      t[:realname] = 'Stephen Belcher'
+      t[:language] = 'English'
+      t
+    end
+
+    asserts('empty values do not error') do
+      topic[:empty].nil?
+    end
+
+    asserts('field list') do
+      topic.field_list.sort
+    end.equals ['language', 'realname', 'website']
+
+    asserts('retrieves a value') do
+      topic[:website] == 'http://www.xzion.net/'
+    end
+
+    asserts('deletes a value by setting it to nil') do
+      topic[:realname] = nil
+      topic[:realname].nil?
+    end
+
+    asserts('field list') do
+      topic.field_list.sort
+    end.equals ['language', 'website']
+
+    asserts('deletes a value by setting it to false') do
+      topic[:language] = false
+      topic[:language].nil?
+    end
+
+    asserts('field list') do
+      topic.field_list.sort
+    end.equals ['website']
+
+    asserts('deletes a value by delete_value') do
+      topic.delete_field(:website)
+      topic[:website].nil?
+    end
+
+    asserts(:field_list).empty
   end
 end

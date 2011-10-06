@@ -55,7 +55,7 @@ module Database
         #
         # When a bad validation token is given, this error will be raised.
         #
-        class BadValidationError        < Exception; end
+        class BadVerificationError      < Exception; end
 
         #
         # When someone attempts to perform a function on a bad login, this error
@@ -108,8 +108,8 @@ module Database
 
         #
         # Registers a resolve method to be run if normal resolution of the
-        # login is not possible. This allows something like a Nickname to be
-        # used to resolve an account, rather than their primary services login.
+        # account is not possible. This allows something like a Nickname to be
+        # used to resolve an account, rather than their primary services email.
         # Each block is run in the order added, and the first one to return a
         # result wins. They are passed the object that was requested to resolve.
         #
@@ -117,7 +117,7 @@ module Database
         # @example
         #   Account.register_resolver do |acct_to_resolve|
         #     if acct_to_resolve == 'rakaur'
-        #       Account[:login => 'rakaur@malkier.net']
+        #       Account[:email => 'rakaur@malkier.net']
         #     end
         #   end
         #
@@ -136,7 +136,7 @@ module Database
         # @param [Proc] block The code to run before dropping the account.
         # @example
         #   Account.before_drop do |account|
-        #     $my_logger.warn("Dropping #{account.login}!")
+        #     $my_logger.warn("Dropping #{account.email}!")
         #     MyRelatedClass[:account => account].delete
         #   end
         #
@@ -169,19 +169,19 @@ module Database
         end
 
         #
-        # Registers a user with a given login and password. The password should
+        # Registers a user with a given email and password. The password should
         # be plaintext; it is hashed by this library before storage in the
         # database.
         #
-        # @param [String] login The account's login ID
+        # @param [String] email The account's email (login ID)
         # @param [String] password The password to access the account
         # @return [Account] The newly-minted account
-        # @raise [LoginExistsError] If the login given already exists
+        # @raise [LoginExistsError] If the email given already exists
         # @example
         #   account = Account.register('rakaur@malkier.net', 'steveisawesome')
         #
-        def self.register(login, password)
-            raise LoginExistsError unless self.where(:login => login).empty?
+        def self.register(email, password)
+            raise LoginExistsError unless self.where(:email => email).empty?
 
             now  = Time.now
             salt = SecureRandom.base64(192)
@@ -189,7 +189,7 @@ module Database
             vt   = SecureRandom.base64(12)
 
             account = new
-            account.login        = login
+            account.email        = email
             account.salt         = salt
             account.password     = pass
             account.verification = vt
@@ -224,7 +224,7 @@ module Database
                 return account if account
             end
 
-            account = Account[:login => acct_to_resolve.to_s] rescue nil
+            account = Account[:email => acct_to_resolve.to_s] rescue nil
             return account if account
 
             @@resolvers.each do |resolver|
@@ -236,10 +236,10 @@ module Database
         end
 
         #
-        # Verifies a login against a given password. The password should be
+        # Verifies an email against a given password. The password should be
         # given as plaintext.
         #
-        # @param [Object] login The login (or resolvable object) to be logged in
+        # @param [Object] email The email (or resolvable object) to be logged in
         # @param [String] password The password for the login
         # @return [Account] The account that was verified
         # @raise [ResolveError] When no login matches what was requested
@@ -247,8 +247,8 @@ module Database
         # @example
         #   account = Account.authenticate('rakaur', 'steveisawesome')
         #
-        def self.authenticate(login, password)
-            account = resolve(login).authenticate(password)
+        def self.authenticate(email, password)
+            account = resolve(email).authenticate(password)
         end
 
         #
@@ -257,15 +257,15 @@ module Database
         # drop his or her own account. For further documentation, see the full
         # admin_drop method.
         #
-        # @param [Object] login The login (or resolvable object) to be dropped
+        # @param [Object] email The email (or resolvable object) to be dropped
         # @param [String] password The password for the login
         # @raise [ResolveError] When no login matches what was requested
         # @raise [PasswordMismatchError] When the password is wrong
         # @example
         #   Account.drop('rakaur', 'steveisawesome')
         #
-        def self.drop(login, password)
-            account = authenticate(login, password)
+        def self.drop(email, password)
+            account = authenticate(email, password)
             admin_drop(account)
         end
 
@@ -277,13 +277,13 @@ module Database
         # fail to remove all related data, then a mysterious Sequel Database
         # error of any given variety might be raised.
         #
-        # @param [Object] login The login (or resolvable object) to be dropped
+        # @param [Object] email The email (or resolvable object) to be dropped
         # @raise [ResolveError] When no login matches what was requested
         # @example
         #   Account.admin_drop('rakaur@malkier.net')
         #
-        def self.admin_drop(login)
-            account = resolve(login)
+        def self.admin_drop(email)
+            account = resolve(email)
             @@droppers.each { |dropper| dropper.call(account) }
             @@users.delete(account.id)
 
@@ -447,8 +447,6 @@ module Database
 
             field = account_fields.find { |f| key.to_s == f.key }
             field ? field.value : nil
-
-            super
         end
 
         #
@@ -463,7 +461,7 @@ module Database
         # @param [String, #to_s] value The value to associate with the key
         # @return [String] The value that was stored
         # @example
-        #   account = Account.resolve('rakaur')
+        #   account = Account.resolve('rakaur@malkier.net')
         #   account[:website] = 'http://www.malkier.net/'
         #
         def []=(key, value)
@@ -474,10 +472,10 @@ module Database
                 field.update(:value => value.to_s)
             else
                 field = AccountField.new
-                field.key   = key.to_s
-                field.value = value.to_s
-
-                account_fields << field
+                field.account = self
+                field.key     = key.to_s
+                field.value   = value.to_s
+                field.save
             end
 
             value.to_s
@@ -503,13 +501,19 @@ module Database
         # the database rather than simply updating it.
         #
         # @param [String, #to_s] key The key to delete
+        # @return [AccountField] The just-deleted field
         # @example
         #   account = Account.resolve('rakaur')
         #   account.delete_field(:love_for_steve) # should be an error but isn't
         #
         def delete_field(key)
-            returns unless field = account_fields.find { |f| key.to_s = f.key }
-            field.delete
+            return unless field = account_fields.find { |f| key.to_s == f.key }
+            ret = field.delete
+
+            # force reloading of the account fields
+            account_fields(true)
+
+            ret
         end
 
         #
