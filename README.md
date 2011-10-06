@@ -38,7 +38,23 @@ ease-of-use and ease-of-hacking.
 
 [shrike]: http://github.com/rakaur/shrike/
 
-## Ruby Support ##
+Command-Line Options
+--------------------
+
+Ruby supports the following command-line options to modify its runtime behavior:
+
+    |------------+-------+--------------------|
+    |   option   | short |       action       |
+    |------------|-------|--------------------|
+    | --debug    | -d    | debug mode         |
+    | --help     | -h    | print usage info   |
+    | --no-fork  | -n    | run in foreground  |
+    | --quiet    | -q    | disable logging    |
+    | --version  | -v    | print version info |
+    |------------+-------+--------------------|
+
+Ruby Support
+------------
 
 Kythera has been extensively tested with multiple Ruby implementations. Kythera
 runs on all MRI / CRuby implementations, and will also run on Rubinius and
@@ -63,9 +79,16 @@ works out of the box. If you're using RVM, do this:
     $ gem install rubygems-update
     $ update_rubygems
 
-If all of these work out, Kythera should run just fine on JRuby.
+If all of these work out, Kythera should run normally on JRuby excepting
+background mode. JRuby does not provide the `Process.fork` call, and so it will
+run in the foreground. You can background it using `nohup`:
 
-## Runtime requirements ##
+    $ nohup bin/kythera -n &
+
+This will background it and redirect all output to `nohup.out`.
+
+Runtime Requirements
+--------------------
 
 This application has the following requirements:
 
@@ -95,7 +118,8 @@ If you want to run the unit tests you'll also need to install riot:
     $ gem install riot
     $ rake test
 
-## IRCd support ##
+IRCd Support
+------------
 
 Kythera is very modular and ships with support for many IRCds. In addition,
 due to its extensible design, adding support to IRCds is a fairly easy task.
@@ -113,7 +137,18 @@ due to its extensible design, adding support to IRCds is a fairly easy task.
 Other TS6-based IRCds *might* work. For now, the TS6 module only provides support
 for TS6-only networks. If you link a non-TS6 server, Kythera will ignore it.
 
-## Credits ##
+Operating System Support
+------------------------
+
+Kythera will probably run anywhere that Ruby will run. Platforms like Windows
+don't have the `fork` system call, and so it will not run in the background.
+The application is written primarily on Mac OS X 10.7.2, and frequently tested
+on FreeBSD 8.2 and Linux 2.6.37.2. If you have any trouble running the
+application that you think is operating system related, please file
+an [issue][] on [GitHub][].
+
+Credits
+-------
 
 This application is completely original. I'm sure to receive patches from other
 contributors from time to time, and this will be indicated in SCM commits.
@@ -128,7 +163,8 @@ contributors from time to time, and this will be indicated in SCM commits.
     | Tester         | rintaun  | Matt Lanigan       | rintaun@projectxero.net |
     |----------------+----------+--------------------+-------------------------|
 
-## Contact and Support ##
+Contact and Support
+-------------------
 
 We're not promising any hard and fast support, but we'll try to do our best.
 This is a hobby and we've enjoyed it, but we have real lives with real jobs and

@@ -71,8 +71,13 @@ class User
         @status_modes = {}
 
         # Do our user modes
+        unless umodes[0].chr == '+' or umodes[0].chr == '-'
+            umodes = "+#{umodes}"
+        end
+
         parse_modes(umodes)
 
+        # Add ourself to the users list and fire the event
         $users[key] = self
 
         $eventq.post(:user_added, self)

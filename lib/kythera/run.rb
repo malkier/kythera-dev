@@ -28,9 +28,15 @@ class Kythera
         # Some defaults for state
         logging  = true
         debug    = false
-        willfork = RUBY_PLATFORM =~ /win32/i ? false : true
         wd       = Dir.getwd
         $uplink  = nil
+
+        # Are we running on a platform that doesn't have fork?
+        if RUBY_PLATFORM =~ /win32/i or RUBY_PLATFORM =~ /java/i
+            willfork = false
+        else
+            willfork = true
+        end
 
         # Do command-line options
         opts = OptionParser.new
