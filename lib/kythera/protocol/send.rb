@@ -54,7 +54,7 @@ module Protocol
     end
 
     # :origin PART target :reason
-    def send_part(user, target, reason)
+    def send_part(origin, target, reason)
         assert { { :origin => String, :target => String, :reason => String } }
 
         raw ":#{origin} PART #{target} :#{reason}"
