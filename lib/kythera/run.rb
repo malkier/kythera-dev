@@ -287,7 +287,13 @@ class Kythera
     # Reload the configuration file
     def rehash
         $state.rehashing = true
-        load File.expand_path("../../#{$0}", File.dirname(__FILE__))
+
+        begin
+            load File.expand_path("../../#{$0}", File.dirname(__FILE__))
+        rescue Exception => err
+            $log.error "error reloading configuration: #{err}"
+            $state.rehashing = false
+        end
     end
 
     # Cleans up before exiting

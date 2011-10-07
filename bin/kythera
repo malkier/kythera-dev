@@ -93,6 +93,11 @@ configure do
     #
     # You can have as many of these as you like.
     #
+    # If you remove the active uplink block during a rehash, the application
+    # will NOT disconnect automatically (in case you were simply changing
+    # the host, or what have you). You will have to force a disconnection
+    # using the operator service if you want to abandon the active uplink.
+    #
     uplink 'moridin.ericw.org', 6699 do
         # How important is this uplink vs other uplinks? Can be anything
         # Can be any number, positive or negative. If missing, it's
