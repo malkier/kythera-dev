@@ -14,6 +14,9 @@ require 'kythera'
 # @param [Proc] block contains the actual configuration code
 #
 def configure(&block)
+    # If we're already running, this is a rehash
+    return rehash(&block) if $state and $state.rehashing
+
     # This is for storing random application states
     $state  = OpenStruct.new
     $config = Object.new
@@ -50,6 +53,33 @@ def configure_test(&block)
     end
 
     $config.instance_eval(&block)
+end
+
+# Reload the configuration file
+def rehash(&block)
+    return unless $state.rehashing
+
+    $log.info "reloading configuration file"
+
+    # Clear uplinks
+    $config.uplinks.clear
+
+    # Do the rehash
+    $config.instance_eval(&block)
+
+    # Update the services' configuration data
+    $services.each do |service|
+        service.config = $state.srv_cfg[service.class::NAME]
+    end
+
+    # Load any new extensions and update their configuration data
+    Extension.verify_and_load
+
+    # Done rehashing
+    $state.rehashing = false
+
+    # Let everyone know a rehash occured
+    $eventq.post(:rehash)
 end
 
 # Contains the methods that actually implement the configuration
@@ -163,8 +193,6 @@ module Kythera::Configuration
     # @param [Proc] block contains the actual configuration code
     #
     def daemon(&block)
-        return if @me
-
         @me = OpenStruct.new
         @me.extend(Kythera::Configuration::Daemon)
         @me.instance_eval(&block)

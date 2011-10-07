@@ -22,6 +22,7 @@ class Kythera
         check_ruby_version
 
         # Handle some signals
+        trap(:HUP)  { rehash   }
         trap(:INT)  { exit_app }
         trap(:TERM) { exit_app }
 
@@ -281,6 +282,12 @@ class Kythera
 
         # This is the child process
         Dir.chdir(wd)
+    end
+
+    # Reload the configuration file
+    def rehash
+        $state.rehashing = true
+        load File.expand_path("../../#{$0}", File.dirname(__FILE__))
     end
 
     # Cleans up before exiting

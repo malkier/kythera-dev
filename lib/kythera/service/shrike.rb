@@ -44,6 +44,14 @@ class ShrikeService < Service
         end
     end
 
+    # This is called during a rehash to update our configuration
+    # We should check it over for changes to implement, etc. - XXX
+    #
+    def config=(config)
+        @config = config
+        $log.debug 'shrike: configuration updated!'
+    end
+
     # This is all we do for now :)
     def initialize(config)
         @config = config

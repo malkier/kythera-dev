@@ -7,6 +7,8 @@
 # Rights to this code are documented in doc/license.md
 #
 
+$kythera = nil
+
 # Check for latest RubyGems version
 unless Gem::VERSION >= '1.8.0'
     puts "kythera: depends on rubygems >= 1.8.0"
