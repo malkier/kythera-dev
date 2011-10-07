@@ -82,7 +82,7 @@ module Protocol::P10
         assert { { :origin => String } } if origin
 
         del = user.has_mode_on_channel?(mode, channel)
-        chr = Channel.status_modes.values.find { |m| m == mode }
+        chr = Channel.status_modes.find { |flag, symbol| mode == symbol }[0]
         str = "#{del ? '-' : '+'}#{chr} #{user.uid}"
 
         if del
