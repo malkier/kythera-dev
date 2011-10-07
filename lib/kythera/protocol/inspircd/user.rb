@@ -13,25 +13,25 @@ require 'kythera'
 # This subclasses the base User class in `kythera/user.rb`
 class Protocol::InspIRCd::User < User
     # InspIRCd usermodes
-    @@user_modes = { 'i' => :invisible,
-                     'o' => :operator,
-                     's' => :receives_snotices,
-                     'w' => :wallop,
-                     'B' => :bot,
-                     'c' => :common_channels,
-                     'd' => :deaf,
-                     'g' => :caller_id,
-                     'G' => :censor,
-                     'h' => :help_op,
-                     'H' => :hidden_operator,
-                     'I' => :hidden_channels,
-                     'k' => :invulnerable,
-                     'Q' => :unethical,
-                     'r' => :registered,
-                     'R' => :registered_privmsg,
-                     'S' => :strip_color,
-                     'W' => :show_whois,
-                     'x' => :hidden_host }
+    @@modes = { 'i' => :invisible,
+                'o' => :operator,
+                's' => :receives_snotices,
+                'w' => :wallop,
+                'B' => :bot,
+                'c' => :common_channels,
+                'd' => :deaf,
+                'g' => :caller_id,
+                'G' => :censor,
+                'h' => :help_op,
+                'H' => :hidden_operator,
+                'I' => :hidden_channels,
+                'k' => :invulnerable,
+                'Q' => :unethical,
+                'r' => :registered,
+                'R' => :registered_privmsg,
+                'S' => :strip_color,
+                'W' => :show_whois,
+                'x' => :hidden_host }
 
     # The user's IP address
     attr_reader :ip

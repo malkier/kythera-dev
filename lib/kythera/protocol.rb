@@ -41,7 +41,7 @@ module Protocol
                    :modes => Array } }
 
         # Translate the mode symbols into an IRC mode string
-        imodes = User.user_modes.invert
+        imodes = User.modes.invert
         modes  = modes.sort.collect { |m| imodes[m] }.join('')
 
         # Some protocols use NICK, some use UID, and I like DRY

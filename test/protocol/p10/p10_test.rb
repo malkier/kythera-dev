@@ -108,6 +108,8 @@ context :p10 do
             asserts('registered?') { topic.has_mode?(:registered) }
             asserts('wallop?')     { topic.has_mode?(:wallop)     }
 
+            asserts('account') { topic.mode_param(:registered) }.equals 'rakaur'
+
             asserts(:uid)      .equals 'AAAAA'
             asserts(:nickname) .equals 'rakaur'
             asserts(:username) .equals 'rakaur'

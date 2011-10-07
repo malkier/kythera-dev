@@ -15,16 +15,19 @@ $users = IRCHash.new
 # This is just a base class; protocol modules should subclass this
 class User
     # Standard IRC user modes
-    @@user_modes = { 'i' => :invisible,
-                     'w' => :wallop,
-                     'o' => :operator }
+    @@modes = { 'i' => :invisible,
+                'w' => :wallop,
+                'o' => :operator }
 
-    # Attribute reader for `@@user_modes`
+    # Some IRCds have umode params
+    @@param_modes = {}
+
+    # Attribute reader for `@@modes`
     #
     # @return [Hash] a list of all user modes
     #
-    def self.user_modes
-        @@user_modes
+    def self.modes
+        @@modes
     end
 
     # A list of Channels we're on
@@ -69,13 +72,21 @@ class User
         @channels  = []
 
         @status_modes = {}
+        @param_modes  = {}
 
         # Do our user modes
         unless umodes[0].chr == '+' or umodes[0].chr == '-'
             umodes = "+#{umodes}"
         end
 
-        parse_modes(umodes)
+        # Pull the params off the mode string
+        modes, params = umodes.split(' ', 2)
+
+        # If we have params, tokenize them
+        params &&= params.split(' ')
+
+        # Now parse them
+        parse_modes(modes, params)
 
         # Add ourself to the users list and fire the event
         $users[key] = self
@@ -127,6 +138,17 @@ class User
         @modes.include?(mode)
     end
 
+    # Get a mode's param
+    #
+    # @param [Symbol] mode the mode symbol
+    # @return [String] the mode param's value
+    #
+    def mode_param(mode)
+        assert { { :mode => Symbol } }
+
+        @param_modes[mode]
+    end
+
     # Is this user an IRC operator?
     #
     # @return [True, False]
@@ -139,7 +161,7 @@ class User
     #
     # @param [String] modes the mode string
     #
-    def parse_modes(modes)
+    def parse_modes(modes, params = nil)
         assert { { :modes => String } }
 
         action = nil # :add or :delete
@@ -156,23 +178,34 @@ class User
             end
 
             # Do we know about this mode and what it means?
-            if @@user_modes.include?(c)
-                mode  = @@user_modes[c]
-
+            if mode = @@modes[c]
                 if action == :add
                     @modes << mode
-                else
+                elsif action == :delete
                     @modes.delete(mode)
                 end
 
-                $log.debug "mode #{action}: #{self} -> #{mode}"
+            elsif mode = @@param_modes[c]
+                param = params.shift
+
+                if action == :add
+                    @modes << mode
+                    @param_modes[mode] = param
+                elsif action == :delete
+                    @modes.delete(mode)
+                    @param_modes.delete(mode)
+                end
             end
 
-            # Post an event for it
-            if action == :add
-                $eventq.post(:mode_added_to_user, mode, self)
-            elsif action == :delete
-                $eventq.post(:mode_deleted_from_user, mode, self)
+            if mode
+                # Post an event for it
+                if action == :add
+                    $eventq.post(:mode_added_to_user, mode, param, self)
+                elsif action == :delete
+                    $eventq.post(:mode_deleted_from_user, mode, param, self)
+                end
+
+                $log.debug "mode #{action}: #{self} -> #{mode} #{param}"
             end
         end
     end

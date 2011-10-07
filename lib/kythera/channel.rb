@@ -113,58 +113,49 @@ class Channel
             end
 
             # Status modes
-            if @@status_modes.include?(c)
-                mode  = @@status_modes[c]
+            if mode = @@status_modes[c]
                 param = params.shift
+                parse_status_mode(action, mode, param)
 
             # List modes
-            elsif @@list_modes.include?(c)
-                mode  = @@list_modes[c]
+            elsif mode = @@list_modes[c]
                 param = params.shift
 
                 if action == :add
                     @list_modes[mode] << param
-                else
+                elsif action == :delete
                     @list_modes[mode].delete(param)
                 end
 
             # Has a param when +, doesn't when -
-            elsif @@param_modes.include?(c)
-                mode   = @@param_modes[c]
-                param  = params.shift
-
+            elsif mode = @@param_modes[c]
                 if action == :add
+                    param = params.shift
+                    @modes << mode
                     @param_modes[mode] = param
-                else
+                elsif action == :delete
+                    @modes.delete(mode)
                     @param_modes.delete(mode)
                 end
 
             # The rest, no param
-            elsif @@bool_modes.include?(c)
-                mode = @@bool_modes[c]
-            end
-
-            if @@bool_modes.include?(c) or @@param_modes.include?(c)
-                # Add boolean/param modes to the channel's modes
+            elsif mode = @@bool_modes[c]
                 if action == :add
                     @modes << mode
-                else
+                elsif action == :delete
                     @modes.delete(mode)
                 end
             end
 
-            $log.debug "mode #{action}: #{self} -> #{mode} #{param}"
+            if mode
+                # Post an event for it
+                if action == :add
+                    $eventq.post(:mode_added_on_channel, mode, param, self)
+                elsif action == :delete
+                    $eventq.post(:mode_deleted_on_channel, mode, param, self)
+                end
 
-            # Status modes for users get tossed to another method so that
-            # how they work can be monkeypatched by protocol modules
-            #
-            parse_status_mode(action, mode, param) if @@status_modes.include?(c)
-
-            # Post an event for it
-            if action == :add
-                $eventq.post(:mode_added_on_channel, mode, param, self)
-            elsif action == :delete
-                $eventq.post(:mode_deleted_on_channel, mode, param, self)
+                $log.debug "mode #{action}: #{self} -> #{mode} #{param}"
             end
         end
     end
