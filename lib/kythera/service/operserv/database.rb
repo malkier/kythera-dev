@@ -34,7 +34,8 @@ module Database
         #   OperatorService.grant(account, :akill)
         #
         def self.grant(account, privilege)
-            account["#{PRIV_PREFIX}.#{privilege}"] = true
+            assert { :account }
+            account["#{PREFIX}.#{privilege}"] = true
         end
 
         #
@@ -47,7 +48,13 @@ module Database
         #   OperatorService.revoke(account, :stats)
         #
         def self.revoke(account, privilege)
-            account.delete_flag("#{PRIV_PREFIX}.#{privilege}")
+            assert { :account }
+            account.delete_field("#{PREFIX}.#{privilege}")
+        end
+
+        def self.has_privilege?(account, privilege)
+            assert { account }
+            !! account["#{PREFIX}.#{privilege}"]
         end
 
         #
@@ -55,20 +62,34 @@ module Database
         #
         class Helper < Account::Helper
             #
-            # This defines a method for each privilege so that the privilege can
-            # be checked quickly, based on the values in
-            # OperatorService::PRIVILEGES.
+            # Tracks whether this object has been created before, to cache
+            # setting up the methods for this class.
             #
-            # @example
-            #   account = Account.resolve('rakaur@malkier.net')
-            #   account.os.akill? # true
-            #   account = Account.resolve('sycobuny@malkier.net')
-            #   account.os.stats? # false
-            ::OperatorService::PRIVILEGES.each do |privilege|
-                meth = "#{privilege.to_s}?".to_sym
-                define_method(meth) do
-                    @account["#{PREFIX}.#{privilege}"]
-                end
+            @@first_run = true
+
+            def initialize(*args)
+                #
+                # This defines a method for each privilege so that the privilege
+                # can be checked quickly, based on the values in
+                # OperatorService::PRIVILEGES.
+                #
+                # @example
+                #   account = Account.resolve('rakaur@malkier.net')
+                #   account.os.akill? # true
+                #   account = Account.resolve('sycobuny@malkier.net')
+                #   account.os.stats? # false
+                ::OperatorService::PRIVILEGES.each do |privilege|
+                    meth = "#{privilege.to_s}?".to_sym
+
+                    self.class.instance_eval do
+                        define_method(meth) do
+                            OperatorService.has_privilege?(@account, privilege)
+                        end
+                    end
+                end if @@first_run
+
+                @@first_run = false
+                super
             end
 
             #

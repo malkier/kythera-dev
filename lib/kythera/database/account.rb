@@ -160,12 +160,13 @@ module Database
         #
         def self.helper(aliases, klass)
             aliases = *aliases
-            prime_alias = aliases.shift.to_sym
+            prime_alias = aliases[0].to_sym
 
-            define_method(prime_alias) do
-                @helpers[prime_alias] ||= klass.new(self)
+            aliases.each do |meth|
+                define_method(meth) do
+                    @helpers[prime_alias] ||= klass.new(self)
+                end
             end
-            aliases.each { |a| define_method(a.to_sym) { prime_alias } }
         end
 
         #

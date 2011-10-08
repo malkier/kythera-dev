@@ -1,7 +1,7 @@
 # -*- Mode: Ruby; tab-width: 2; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
-# test/protocol/core.rb: tests the core database models' API
+# test/database/core_test.rb: tests the core database models' API
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
 # Copyright (c) 2011 Stephen Belcher <sycobuny@malkier.net>
@@ -59,6 +59,7 @@ end
 
 context :database do
   setup do
+    $config.me.logging = :debug
     $db.run 'DELETE FROM account_fields'
     $db.run 'DELETE FROM accounts'
   end
@@ -68,8 +69,8 @@ context :database do
       Database::Account.new
     end
 
-    asserts_topic.kind_of? Database::Account
-    asserts(:users).kind_of? Array
+    asserts_topic.kind_of Database::Account
+    asserts(:users).kind_of Array
     asserts(:users).empty
   end
 
@@ -113,11 +114,12 @@ context :database do
 
   context 'sets up an account helper' do
     setup do
-      Database::Account.helper [:ht], AccountsTestHelper::HelperTest
+      Database::Account.helper [:ht, :helptest], AccountsTestHelper::HelperTest
       register.call(:sycobuny)
     end
 
-    asserts(:ht).kind_of? AccountsTestHelper::HelperTest
+    asserts(:ht).kind_of AccountsTestHelper::HelperTest
+    asserts(:helptest).kind_of AccountsTestHelper::HelperTest
     asserts('ht method returns the account') do
       topic.ht.test == topic
     end
