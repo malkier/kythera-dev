@@ -185,6 +185,7 @@ configure do
         # The channel the client joins and sends certain messages to
         #
         # Comment to disable
+        #
         channel '#malkier'
 
         # The users that have special privileges with the service

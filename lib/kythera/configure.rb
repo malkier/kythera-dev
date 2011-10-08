@@ -10,7 +10,6 @@
 require 'kythera'
 
 # An exception used to control configuration errors
-#
 class ConfigurationError < Exception
 end
 

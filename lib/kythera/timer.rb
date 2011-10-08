@@ -81,15 +81,6 @@ class Timer
         @@timers.each { |t| t.stop }
     end
 
-    # Returns the Unix timestamp of the next time a timer should run
-    #
-    # @return [Fixnum] time until next timer needs to execute
-    #
-    def Timer.next_time
-        return 0 if @@timers.empty?
-        @@timers.collect { |t| t.timeout }.min
-    end
-
     # Kills the thread we're in
     def stop
         return if @persist

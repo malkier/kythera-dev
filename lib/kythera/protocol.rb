@@ -106,12 +106,8 @@ module Protocol
     def part(origin, target, reason = 'leaving')
         assert { { :origin => String, :target => String, :reason => String } }
 
-        unless user = $users[origin]
-            $log.warn 'cannot part nonexistent user from channel'
-            $log.warn "#{origin} -> #{target}"
-
-            return
-        end
+        user, channel = find_user_and_channel(origin, target, :PART)
+        return unless user and channel
 
         # Part the chanel
         send_part(origin, target, reason)
