@@ -9,10 +9,6 @@
 
 require 'kythera'
 
-# An exception used to control configuration errors
-class ConfigurationError < Exception
-end
-
 # Starts the parsing of the configuraiton DSL
 #
 # @param [Proc] block contains the actual configuration code
@@ -37,7 +33,18 @@ def configure(&block)
     end
 
     # The configuration magic begins here...
-    $config.instance_eval(&block)
+    error = catch(:error) { $config.instance_eval(&block) }
+
+    if error.kind_of?(Exception)
+        puts 'kythera: error loading configuration:'
+        puts "\t#{error}"
+
+        line = error.backtrace[1].split(':')[1]
+
+        puts "\t\t#{$0}:#{line}"
+
+        abort
+    end
 
     # Verify extension compatibility
     Extension.verify_and_load
@@ -68,18 +75,27 @@ def rehash(&block)
     # Are we being run with -d? We should keep it if so
     logging = $config.me.logging
 
-    # Clear uplinks
+    # Back up the current configuration data
+    daemon  = $config.me.dup
     uplinks = $config.uplinks.dup
     $config.uplinks.clear
 
     # Do the rehash
-    begin
-        $config.instance_eval(&block)
-    rescue ConfigurationError => err
-        $log.error "error reloading configuration: #{err}"
+    error = catch(:error) { $config.instance_eval(&block) }
 
+    if error.kind_of?(Exception)
+        puts 'kythera: error reloading configuration:'
+        puts "\t#{error}"
+
+        line = error.backtrace[1].split(':')[1]
+
+        puts "\t\t#{$0}:#{line}"
+
+        $config.me       = daemon
         $config.uplinks  = uplinks
         $state.rehashing = false
+
+        return false
     end
 
     # Restore debug mode if it was on
@@ -101,15 +117,17 @@ def rehash(&block)
 
     # Let everyone know a rehash occured
     $eventq.post(:rehash)
+
+    true
 end
 
 # Contains the methods that actually implement the configuration
 module Kythera::Configuration
     # Holds the settings for the daemon section
-    attr_reader :me
+    attr_accessor :me
 
     # Holds the settings for the uplink section
-    attr_reader :uplinks
+    attr_accessor :uplinks
 
     # Reports an error about an unknown directive
     def method_missing(meth, *args, &block)
@@ -216,7 +234,12 @@ module Kythera::Configuration
     def daemon(&block)
         @me = OpenStruct.new
         @me.extend(Kythera::Configuration::Daemon)
-        @me.instance_eval(&block)
+
+        begin
+            @me.instance_eval(&block)
+        rescue Exception => err
+            throw :error, err
+        end
     end
 
     # Parses the `uplink` section of the configuration
@@ -225,14 +248,19 @@ module Kythera::Configuration
     # @param [Proc] block contains the actual configuraiton code
     #
     def uplink(host, port = 6667, &block)
-        ul      = OpenStruct.new
-        ul.host = host.to_s
-        ul.port = port.to_i
-
+        ul = OpenStruct.new
         ul.extend(Kythera::Configuration::Uplink)
-        ul.instance_eval(&block)
 
-        ul.name ||= host.to_s
+        begin
+            ul.host = host.to_s
+            ul.port = port.to_i
+
+            ul.instance_eval(&block)
+        rescue Exception => err
+            throw :error, err
+        end
+
+        ul.name ||= ul.host
 
         (@uplinks ||= []) << ul
 
