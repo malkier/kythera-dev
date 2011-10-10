@@ -47,7 +47,7 @@ module Log
         def call(severity, time, progname, msg)
             severity = severity[0].chr
             datetime = time.strftime('%m/%d %H:%M:%S')
-            progname = caller[3].split('/')[-1]
+            progname = caller[3].split(File::SEPARATOR)[-1]
 
             # Include filename, line number, and method name in debug
             if severity == "DEBUG"

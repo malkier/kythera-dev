@@ -92,7 +92,7 @@ module Protocol::Unreal
                 return
             end
 
-            $eventq.post(:nickname_changed, user, parv[0])
+            $eventq.post(:nickname_changed, user, user.nickname)
             $log.debug "nick change: #{user} -> #{parv[0]}"
 
             oldnick = user.nickname

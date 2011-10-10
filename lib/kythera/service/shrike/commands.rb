@@ -12,6 +12,13 @@ require 'kythera'
 class ShrikeService < Service
     private
 
+    # This command makes the entire application shut down.
+    def do_shutdown(user, params)
+        return unless is_sra?(user.nickname) # XXX account, not nickname
+
+        $eventq.post(:exit, "#{user}: #{params.join(' ')}")
+    end
+
     # This is dangerous, and is only here for my testing purposes!
     def do_raw(user, params)
         return unless is_sra?(user.nickname) # XXX account, not nickname

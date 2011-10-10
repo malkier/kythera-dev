@@ -97,14 +97,31 @@ class Kythera
 
         # Enter the main event loop
         begin
-            main_loop
+            exiting = catch(:exit) { main_loop }
         rescue Exception => err
-            $log.fatal("exception in main_loop: #{err}")
-            $log.fatal("backtrace: #{err.backtrace.join("\n\t\t\t")}")
+            # Make the backtrace prettier, even though the code is ugly
+            bt = err.backtrace.collect do |stacklevel|
+                li = stacklevel.split(File::SEPARATOR)
+
+                if li.include?('lib')
+                    li[(li.rindex('kythera') + 1) .. -1].join(File::SEPARATOR)
+                else
+                    li.join(File::SEPARATOR)
+                end
+            end
+
+            # Log the error and the full backtrace
+            $log.fatal("unhandled exception: #{err}")
+            $log.fatal("backtrace:\n\t\t\t#{bt.join("\n\t\t\t")}")
+
+            # Exit cleanly
             exit_app
         end
 
-        # If we get to here we're exiting (this is a normal termination)
+        # We only get here if something did a `throw :exit`
+        $log.info "shutting down: #{exiting}"
+
+        # Exit cleanly
         exit_app
     end
 
