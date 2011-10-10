@@ -95,17 +95,17 @@ class EventQueue
         while e = @queue.shift
             if e.event == :exit
                 exiting = e
+                next
+            end
 
-            elsif @handlers[e.event]
+            if @handlers[e.event]
                 #$log.debug "dispatching handlers for event: #{e.event}"
                 @handlers[e.event].each { |block| block.call(*e.args) }
+            end
 
-            elsif @persistents[e.event]
+            if @persistents[e.event]
                 #$log.debug "dispatching persistents for event: #{e.event}"
                 @persistents[e.event].each { |block| block.call(*e.args) }
-
-            else
-                next # No handlers
             end
         end
 
