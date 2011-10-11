@@ -77,12 +77,14 @@ module Kythera::Configuration
     # @param [Symbol] name name of the service
     #
     def service(name, &block)
-        # Start by loading the service
-        begin
-            require "kythera/service/#{name}"
-        rescue LoadError
-            puts "kythera: couldn't load service: #{name} (ignored)"
-            return
+        # Load it if it's not loaded
+        unless Service.services_classes.find { |s| s::NAME == name }
+            begin
+                require "kythera/service/#{name}"
+            rescue LoadError
+                puts "kythera: couldn't load service: #{name} (ignored)"
+                return
+            end
         end
 
         # That's all we need to do unless there's config to parse

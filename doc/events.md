@@ -82,17 +82,17 @@ Channel Events
 User Events
 -----------
 
-    |------------------------+----------------+-----------------------|
-    |       event name       |   parameters   |      posted when      |
-    |------------------------|----------------|-----------------------|
-    | user_added             | User           | user connected        |
-    | user_deleted           | User           | user departed         |
-    | user_joined_channel    | User, Channel  | User joined a Channel |
-    | user_parted_channel    | User, Channel  | User parted a Channel |
-    | mode_added_to_user     | Symbol, User   | set +mode on User     |
-    | mode_deleted_from_user | Symbol, User   | set -mode on User     |
-    | nickname_changed       | User, new nick | user /nick'd          |
-    |------------------------+----------------+-----------------------|
+    |------------------------+------------------------+-----------------------|
+    |       event name       |       parameters       |      posted when      |
+    |------------------------|------------------------|-----------------------|
+    | user_added             | User                   | user connected        |
+    | user_deleted           | User                   | user departed         |
+    | user_joined_channel    | User, Channel          | User joined a Channel |
+    | user_parted_channel    | User, Channel          | User parted a Channel |
+    | mode_added_to_user     | Symbol, param, User    | set +mode on User     |
+    | mode_deleted_from_user | Symbol, param, User    | set -mode on User     |
+    | nickname_changed       | User, new nick         | user /nick'd          |
+    |------------------------+------------------------+-----------------------|
 
 Server Events
 --------------
