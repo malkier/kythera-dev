@@ -61,8 +61,8 @@ module Protocol::InspIRCd
 
     # Toggle a status mode for a User on a Channel
     #
-    # @param [User] user the User to be opped/deopped
-    # @param [Channel] channel the Channel to op/deop on
+    # @param [User] user the User to perform the mode on
+    # @param [Channel] channel the Channel to perform the mode on
     # @param [Symbol] mode the mode to toggle
     # @param [String] origin optionally specify a setter for the mode
     #
@@ -71,15 +71,15 @@ module Protocol::InspIRCd
         assert { { :mode => Symbol } }
 
         del = user.has_mode_on_channel?(mode, channel)
-        chr = Channel.status_modes.find { |k, v| v == mode }
+        chr = Channel.status_modes.find { |flag, symbol| mode == symbol }[0]
         str = "#{del ? '-' : '+'}#{chr} #{user.uid}"
 
         if del
             user.delete_status_mode(channel, mode)
-            $eventq.post(:mode_added_on_channel, mode, user, channel)
+            $eventq.post(:mode_deleted_on_channel, mode, user, channel)
         else
             user.add_status_mode(channel, mode)
-            $eventq.post(:mode_deleted_on_channel, mode, user, channel)
+            $eventq.post(:mode_added_on_channel, mode, user, channel)
         end
 
         send_fmode(origin ? origin.uid : nil, channel, channel.timestamp, str)
