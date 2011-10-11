@@ -1,7 +1,7 @@
 # -*- Mode: Ruby; tab-width: 4; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
-# lib/kythera/protocol/ts6/server.rb: TS6-specific Server class
+# lib/kythera/protocol/p10/server.rb: P10-specific Server class
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
 # Rights to this code are documented in doc/license.md
@@ -10,7 +10,7 @@
 require 'kythera'
 
 # This subclasses the base Server class in `kythera/server.rb`
-class Protocol::TS6::Server < Server
+class Protocol::P10::Server < Server
     # The server's SID
     attr_reader :sid
 

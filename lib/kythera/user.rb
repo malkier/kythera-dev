@@ -4,7 +4,7 @@
 # lib/kythera/user.rb: User class
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
-# Rights to this code are documented in doc/license.txt
+# Rights to this code are documented in doc/license.md
 #
 
 require 'kythera'
@@ -15,9 +15,20 @@ $users = IRCHash.new
 # This is just a base class; protocol modules should subclass this
 class User
     # Standard IRC user modes
-    @@user_modes = { 'i' => :invisible,
-                     'w' => :wallop,
-                     'o' => :operator }
+    @@modes = { 'i' => :invisible,
+                'w' => :wallop,
+                'o' => :operator }
+
+    # Some IRCds have umode params
+    @@param_modes = {}
+
+    # Attribute reader for `@@modes`
+    #
+    # @return [Hash] a list of all user modes
+    #
+    def self.modes
+        @@modes
+    end
 
     # A list of Channels we're on
     attr_reader :channels
@@ -37,30 +48,47 @@ class User
     # The user's gecos/realname
     attr_reader :realname
 
+    # The user's timestamp
+    attr_accessor :timestamp
+
     # A Hash keyed by Channel of the user's status modes
     attr_reader :status_modes
 
     # Creates a new user. Should be patched by the protocol module.
-    def initialize(server, nick, user, host, real, umodes)
-        assert {{ :nick   => String,
-                  :user   => String,
-                  :host   => String,
-                  :real   => String,
-                  :umodes => String }}
+    def initialize(server, nick, user, host, real, umodes, timestamp = nil)
+        assert { { :nick   => String,
+                   :user   => String,
+                   :host   => String,
+                   :real   => String,
+                   :umodes => String } }
 
-        @server   = server
-        @nickname = nick
-        @username = user
-        @hostname = host
-        @realname = real
-        @modes    = []
-        @channels = []
+        @server    = server
+        @nickname  = nick
+        @username  = user
+        @hostname  = host
+        @realname  = real
+        @timestamp = (timestamp || Time.now).to_i
+        @modes     = []
+        @channels  = []
 
         @status_modes = {}
+        @param_modes  = {}
 
         # Do our user modes
-        parse_modes(umodes)
+        unless umodes[0].chr == '+' or umodes[0].chr == '-'
+            umodes = "+#{umodes}"
+        end
 
+        # Pull the params off the mode string
+        modes, params = umodes.split(' ', 2)
+
+        # If we have params, tokenize them
+        params &&= params.split(' ')
+
+        # Now parse them
+        parse_modes(modes, params)
+
+        # Add ourself to the users list and fire the event
         $users[key] = self
 
         $eventq.post(:user_added, self)
@@ -110,6 +138,17 @@ class User
         @modes.include?(mode)
     end
 
+    # Get a mode's param
+    #
+    # @param [Symbol] mode the mode symbol
+    # @return [String] the mode param's value
+    #
+    def mode_param(mode)
+        assert { { :mode => Symbol } }
+
+        @param_modes[mode]
+    end
+
     # Is this user an IRC operator?
     #
     # @return [True, False]
@@ -122,7 +161,7 @@ class User
     #
     # @param [String] modes the mode string
     #
-    def parse_modes(modes)
+    def parse_modes(modes, params = nil)
         assert { { :modes => String } }
 
         action = nil # :add or :delete
@@ -139,23 +178,34 @@ class User
             end
 
             # Do we know about this mode and what it means?
-            if @@user_modes.include?(c)
-                mode  = @@user_modes[c]
-
+            if mode = @@modes[c]
                 if action == :add
                     @modes << mode
-                else
+                elsif action == :delete
                     @modes.delete(mode)
                 end
 
-                $log.debug "mode #{action}: #{self} -> #{mode}"
+            elsif mode = @@param_modes[c]
+                param = params.shift
+
+                if action == :add
+                    @modes << mode
+                    @param_modes[mode] = param
+                elsif action == :delete
+                    @modes.delete(mode)
+                    @param_modes.delete(mode)
+                end
             end
 
-            # Post an event for it
-            if action == :add
-                $eventq.post(:mode_added_to_user, mode, self)
-            elsif action == :delete
-                $eventq.post(:mode_deleted_from_user, mode, self)
+            if mode
+                # Post an event for it
+                if action == :add
+                    $eventq.post(:mode_added_to_user, mode, param, self)
+                elsif action == :delete
+                    $eventq.post(:mode_deleted_from_user, mode, param, self)
+                end
+
+                $log.debug "mode #{action}: #{self} -> #{mode} #{param}"
             end
         end
     end

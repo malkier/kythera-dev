@@ -1,7 +1,7 @@
     kythera: services for IRC networks
 
     Copyright (c) 2011 Eric Will <rakaur@malkier.net>
-    Rights to this code are documented in doc/license.txt
+    Rights to this code are documented in doc/license.md
 
 Extensions Interface
 ====================
@@ -9,7 +9,7 @@ Extensions Interface
 A good structure would be:
 
   * `extensions/my_extension/`
-    * `extensions/my_extension/extension.rb`
+    * `extensions/my_extension/header.rb`
     * `extensions/my_extension/my_extension.rb`
     * `extensions/my_extension/other_files.rb`
 
@@ -20,7 +20,7 @@ subclassing the `Extension` class:
 
     require 'kythera'
 
-    class MyExtension < Extension
+    class MyExtensionHeader < Extension
         NAME = :my_extension        # The human-readable name for your extension
         
         KYTHERA_VERSION = '~> 1.0'  # The RubyGems-style dependency string
@@ -93,7 +93,7 @@ You could then access the value of `some_setting` like: `@config.some_setting`.
 
 Neat, huh?
 
-For more detailed configurations, check out `extensions/example/extension.rb`,
+For more detailed configurations, check out `extensions/example/header.rb`,
 and maybe `lib/kythera/service/shrike/configuration.rb'.`
 
 A Few Notes

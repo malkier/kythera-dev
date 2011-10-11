@@ -4,7 +4,7 @@
 # test/config_test.rb: tests the configuration
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
-# Rights to this code are documented in doc/license.txt
+# Rights to this code are documented in doc/license.md
 #
 
 require File.expand_path('teststrap', File.dirname(__FILE__))

@@ -1,4 +1,7 @@
 *.rbc
+.rbx
 .rvmrc
+.bundle
+.yardoc
 var/*.log*
 db/*.db

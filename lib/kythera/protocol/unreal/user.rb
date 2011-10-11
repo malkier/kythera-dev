@@ -5,7 +5,7 @@
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
 # Copyright (c) 2011 Andrew Herbig <goforit7arh@gmail.com>
-# Rights to this code are documented in doc/license.txt
+# Rights to this code are documented in doc/license.md
 #
 
 require 'kythera'
@@ -13,53 +13,40 @@ require 'kythera'
 # This subclasses the base User class in `kythera/user.rb`
 class Protocol::Unreal::User < User
     # Unreal's user modes
-    @@user_modes = { 'A' => :server_admin,
-                     'a' => :services_admin,
-                     'B' => :bot,
-                     'C' => :co_admin,
-                     'd' => :deaf,
-                     'G' => :censored,
-                     'g' => :oper_talk,
-                     'H' => :hide_ircop,
-                     'h' => :helper,
-                     'i' => :invisible,
-                     'N' => :net_admin,
-                     'O' => :local_oper,
-                     'o' => :global_oper,
-                     'p' => :hide_whois_channels,
-                     'q' => :unkickable,
-                     'R' => :registered_privmsg,
-                     'r' => :registered,
-                     'S' => :service,
-                     's' => :receives_snotices,
-                     'T' => :no_ctcp,
-                     't' => :vhost,
-                     'V' => :webtv,
-                     'v' => :dcc_infection_notices,
-                     'W' => :see_whois,
-                     'w' => :wallop,
-                     'x' => :hidden_host,
-                     'z' => :ssl }
-
-     # The user's timestamp
-     attr_accessor :timestamp
+    @@modes = { 'A' => :server_admin,
+                'a' => :services_admin,
+                'B' => :bot,
+                'C' => :co_admin,
+                'd' => :deaf,
+                'G' => :censored,
+                'g' => :oper_talk,
+                'H' => :hidden_operator,
+                'h' => :helper,
+                'i' => :invisible,
+                'N' => :net_admin,
+                'o' => :operator,
+                'p' => :hidden_channels,
+                'q' => :invulnerable,
+                'R' => :registered_privmsg,
+                'r' => :registered,
+                'S' => :service,
+                's' => :receives_snotices,
+                'T' => :no_ctcp,
+                't' => :vhost,
+                'V' => :webtv,
+                'v' => :dcc_infection_notices,
+                'W' => :see_whois,
+                'w' => :wallop,
+                'x' => :hidden_host,
+                'z' => :ssl }
 
      # The user's virtual host/spoof
      attr_reader :vhost
 
     # Creates a new user and adds it to the list keyed by nick
     def initialize(server, nick, user, host, real, umodes, ts, vhost = nil)
-        @timestamp = ts.to_i
-        @vhost     = vhost || host
+        @vhost = vhost || host
 
-        super(server, nick, user, host, real, umodes)
-    end
-
-    # Is this user an IRC operator?
-    #
-    # @return [True, False]
-    #
-    def operator?
-        @modes.include?(:global_oper)
+        super(server, nick, user, host, real, umodes, ts)
     end
 end

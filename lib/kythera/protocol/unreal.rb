@@ -5,7 +5,7 @@
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
 # Copyright (c) 2011 Andrew Herbig <goforit7arh@gmail.com>
-# Rights to this code are documented in doc/license.txt
+# Rights to this code are documented in doc/license.md
 #
 
 require 'kythera'
@@ -23,25 +23,6 @@ module Protocol::Unreal
     include Protocol
 
     public
-
-    # Introduces a pseudo-client to the network
-    #
-    # @param [String] nick user's nickname
-    # @param [String] user user's username
-    # @param [String] host user's hostname
-    # @param [String] real user's realname / gecos
-    #
-    def introduce_user(nick, user, host, real, modes = '')
-        assert { { :nick  => String,
-                   :user  => String,
-                   :host  => String,
-                   :real  => String,
-                   :modes => String } }
-
-        modes += 'S' unless modes.include?('S')
-
-        send_nick(nick, user, host, real, modes)
-    end
 
     # Makes one of our clients join a channel
     #

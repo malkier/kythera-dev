@@ -5,7 +5,7 @@
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
 # Copyright (c) 2011 Andrew Herbig <goforit7arh@gmail.com>
-# Rights to this code are documented in doc/license.txt
+# Rights to this code are documented in doc/license.md
 #
 
 require 'kythera'
@@ -90,7 +90,7 @@ module Protocol::Unreal
     end
 
     # :origin WALLOPS :message
-    def send_operwall(origin, message)
+    def send_wallop(origin, message)
         assert { { :origin => String, :message => String } }
 
         raw ":#{origin} WALLOPS :#{message}"

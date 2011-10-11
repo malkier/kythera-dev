@@ -4,7 +4,7 @@
 # lib/kythera/channel.rb: Channel class
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
-# Rights to this code are documented in doc/license.txt
+# Rights to this code are documented in doc/license.md
 #
 
 require 'kythera'
@@ -47,11 +47,15 @@ class Channel
     # A Hash of members keyed by nickname
     attr_reader :members
 
-    # Creates a new channel. Should be patched by the protocol module.
-    def initialize(name)
+    # The channel's timestamp
+    attr_reader :timestamp
+
+    # Creates a new channel; can be extended by the protocol module
+    def initialize(name, timestamp = nil)
         assert { { :name => String } }
 
-        @name = name
+        @name      = name
+        @timestamp = (timestamp || Time.now).to_i
 
         # Keyed by nickname by default
         @members = IRCHash.new
@@ -70,6 +74,21 @@ class Channel
     # String representation is just `@name`
     def to_s
         @name
+    end
+
+    # Writer for `@timestamp`
+    #
+    # @param timestamp new timestamp
+    #
+    def timestamp=(timestamp)
+        if timestamp.to_i > @timestamp
+            $log.warn "changing timestamp to a later value?"
+            $log.warn "#{@name} -> #{timestamp} > #{@timestamp}"
+        end
+
+        $log.debug "#{@name}: timestamp changed: #{@timestamp} -> #{timestamp}"
+
+        @timestamp = timestamp.to_i
     end
 
     # Parses a mode string and updates channel state
@@ -94,69 +113,49 @@ class Channel
             end
 
             # Status modes
-            if @@status_modes.include?(c)
-                mode  = @@status_modes[c]
+            if mode = @@status_modes[c]
                 param = params.shift
+                parse_status_mode(action, mode, param)
 
             # List modes
-            elsif @@list_modes.include?(c)
-                mode  = @@list_modes[c]
+            elsif mode = @@list_modes[c]
                 param = params.shift
 
                 if action == :add
                     @list_modes[mode] << param
-                else
+                elsif action == :delete
                     @list_modes[mode].delete(param)
                 end
 
-            # Always has a param (some send the key, some send '*')
-            elsif c == 'k'
-                mode  = :keyed
-                param = params.shift
-
-                if action == :add
-                    @param_modes[:keyed] = param
-                else
-                  @param_modes.delete(:keyed)
-                end
-
             # Has a param when +, doesn't when -
-            elsif @@param_modes.include?(c)
-                mode   = @@param_modes[c]
-                param  = params.shift
-
+            elsif mode = @@param_modes[c]
                 if action == :add
+                    param = params.shift
+                    @modes << mode
                     @param_modes[mode] = param
-                else
+                elsif action == :delete
+                    @modes.delete(mode)
                     @param_modes.delete(mode)
                 end
 
             # The rest, no param
-            elsif @@bool_modes.include?(c)
-                mode = @@bool_modes[c]
-            end
-
-            if @@bool_modes.include?(c) or @@param_modes.include?(c)
-                # Add boolean/param modes to the channel's modes
+            elsif mode = @@bool_modes[c]
                 if action == :add
                     @modes << mode
-                else
+                elsif action == :delete
                     @modes.delete(mode)
                 end
             end
 
-            $log.debug "mode #{action}: #{self} -> #{mode} #{param}"
+            if mode
+                # Post an event for it
+                if action == :add
+                    $eventq.post(:mode_added_on_channel, mode, param, self)
+                elsif action == :delete
+                    $eventq.post(:mode_deleted_on_channel, mode, param, self)
+                end
 
-            # Status modes for users get tossed to another method so that
-            # how they work can be monkeypatched by protocol modules
-            #
-            parse_status_mode(action, mode, param) if @@status_modes.include?(c)
-
-            # Post an event for it
-            if action == :add
-                $eventq.post(:mode_added_on_channel, mode, param, self)
-            elsif action == :delete
-                $eventq.post(:mode_deleted_on_channel, mode, param, self)
+                $log.debug "mode #{action}: #{self} -> #{mode} #{param}"
             end
         end
     end

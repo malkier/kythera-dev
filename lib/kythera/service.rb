@@ -4,7 +4,7 @@
 # lib/kythera/service.rb: Service class
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
-# Rights to this code are documented in doc/license.txt
+# Rights to this code are documented in doc/license.md
 #
 
 require 'kythera'
@@ -38,8 +38,14 @@ class Service
     # Instantiate all of our services
     def self.instantiate
         @@services_classes.each do |srv|
-            next unless srv.verify_configuration
-            $services << srv.new
+            # Does this service have a configuration block?
+            next unless $state.srv_cfg and $state.srv_cfg[srv::NAME.to_sym]
+
+            cfg = $state.srv_cfg[srv::NAME.to_sym]
+
+            next unless srv.verify_configuration(cfg)
+
+            $services << srv.new(cfg)
         end
     end
 

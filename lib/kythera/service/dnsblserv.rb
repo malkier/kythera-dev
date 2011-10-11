@@ -5,7 +5,7 @@
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
 # Copyright (c) 2011 Michael Rodriguez <xiphias@khaydarin.net>
-# Rights to this code are documented in doc/license.txt
+# Rights to this code are documented in doc/license.md
 #
 
 require 'kythera'
@@ -33,9 +33,7 @@ class DNSBLService < Service
     #
     # @return [True, False]
     #
-    def self.verify_configuration
-        c = $config.dnsblserv
-
+    def self.verify_configuration(c)
         if not c or not c.blacklists or c.blacklists.empty?
             false
         else
@@ -44,9 +42,8 @@ class DNSBLService < Service
     end
 
     # Called by the daemon when we connect to the uplink
-    def initialize
-        # Shortcut to our configuration info
-        @config = $config.dnsblserv
+    def initialize(config)
+        @config = config
 
         # If a delay isn't provided in the config, assume it's zero
         @config.delay ||= 0

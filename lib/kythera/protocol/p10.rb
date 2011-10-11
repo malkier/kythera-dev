@@ -1,7 +1,7 @@
 # -*- Mode: Ruby; tab-width: 4; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
-# lib/kythera/protocol/ts6.rb: implements the TS6 protocol
+# lib/kythera/protocol/p10.rb: implements the P10 protocol
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
 # Rights to this code are documented in doc/license.md
@@ -9,21 +9,25 @@
 
 require 'kythera'
 
-module Protocol::TS6
+module Protocol::P10
 end
 
-require 'kythera/protocol/ts6/channel'
-require 'kythera/protocol/ts6/receive'
-require 'kythera/protocol/ts6/send'
-require 'kythera/protocol/ts6/server'
-require 'kythera/protocol/ts6/user'
+require 'kythera/protocol/p10/token'
+require 'kythera/protocol/p10/channel'
+require 'kythera/protocol/p10/receive'
+require 'kythera/protocol/p10/send'
+require 'kythera/protocol/p10/server'
+require 'kythera/protocol/p10/user'
 
-# Implements TS6 protocol-specific methods
-module Protocol::TS6
+# Implements P10 protocol-specific methods
+module Protocol::P10
     include Protocol
 
+    # Special constant for grabbing mode params in MODE
+    GET_MODE_PARAMS = 1 .. -2
+
     # The current UID for Services
-    @@current_uid = 'AAAAAA'
+    @@current_uid = 0
 
     public
 
@@ -47,11 +51,11 @@ module Protocol::TS6
             channel = Channel.new(target)
         end
 
-        # Use SJOIN only to create a channel
+        # Do we need to create the channel?
         if channel.members.empty?
-            ret = send_sjoin(channel.name, channel.timestamp, user.uid)
+            ret = send_create(user.uid, channel.name, channel.timestamp)
 
-            # SJOIN automatically ops them, keep state
+            # CREATE automatically ops them, keep state
             user.add_status_mode(channel, :operator)
             $eventq.post(:mode_added_on_channel, :operator, user, channel)
         else
@@ -91,6 +95,6 @@ module Protocol::TS6
 
         name, ts = channel.name, channel.timestamp
 
-        send_tmode(origin ? origin : nil, name, ts, str)
+        send_opmode(origin ? origin : @config.sid, name, str, ts)
     end
 end

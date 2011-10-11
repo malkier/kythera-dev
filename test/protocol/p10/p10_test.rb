@@ -1,7 +1,7 @@
 # -*- Mode: Ruby; tab-width: 2; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
-# test/protocol/unreal_test.rb: tests the Protocol::Unreal module
+# test/protocol/p10/p10_test.rb: tests the Protocol::P10 module
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
 # Rights to this code are documented in doc/license.md
@@ -9,14 +9,14 @@
 
 require File.expand_path('../../teststrap', File.dirname(__FILE__))
 
-context :unreal do
+context :p10 do
   hookup do
     $_daemon_block.call
     $_uplink_block.call
     $_logger_setup.call
 
-    require 'kythera/protocol/unreal'
-    $config.uplinks[0].protocol = :unreal
+    require 'kythera/protocol/p10'
+    $config.uplinks[0].protocol = :p10
   end
 
   setup do
@@ -25,8 +25,8 @@ context :unreal do
 
   denies_topic.nil
   asserts_topic.kind_of Uplink
-  asserts('protocol')   { topic.config.protocol     }.equals :unreal
-  asserts('casemapping') { topic.config.casemapping }.equals :ascii
+  asserts('protocol')   { topic.config.protocol     }.equals :p10
+  asserts('casemapping') { topic.config.casemapping }.equals :rfc1459
 
   context :parse do
     hookup do
@@ -38,8 +38,7 @@ context :unreal do
     asserts('responds to irc_pass')   { topic.respond_to?(:irc_pass,   true) }
     asserts('responds to irc_server') { topic.respond_to?(:irc_server, true) }
     asserts('responds to irc_nick')   { topic.respond_to?(:irc_nick,   true) }
-    asserts('responds to irc_sjoin')  { topic.respond_to?(:irc_sjoin,  true) }
-    asserts('responds to irc_ping')   { topic.respond_to?(:irc_ping,   true) }
+    asserts('responds to irc_burst')  { topic.respond_to?(:irc_burst,  true) }
     asserts('responds to irc_part')   { topic.respond_to?(:irc_part,   true) }
     asserts('responds to irc_quit')   { topic.respond_to?(:irc_quit,   true) }
     asserts('responds to irc_mode')   { topic.respond_to?(:irc_mode,   true) }
@@ -49,12 +48,12 @@ context :unreal do
     asserts('channels') { $channels.clear; $channels }.empty
     asserts('servers')  { $servers.clear;  $servers  }.empty
 
-    asserts(:burst) { topic.instance_variable_get(:@recvq) }.size 230
+    asserts(:burst) { topic.instance_variable_get(:@recvq) }.size 222
     asserts('parses') { topic.send(:parse) }
 
-    asserts('has 10 servers')   { $servers .length == 10  }
-    asserts('has 89 users')     { $users   .length == 89  }
-    asserts('has 100 channels') { $channels.length == 100 }
+    asserts('has 10 servers')  { $servers .length == 10 }
+    asserts('has 89 users')    { $users   .length == 89 }
+    asserts('has 96 channels') { $channels.length == 96 }
 
     context :servers do
       setup { $servers.values }
@@ -64,11 +63,12 @@ context :unreal do
       asserts(:size) { topic.length }.equals 10
 
       context :first do
-        setup { $servers['test.server.com'] }
+        setup { topic.find { |s| s.sid == 'UT' } }
 
         denies_topic.nil
         asserts_topic.kind_of Server
 
+        asserts(:sid)        .equals 'UT'
         asserts(:name)       .equals 'test.server.com'
         asserts(:description).equals 'test server'
 
@@ -81,13 +81,14 @@ context :unreal do
       end
 
       context :second do
-        setup { $servers['test.server1.com'] }
+        setup { topic.find { |s| s.sid == 'AA' } }
 
         denies_topic.nil
         asserts_topic.kind_of Server
 
-        asserts(:name)       .equals 'test.server1.com'
-        asserts(:description).equals 'server 1'
+        asserts(:sid)        .equals 'AA'
+        asserts(:name)       .equals 'test.serverAA.com'
+        asserts(:description).equals 'server AA'
 
         context :users do
           setup { topic.users }
@@ -97,24 +98,31 @@ context :unreal do
           asserts(:size) { topic.length }.equals 10
 
           context :first do
-            setup { topic.find { |s| s.nickname == 'rakaur' } }
+            setup { topic.find { |u| u.uid == 'AAAAA' } }
 
             denies_topic.nil
             asserts_topic.kind_of User
-            asserts(:operator?)
 
+            asserts(:operator?)
+            asserts('debug?')      { topic.has_mode?(:debug)      }
+            asserts('registered?') { topic.has_mode?(:registered) }
+            asserts('wallop?')     { topic.has_mode?(:wallop)     }
+
+            asserts('account') { topic.mode_param(:registered) }.equals 'rakaur'
+
+            asserts(:uid)      .equals 'AAAAA'
             asserts(:nickname) .equals 'rakaur'
             asserts(:username) .equals 'rakaur'
             asserts(:hostname) .equals 'malkier.net'
             asserts(:realname) .equals 'Eric Will'
+            asserts(:ip)       .equals '69.162.167.45'
             asserts(:timestamp).equals 1307151136
-            asserts(:vhost)    .equals 'malkier.net'
           end
         end
       end
 
       context :quit do
-        setup { $servers['test.server8.com'] }
+        setup { $servers['AI'] }
         asserts_topic.nil
       end
     end
@@ -126,68 +134,48 @@ context :unreal do
       asserts(:size) { topic.length }.equals 89
 
       context :first do
-        setup { topic.find { |u| u.nickname == 'rakaur' } }
+        setup { topic.find { |u| u.uid == 'AAAAA' } }
 
         denies_topic.nil
         asserts_topic.kind_of User
-
         asserts(:operator?)
-        asserts('co_admin?')        { topic.has_mode?(:co_admin)         }
-        asserts('deaf?')            { topic.has_mode?(:deaf)             }
-        asserts('censored?')        { topic.has_mode?(:censored)         }
-        asserts('hidden_operator?') { topic.has_mode?(:hidden_operator)  }
-        asserts('helper?')          { topic.has_mode?(:helper)           }
-        asserts('invisible?')       { topic.has_mode?(:invisible)        }
-        asserts('net_admin?')       { topic.has_mode?(:net_admin)        }
-        asserts('invulnerable?')    { topic.has_mode?(:invulnerable)     }
-        asserts('registered?')      { topic.has_mode?(:registered)       }
-        asserts('no_ctcp?')         { topic.has_mode?(:no_ctcp)          }
-        asserts('webtv?')           { topic.has_mode?(:webtv)            }
-        asserts('see_whois?')       { topic.has_mode?(:see_whois)        }
-        denies('service?')          { topic.has_mode?(:service)          }
 
+        asserts(:uid)      .equals 'AAAAA'
         asserts(:nickname) .equals 'rakaur'
         asserts(:username) .equals 'rakaur'
         asserts(:hostname) .equals 'malkier.net'
         asserts(:realname) .equals 'Eric Will'
+        asserts(:ip)       .equals '69.162.167.45'
         asserts(:timestamp).equals 1307151136
-        asserts(:vhost)    .equals 'malkier.net'
 
         asserts('is on #malkier') { topic.is_on?('#malkier') }
-        denies('is on #6')        { topic.is_on?('#6')       }
+        denies('is on #shyctp')   { topic.is_on?('#shyctp')  }
 
         asserts('is an operator on #malkier') do
           topic.has_mode_on_channel?(:operator, '#malkier')
         end
+
         asserts('is voiced on #malkier') do
           topic.has_mode_on_channel?(:voice, '#malkier')
-        end
-        asserts('is halfop on #malkier') do
-          topic.has_mode_on_channel?(:halfop, '#malkier')
-        end
-        asserts('is owner on #malkier') do
-          topic.has_mode_on_channel?(:owner, '#malkier')
-        end
-        asserts('is admin on #malkier') do
-          topic.has_mode_on_channel?(:admin, '#malkier')
         end
       end
 
       context :last do
-        setup { $users['test_nick'] }
+        setup { $users['AJAAJ'] }
 
+        asserts(:uid).equals 'AJAAJ'
         asserts(:nickname).equals 'test_nick'
         asserts(:timestamp).equals 1316970148
         asserts('is on #malkier') { topic.is_on?('#malkier') }
       end
 
       context :quit do
-        setup { $users['n81'] }
+        setup { $users['AJAAI'] }
         asserts_topic.nil
       end
 
       context :squit do
-        setup { $users['n79'] }
+        setup { $users['AIAAJ'] }
         asserts_topic.nil
       end
     end
@@ -196,7 +184,7 @@ context :unreal do
       setup { $channels.values }
 
       denies_topic.empty
-      asserts(:size) { topic.length }.equals 100
+      asserts(:size) { topic.length }.equals 96
 
       context :first do
         setup { topic.find { |c| c.name == '#malkier' } }
@@ -205,35 +193,27 @@ context :unreal do
         asserts_topic.kind_of Channel
 
         asserts(:name).equals '#malkier'
-        asserts('is flood protected') { topic.has_mode?(:flood_protection) }
-        asserts('is keyed')           { topic.has_mode?(:keyed)            }
-        asserts('is censored')        { topic.has_mode?(:censored)         }
-        asserts('is ircops only')     { topic.has_mode?(:ircops_only)      }
-        asserts('is secret')          { topic.has_mode?(:secret)           }
-        asserts('is topic locked')    { topic.has_mode?(:topic_lock)       }
-        asserts('is auditorium')      { topic.has_mode?(:auditorium)       }
-        asserts('is no invite')       { topic.has_mode?(:no_invite)        }
-        asserts('is SSL only')        { topic.has_mode?(:ssl_only)         }
-        asserts('is limited')         { topic.has_mode?(:limited)          }
-        asserts('is no_ansi')         { topic.has_mode?(:no_ansi)          }
-
-        asserts('flood') { topic.mode_param(:flood_protection) }.equals "10:5"
-        asserts('key')   { topic.mode_param(:keyed) }.equals 'partypants'
-        asserts('limit') { topic.mode_param(:limited) }.equals "15"
+        asserts('is invite only')  { topic.has_mode?(:invite_only) }
+        denies('is keyed')         { topic.has_mode?(:keyed)       }
+        asserts('is moderated')    { topic.has_mode?(:moderated)   }
+        asserts('is no external')  { topic.has_mode?(:no_external) }
+        asserts('is secret')       { topic.has_mode?(:secret)      }
+        asserts('is topic locked') { topic.has_mode?(:topic_lock)  }
+        asserts('is limited')      { topic.has_mode?(:limited)     }
+        asserts('limit')           { topic.mode_param(:limited) }.equals "15"
 
         denies('ts is banned')   { topic.is_banned?('*!invalid@time.stamp')    }
         asserts('dk is banned')  { topic.is_banned?('*!xiphias@khaydarin.net') }
-        asserts('jk is execpt')  { topic.is_excepted?('*!justin@othius.com')   }
-        asserts('wp is invexed') { topic.is_invexed?('*!nenolod@nenolod.net')  }
+        asserts('sa is banned')  { topic.is_banned?('stand!alone@ban')         }
 
-        asserts('rakaur is member') { topic.members['rakaur'] }
-        asserts('member count')     { topic.members.length }.equals 44
+        asserts('rakaur is member') { topic.members['AAAAA'] }
+        asserts('n98 is member')    { topic.members['AJAAH'] }
+        asserts('member count')     { topic.members.length }.equals 7
       end
 
       context :squit do
-        setup { $channels['#79'] }
-        denies_topic.nil
-        asserts('channel #79 member count') { topic.members.length }.equals 41
+        setup { $channels['#ewnkzv'] }
+        asserts_topic.nil
       end
     end
   end

@@ -4,7 +4,7 @@
 # lib/configure.rb: configuration DSL implementation
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
-# Rights to this code are documented in doc/license.txt
+# Rights to this code are documented in doc/license.md
 #
 
 require 'kythera'
@@ -91,6 +91,8 @@ module Kythera::Configuration
         # Find the Service's class
         srv = Service.services_classes.find { |s| s::NAME == name }
 
+        $state.srv_cfg ||= {}
+
         begin
             # Find the Service's configuration methods
             srv_config_parser = srv::Configuration
@@ -104,13 +106,8 @@ module Kythera::Configuration
             srv_config.extend(srv_config_parser)
             srv_config.instance_eval(&block)
 
-            # Store it in $config
-            instance_variable_set("@#{srv::NAME}", srv_config)
-
-            # Make it readable
-            Kythera::Configuration.class_exec do
-                attr_reader srv::NAME
-            end
+            # Store it in $state.ext_cfg
+            $state.srv_cfg[srv::NAME] = srv_config
         end
     end
 

@@ -1,7 +1,7 @@
     kythera: services for IRC networks
 
     Copyright (c) 2011 Eric Will <rakaur@malkier.net>
-    Rights to this code are documented in doc/license.txt
+    Rights to this code are documented in doc/license.md
 
 Service Interface
 =================
@@ -30,15 +30,17 @@ application will utilize to introduce your clients and to send events your way:
         # exists at all, whether required settings are defined or are invalid,
         # etc. Return a boolean value.
         #
-        def self.verify_configuration
-            if $config.respond_to?(:chanserv) and $config.chanserv
-                true
-            else
+        def self.verify_configuration(config)
+            unless config.some_setting
                 false
+            else
+                true
             end
         end
 
-        def initialize
+        def initialize(config)
+            @config = config
+
             # You're free to register any events you'd like to handle, however
             # your class will have an interface for receiving PRIVMSG sent to it
             # so that you don't have to parse _all_ PRIVMSGs.
@@ -110,12 +112,9 @@ Then, in `bin/kythera` (the configuration)
         end
     end
 
-The resulting `OpenStruct` is placed in `$config.NAME`, in this case as
-`$config.chanserv`.
-
 Neat, huh?
 
-For more detailed configurations, check out `extensions/example/extension.rb`,
+For more detailed configurations, check out `extensions/example/header.rb`,
 and maybe `lib/kythera/service/shrike/configuration.rb'.`
 
 * * *

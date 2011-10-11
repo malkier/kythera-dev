@@ -4,7 +4,7 @@
 # bin/kythera: configuration file
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
-# Rights to this code are documented in doc/license.txt
+# Rights to this code are documented in doc/license.md
 #
 
 $LOAD_PATH.unshift File.expand_path('../',    File.dirname(__FILE__))
@@ -113,11 +113,6 @@ configure do
         # Use this only if you have configured your IRCd appropriately.
         #ssl
 
-        # The server ID we should send to the uplink. If you're using `ts6`
-        # above, this must be set. The format is [0-9][A-Z0-9][A-Z0-9].
-        #
-        sid '0X0'
-
         # The password we send to the uplink upon connection.
         send_password :send_linkage
 
@@ -132,11 +127,22 @@ configure do
         # While you can have multiple uplinks, you cannot have different
         # protocols for different uplinks. Things will crash and burn.
         #
-        # For ircd-ratbox and charybdis this is `ts6`
-        # For UnrealIRCd this is `unreal`
-        # For InspIRCd this is `inspircd`
+        # :inspircd -- InspIRCd v1.2.8
+        # :p10      -- ircu v2.10.12.14
+        # :ts6      -- ircd-ratbox v2.2.9, charybdis v2.3.1
+        # :unreal   -- UnrealIRCd v3.2.8.1
         #
         protocol :ts6
+
+        # The server ID we should send to the uplink.
+        #
+        # If you're using :ts6 above, this must be set. The format is:
+        #     [0-9][A-Z0-9][A-Z0-9]
+        #
+        # If you're using :p10 above, this must be set. The format is:
+        #     [A-Z][A-Z]
+        #
+        sid '1KS'
     end
 
     # Still reading... :)

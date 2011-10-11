@@ -5,14 +5,14 @@
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
 # Copyright (c) 2011 Andrew Herbig <goforit7arh@gmail.com>
-# Rights to this code are documented in doc/license.txt
+# Rights to this code are documented in doc/license.md
 #
 
 module Protocol
     private
 
     # :origin OPERWALL :message
-    def send_operwall(origin, message)
+    def send_wallop(origin, message)
         assert { { :origin => String, :message => String } }
 
         raw ":#{origin} OPERWALL :#{message}"
@@ -54,7 +54,7 @@ module Protocol
     end
 
     # :origin PART target :reason
-    def send_part(user, target, reason)
+    def send_part(origin, target, reason)
         assert { { :origin => String, :target => String, :reason => String } }
 
         raw ":#{origin} PART #{target} :#{reason}"

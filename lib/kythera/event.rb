@@ -4,7 +4,7 @@
 # lib/kythera/event.rb: implements the event loop
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
-# Rights to this code are documented in doc/license.txt
+# Rights to this code are documented in doc/license.md
 #
 
 require 'kythera'
@@ -72,7 +72,7 @@ class EventQueue
     #
     def persistently_handle(event, &block)
         (@persistents[event] ||= []) << block
-        #$log.debug "registered handler for event: #{event}"
+        #$log.debug "registered persistent handler for event: #{event}"
     end
 
     # Does the queue need emptied?

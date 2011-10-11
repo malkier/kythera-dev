@@ -4,7 +4,7 @@
 # lib/kythera/protocol/ts6/send.rb: implements the TS6 protocol
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
-# Rights to this code are documented in doc/license.txt
+# Rights to this code are documented in doc/license.md
 #
 
 require 'kythera'
@@ -52,22 +52,21 @@ module Protocol::TS6
     end
 
     # UID <NICK> 1 <TS> +<UMODES> <USER> <HOST> <IP> <UID> :<REAL>
-    def send_uid(nick, uname, host, real, modes = '')
+    def send_uid(nick, uname, host, real, modes)
         ts    = Time.now.to_i
         ip    = @config.bind_host || '255.255.255.255'
         id    = @@current_uid
         uid   = "#{@config.sid}#{id}"
-        modes = "+#{modes}"
 
         @@current_uid = @@current_uid.next
 
-        str  = "UID #{nick} 1 #{ts} #{modes} #{uname} #{host} #{ip} #{uid} :"
+        str  = "UID #{nick} 1 #{ts} +#{modes} #{uname} #{host} #{ip} #{uid} :"
         str += real
 
         raw str
 
         me = $servers[@config.sid]
-        User.new(me, nick, uname, host, ip, real, modes, uid, ts)
+        User.new(me, nick, uname, host, ip, real, modes, ts, uid)
     end
 
     # :UID PRIVMSG <TARGET_UID> :<MESSAGE>
