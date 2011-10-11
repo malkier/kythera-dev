@@ -9,11 +9,18 @@
 
 require 'kythera'
 
+# An exception used to control configuration errors
+class ConfigurationError < Exception
+end
+
 # Starts the parsing of the configuraiton DSL
 #
 # @param [Proc] block contains the actual configuration code
 #
 def configure(&block)
+    # If we're already running, this is a rehash
+    return rehash(&block) if $state and $state.rehashing
+
     # This is for storing random application states
     $state  = OpenStruct.new
     $config = Object.new
@@ -50,6 +57,50 @@ def configure_test(&block)
     end
 
     $config.instance_eval(&block)
+end
+
+# Reload the configuration file
+def rehash(&block)
+    return unless $state.rehashing
+
+    $log.info "reloading configuration file"
+
+    # Are we being run with -d? We should keep it if so
+    logging = $config.me.logging
+
+    # Clear uplinks
+    uplinks = $config.uplinks.dup
+    $config.uplinks.clear
+
+    # Do the rehash
+    begin
+        $config.instance_eval(&block)
+    rescue ConfigurationError => err
+        $log.error "error reloading configuration: #{err}"
+
+        $config.uplinks  = uplinks
+        $state.rehashing = false
+    end
+
+    # Restore debug mode if it was on
+    if logging == :debug
+        $config.me.logging = :debug
+        Log.log_level = :debug
+    end
+
+    # Update the services' configuration data
+    $services.each do |service|
+        service.config = $state.srv_cfg[service.class::NAME.to_sym]
+    end
+
+    # Load any new extensions and update their configuration data
+    Extension.verify_and_load
+
+    # Done rehashing
+    $state.rehashing = false
+
+    # Let everyone know a rehash occured
+    $eventq.post(:rehash)
 end
 
 # Contains the methods that actually implement the configuration
@@ -163,8 +214,6 @@ module Kythera::Configuration
     # @param [Proc] block contains the actual configuration code
     #
     def daemon(&block)
-        return if @me
-
         @me = OpenStruct.new
         @me.extend(Kythera::Configuration::Daemon)
         @me.instance_eval(&block)

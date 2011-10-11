@@ -37,8 +37,8 @@ module ShrikeService::Configuration
         self.realname = real.to_s
     end
 
-    def channel(chan)
-        self.channel = chan
+    def channel(channel)
+        self.channel = channel
     end
 
     def sras(*args)

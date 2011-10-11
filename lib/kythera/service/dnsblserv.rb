@@ -41,6 +41,14 @@ class DNSBLService < Service
         end
     end
 
+    # This is called during a rehash to update our configuration
+    # We should check it over for changes to implement, etc. - XXX
+    #
+    def config=(config)
+        @config = config
+        $log.debug 'dnsblserv: configuration updated!'
+    end
+
     # Called by the daemon when we connect to the uplink
     def initialize(config)
         @config = config

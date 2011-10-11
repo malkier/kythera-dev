@@ -44,6 +44,24 @@ class ShrikeService < Service
         end
     end
 
+    # This is called during a rehash to update our configuration
+    # We should check it over for changes to implement, etc. - XXX
+    #
+    def config=(config)
+        # Did our channel change?
+        if @config.channel
+            if config.channel != @config.channel
+                $uplink.part(@user.uid, @config.channel)
+                $uplink.join(@user.uid, config.channel) if config.channel
+            end
+        elsif config.channel
+            $uplink.join(@user.uid, config.channel)
+        end
+
+        @config = config
+        $log.debug 'shrike: configuration updated!'
+    end
+
     # This is all we do for now :)
     def initialize(config)
         @config = config
