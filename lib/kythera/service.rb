@@ -49,6 +49,15 @@ class Service
         end
     end
 
+    # This allows Services to call methods in Uplink directly
+    def method_missing(meth, *args, &block)
+        if $uplink.respond_to?(meth, false)
+            $uplink.send(meth, *args, &block)
+        else
+            super
+        end
+    end
+
     private
 
     # You must override this or your service doesn't do too much huh?

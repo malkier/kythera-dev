@@ -20,7 +20,7 @@ module Log
         include Singleton
 
         # Just do nothing
-        def method_missing(name, *args)
+        def method_missing(meth, *args, &block)
         end
     end
 

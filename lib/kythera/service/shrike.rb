@@ -51,11 +51,11 @@ class ShrikeService < Service
         # Did our channel change?
         if @config.channel
             if config.channel != @config.channel
-                $uplink.part(@user.uid, @config.channel)
-                $uplink.join(@user.uid, config.channel) if config.channel
+                part(@user.key, @config.channel)
+                join(@user.key, config.channel) if config.channel
             end
         elsif config.channel
-            $uplink.join(@user.uid, config.channel)
+            join(@user.uid, config.channel)
         end
 
         @config = config
@@ -74,17 +74,18 @@ class ShrikeService < Service
                      :invulnerable, :operator, :service]
 
             # Introduce our client to the network
-            @user = $uplink.introduce_user(@config.nickname, @config.username,
-                                           @config.hostname, @config.realname,
-                                           modes)
+            @user = introduce_user(@config.nickname, @config.username,
+                                   @config.hostname, @config.realname, modes)
         end
 
         # Join our configuration channel
         $eventq.handle(:end_of_burst) do |delta|
-            $uplink.join(@user.key, @config.channel) if @config.channel
-            $uplink.wallop(@user.key,
-                             "finished synching to network in #{delta}s")
+            join(@user.key, @config.channel) if @config.channel
+            wallop(@user.key, "finished synching to network in #{delta}s")
         end
+
+        # When we're exiting, quit our user
+        $eventq.handle(:exit) { |reason| quit(@user.key, reason) }
     end
 
     public
@@ -106,7 +107,7 @@ class ShrikeService < Service
         if self.respond_to?(meth, true)
             self.send(meth, user, params)
         else
-            $uplink.notice(@user.key, user.key, "Invalid command: \2#{cmd}\2")
+            notice(@user.key, user.key, "Invalid command: \2#{cmd}\2")
         end
     end
 end

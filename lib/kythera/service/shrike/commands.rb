@@ -18,7 +18,7 @@ class ShrikeService < Service
 
         reason = params.join(' ')
 
-        $uplink.wallop(@user.uid, "shutdown requested by #{user}: #{reason}")
+        wallop(@user.key, "shutdown requested by #{user}: #{reason}")
 
         $eventq.post(:exit, "#{user}: #{reason}")
     end
@@ -27,18 +27,18 @@ class ShrikeService < Service
     def do_raw(user, params)
         return unless is_sra?(user.nickname) # XXX account, not nickname
 
-        $uplink.raw(params.join(' '))
+        raw(params.join(' '))
     end
 
     # Extremely dangerous, this is here only for my testing purposes!
     def do_eval(user, params)
-        #return unless is_sra?(user.nickname) # XXX account, not nickname
+        return unless is_sra?(user.nickname) # XXX account, not nickname
 
         code = params.join(' ')
 
         result = eval(code)
 
-        $uplink.privmsg(@user.key, @config.channel, "#{result.inspect}")
+        privmsg(@user.key, @config.channel, "#{result.inspect}")
     end
 
     # Registers a username or channel
