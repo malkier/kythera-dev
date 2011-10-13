@@ -75,14 +75,6 @@ class EventQueue
         #$log.debug "registered persistent handler for event: #{event}"
     end
 
-    # Does the queue need emptied?
-    #
-    # @return [True, False]
-    #
-    def needs_run?
-        @queue.empty? ? false : true
-    end
-
     # Clears non-persistent handlers
     def clear
         @handlers.clear
@@ -115,7 +107,7 @@ class EventQueue
         # be run, and as a result no socket operations will work.
         if exiting
             if @handlers[:exit]
-                @handlers[:exit].each    { |block| block.call(*exiting.args) }
+                @handlers[:exit].each { |block| block.call(*exiting.args) }
             end
 
             if @persistents[:exit]

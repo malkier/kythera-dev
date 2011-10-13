@@ -16,7 +16,11 @@ class ShrikeService < Service
     def do_shutdown(user, params)
         return unless is_sra?(user.nickname) # XXX account, not nickname
 
-        $eventq.post(:exit, "#{user}: #{params.join(' ')}")
+        reason = params.join(' ')
+
+        $uplink.wallop(@user.uid, "shutdown requested by #{user}: #{reason}")
+
+        $eventq.post(:exit, "#{user}: #{reason}")
     end
 
     # This is dangerous, and is only here for my testing purposes!

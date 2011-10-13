@@ -133,13 +133,22 @@ class Kythera
     # This makes sure we're connected and handles events, timers, and I/O
     #
     def main_loop
+        exiting = false
+
         loop do
             # If it's true we're connectED, if it's nil we're connectING
             connect until $uplink and $uplink.connected?
 
             # Run the event loop until it's empty
             begin
-                $eventq.run while $eventq.needs_run?
+                # Run the eventq to clear out socket events and bail
+                if exiting
+                    $eventq.run
+                    throw :exit, exiting
+                else
+                    # Keep an eye out for graceful exit
+                    exiting = catch(:exit) { $eventq.run }
+                end
             rescue Uplink::DisconnectedError => err
                 host = $uplink.config.host
                 port = $uplink.config.port

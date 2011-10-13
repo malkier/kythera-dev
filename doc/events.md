@@ -16,16 +16,16 @@ There is a somewhat special event, called `:exit`. It is special in the sense
 that the event queue runner looks specifically for it and runs every other
 event in the queue first, then runs the exit handlers, and then asks the main
 loop to exit. The exit event exits to allow you to clean things up (close
-files, save things, etc.); however, if your exit handler adds additional
-events, or performs a method call that requires another loop of the event
-system, these things will not happen, because the event system will not loop
-again. This includes any socket operations, such as sending data to the IRC
-uplink, as this depends on the main loop.
+files, save things, etc.). When the main loop is asked to exit, it makes a note
+of this request and goes ahead and runs through the IO loop one more time in
+order for any socket-dependent events added by exit handlers to run (such as
+sending data to the IRC uplink), and then will exit gracefully. This "one more
+loop" behavior is a special case, and is your last chance to run something.
 
 If you're going to handle this event, you should stop to think whether you
-should be using `$eventq.handle` or `$eventq.persistently_handle`. The former
-gets wiped out when the uplink gets disconnected, and the later never gets
-wiped out. If you're a service, you're instantiated every time the uplink
+should be using `EventQueue#handle` or `EventQueue#persistently_handle`. The
+former gets wiped out when the uplink gets disconnected, and the later never
+gets wiped out. If you're a service, you're instantiated every time the uplink
 reconnects, so if you add the exit handler in your initialize method, then
 using the former is just fine. If you're an extension (or something else not
 tied to the main loop), you want to use the latter.
@@ -34,7 +34,7 @@ You're also free to post the :exit event, which will trigger the above series
 of events. Of course, you should only do this for a very good reason (usually,
 user input that has asked the application to shut down). If you post it, any
 params you post with it should respond to `to_s` and in general, there should
-only be one param, a String, that describes why we're exiting.
+only be one param--a `String`--that describes why we're exiting.
 
 IRC Command Events
 -------------------
