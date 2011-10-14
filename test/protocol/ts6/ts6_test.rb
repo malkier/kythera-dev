@@ -20,7 +20,7 @@ context :ts6 do
   end
 
   setup do
-    $uplink = Uplink.new($config.uplinks[0])
+    $uplink = Uplink.new($config.uplinks.first)
   end
 
   denies_topic.nil

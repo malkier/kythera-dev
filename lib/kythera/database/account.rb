@@ -541,7 +541,7 @@ module Database
         # @return [String] The hashed password
         #
         def self.hash_password(salt, password)
-            saltbytes = salt.unpack('m')[0]
+            saltbytes = salt.unpack('m').first
             Digest::SHA2.hexdigest(saltbytes + password)
         end
 

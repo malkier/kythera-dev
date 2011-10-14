@@ -22,9 +22,9 @@ class Kythera
         check_ruby_version
 
         # Handle some signals
-        trap(:HUP)  { rehash   }
-        trap(:INT)  { exit_app }
-        trap(:TERM) { exit_app }
+        trap(:HUP)  { rehash }
+        trap(:INT)  { $eventq.post(:exit, 'received interruption signal') }
+        trap(:TERM) { $eventq.post(:exit, 'received termination signal')  }
 
         # Some defaults for state
         logging  = true
@@ -225,7 +225,7 @@ class Kythera
             sleep $config.me.reconnect_time
         else
             $eventq.clear
-            $uplink = Uplink.new($config.uplinks[0])
+            $uplink = Uplink.new($config.uplinks.first)
         end
 
         begin

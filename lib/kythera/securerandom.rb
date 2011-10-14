@@ -131,7 +131,7 @@ module SecureRandom
   # If secure random number generator is not available,
   # NotImplementedError is raised.
   def self.hex(n=nil)
-    random_bytes(n).unpack("H*")[0]
+    random_bytes(n).unpack("H*").first
   end
 
   # SecureRandom.base64 generates a random base64 string.
