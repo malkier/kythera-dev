@@ -20,12 +20,16 @@ class ShrikeService < Service
 
         wallop(@user.key, "shutdown requested by #{user}: #{reason}")
 
+        snoop(:shutdown, user)
+
         $eventq.post(:exit, "#{user}: #{reason}")
     end
 
     # This is dangerous, and is only here for my testing purposes!
     def do_raw(user, params)
         return unless is_sra?(user.nickname) # XXX account, not nickname
+
+        snoop(:raw, user)
 
         raw(params.join(' '))
     end
@@ -37,6 +41,8 @@ class ShrikeService < Service
         code = params.join(' ')
 
         result = eval(code)
+
+        snoop(:eval, user)
 
         privmsg(@user.key, @config.channel, "#{result.inspect}")
     end

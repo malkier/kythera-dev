@@ -157,6 +157,14 @@ class User
         @modes.include?(:operator)
     end
 
+    # Is this user one a services pseudoclient?
+    #
+    # @return [True, False]
+    #
+    def service?
+        @server.name == $config.me.name
+    end
+
     # Parses a mode string and updates user state
     #
     # @param [String] modes the mode string

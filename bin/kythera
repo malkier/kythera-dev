@@ -229,6 +229,27 @@ configure do
         delay 2
     end
 
+    # This section of the configuration describes the behavior of the snoop
+    # service. The snoop service reports various activities of services to a
+    # particular channel so admin can monitor services activity.
+    #
+    service :snoopserv do
+        # The client's nickname on IRC
+        nickname :S
+
+        # The client's username (sometimes called ident) on IRC
+        username :service
+
+        # The client's hostname on IRC
+        hostname 'services.int'
+
+        # The client's realname (sometimes called gecos) on IRC
+        realname 'kythera irc services'
+
+        # The channel the client joins and sends messages to
+        channel '#malkier'
+    end
+
     #######################
     # E X T E N S I O N S #
     #######################
