@@ -16,7 +16,7 @@ end
 context :assert do
   setup do
     $_daemon_block.call
-    $config.me.logging = :debug
+    $_logger_setup.call
   end
 
   context :blackmagic do

@@ -26,7 +26,7 @@ require 'logger'
 context :database do
   setup do
     $_daemon_block.call
-    $config.me.logging = :debug
+    $_logger_setup.call
     configure_test { service :chanserv }
 
     $db.run 'DELETE FROM chanserv_flags'

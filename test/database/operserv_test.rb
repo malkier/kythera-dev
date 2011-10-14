@@ -15,7 +15,7 @@ require File.expand_path('../../lib/kythera/service/operserv/database', dir)
 context :database do
   setup do
     $_daemon_block.call
-    $config.me.logging = :debug
+    $_logger_setup.call
     configure_test { service :operserv }
 
     $db.run 'DELETE FROM account_fields'

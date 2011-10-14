@@ -60,7 +60,7 @@ end
 context :database do
   setup do
     $_daemon_block.call
-    $config.me.logging = :debug
+    $_logger_setup.call
     $db.run 'DELETE FROM account_fields'
     $db.run 'DELETE FROM accounts'
   end

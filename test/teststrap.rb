@@ -65,7 +65,7 @@ $_daemon_block = proc do
 end
 
 $_uplink_block = proc do
-  next if $config and $config.uplinks and $config.uplinks[0]
+  next if $config and $config.uplinks and $config.uplinks.first
 
   configure_test do
     uplink '127.0.0.1', 6667 do
