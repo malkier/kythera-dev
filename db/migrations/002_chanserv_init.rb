@@ -13,9 +13,9 @@ Sequel.migration do
         create_table :chanserv_channels do
             primary_key :id
 
-            String   :name,       :null => false, :unique => true
-            DateTime :registered, :null => false
-            DateTime :last_activity
+            String   :name,          :null => false, :unique => true
+            DateTime :registered,    :null => false
+            DateTime :last_activity, :null => false
         end
 
         create_table :chanserv_privileges do

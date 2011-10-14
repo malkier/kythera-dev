@@ -84,11 +84,9 @@ context :database do
     asserts(:registered) { check_timestamp.call(topic.registered) }
     asserts(:last_login) { check_timestamp.call(topic.last_login) }
 
-    context 'fails to set up a duplicate account' do
-      asserts.raises(Database::Account::LoginExistsError) do
-        register.call(:sycobuny)
-      end
-    end
+    asserts('registering a duplicate account') do
+      register.call(:sycobuny)
+    end.raises(Database::Account::LoginExistsError)
   end
 
   context 'sets up an account resolver' do
