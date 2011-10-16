@@ -10,6 +10,40 @@
 require 'kythera'
 
 module Protocol
+    # A data class that represents a set of channel modes to perform
+    class ChannelMode
+        @@channel_modes = []
+
+        def self.delete(channel_mode)
+            assert { :channel_mode }
+
+            @@channel_modes.delete(channel_mode)
+            self
+        end
+
+        def self.find_by_channel(channel)
+            assert { :channel }
+
+            @@channel_modes.find { |cmode| cmode.channel == channel }
+        end
+
+        attr_accessor :add_modes, :del_modes, :add_params, :del_params, :timer
+        attr_reader   :user, :channel
+
+        def initialize(user, channel)
+            assert { [:user, :channel] }
+
+            @user       = user
+            @channel    = channel
+            @add_modes  = []
+            @del_modes  = []
+            @add_params = []
+            @del_params = []
+
+            @@channel_modes << self
+        end
+    end
+
     # Removes the first character of the string
     REMOVE_FIRST = 1 .. -1
 
@@ -139,7 +173,107 @@ module Protocol
         send_topic(origin, target, topic)
     end
 
+    # Sets channel modes, with mode stacking
+    #
+    # @param [User] origin the User setting the mode
+    # @param [Channel] target the Channel to set the mode on
+    # @param [Symbol] action :add or :del
+    # @param [Array] modes the list of mode symbols
+    # @params [Array] params optional list of params for status/param modes
+    #
+    def cmode(origin, target, action, modes, params = [])
+        assert { { :origin => User,   :target => Channel, :action => Symbol,
+                   :modes  => Array,  :params => Array } }
+
+        # Do we already have modes for this channel waiting to be sent?
+        if cmode = ChannelMode.find_by_channel(target)
+            cmode.timer.stop
+            cmode.timer = nil
+        else
+            # No, we don't, so start a new one
+            cmode = ChannelMode.new(origin, target)
+        end
+
+        # Add modes one-at-a-time until we hit the max modes this protocol
+        # supports, then send them out. If we don't hit the max modes,
+        # set a timer to send them out in 500ms in case we get more modes
+        # to set in another call.
+        #
+        until modes.empty?
+            length = cmode.add_modes.length + cmode.del_modes.length
+
+            if length >= @config.max_modes
+                # Send it now, since we can only send 3 at a time
+                format_and_send_channel_mode(cmode)
+
+                # Those modes are gone, so get a new blank one
+                cmode = ChannelMode.new(cmode.user, cmode.channel)
+            else
+                mode = modes.shift
+
+                if action == :add
+                    cmode.add_modes << mode
+                elsif action == :del
+                    cmode.del_modes << mode
+                end
+
+                if Channel.param_modes.values.include?(mode) or
+                   Channel.status_modes.values.include?(mode)
+
+                    if action == :add
+                        cmode.add_params << params.shift
+                    else action == :del
+                        cmode.del_params << params.shift
+                    end
+                end
+            end
+        end
+
+        # Loop is over, modes are empty; either send or timer
+        length = cmode.add_modes.length + cmode.del_modes.length
+
+        if length >= @config.max_modes
+            # Send it now, since we can only send 3 at a time
+            format_and_send_channel_mode(cmode)
+        else
+            # Set a timer so that we can stack additional modes if they come in
+            cmode.timer = Timer.after(0.5) do
+                format_and_send_channel_mode(cmode)
+            end
+        end
+    end
+
     private
+
+    # Process the given ChannelMode into a form suitable for IRC
+    #
+    # @param [ChannelMode] cmode the ChannelMode to process
+    #
+    def format_channel_mode(cmode)
+        #assert { { :cmode => ChannelMode } }
+
+        modes  = ''
+        params = []
+        imodes = Channel.cmodes.invert
+
+        # Do :add modes
+        unless cmode.add_modes.empty?
+            amodes  = cmode.add_modes.collect { |m| imodes[m] }.join('')
+            params += cmode.add_params
+            modes  += "+#{amodes}"
+        end
+
+        # Do :del modes
+        unless cmode.del_modes.empty?
+            dmodes  = cmode.del_modes.collect { |m| imodes[m] }.join('')
+            params += cmode.del_params
+            modes  += "-#{dmodes}"
+        end
+
+        params = params.join(' ')
+
+        [modes, params]
+    end
 
     # Finds a User and Channel or errors
     #

@@ -93,4 +93,23 @@ module Protocol::TS6
 
         send_tmode(origin ? origin : nil, name, ts, str)
     end
+
+    # Send a set of modes contained in a ChannelMode to the uplink
+    #
+    # @params [Protocol::ChannelMode] cmode the ChannelMode to process
+    #
+    def format_and_send_channel_mode(cmode)
+        #assert { { :cmode => ::Protocol::ChannelMode } }
+
+        modes, params = format_channel_mode(cmode)
+
+        modestr   = "#{modes} #{params}"
+        origin    = cmode.user.key
+        target    = cmode.channel.name
+        timestamp = cmode.channel.timestamp
+
+        send_tmode(origin, target, timestamp, modestr)
+
+        Protocol::ChannelMode.delete(cmode)
+    end
 end

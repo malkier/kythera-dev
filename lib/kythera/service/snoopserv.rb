@@ -85,7 +85,7 @@ class SnoopService < Service
         end
 
         # When we're exiting, quit our user
-        $eventq.handle(:exit) { |reason| quit(@user.key, reason) }
+        $eventq.handle(:exit) { |reason| quit(@user.key, reason) if @user }
     end
 end
 

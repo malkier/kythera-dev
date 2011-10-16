@@ -397,10 +397,6 @@ module Kythera::Configuration::Uplink
         end
     end
 
-    def sid(sid)
-        self.sid = sid.to_s
-    end
-
     def send_password(password)
         self.send_password = password.to_s
     end
@@ -426,6 +422,14 @@ module Kythera::Configuration::Uplink
         proto = Protocol.find(protocol)
 
         raise "invalid protocol `#{protocol}` for uplink `#{name}`" unless proto
+    end
+
+    def sid(sid)
+        self.sid = sid.to_s
+    end
+
+    def max_modes(max)
+        self.max_modes = max
     end
 
     def casemapping(mapping)

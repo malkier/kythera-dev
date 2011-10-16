@@ -63,6 +63,7 @@ context :configuration do
      asserts(:send_password)   .equals 'unit_tester'
      asserts(:receive_password).equals 'unit_tester'
      asserts(:network)         .equals 'testing'
+     asserts(:max_modes)       .equals 3
    end
   end
 end

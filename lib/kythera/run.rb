@@ -176,8 +176,17 @@ class Kythera
             readfds  << $uplink.socket
             writefds << $uplink.socket if $uplink.need_write?
 
+            # Ruby's threads suck. In theory, the timers should
+            # manage themselves in separate threads. Unfortunately,
+            # Ruby has a global lock and the scheduler isn't great, so
+            # this tells select() to time out when the next timer needs to run.
+            #
+            timeout = Timer.next_time
+            timeout = 1 if timeout  < 0
+            timeout = 5 if timeout == 0
+
             # Wait up to 5 seconds for our socket to become readable/writable
-            ret = IO.select(readfds, writefds, [], 5)
+            ret = IO.select(readfds, writefds, [], timeout)
 
             if ret
                 # Readable sockets
@@ -204,7 +213,7 @@ class Kythera
     # Connects to the uplink
     def connect
         # Clear all non-persistent Timers
-        Timer.stop
+        Timer.stop_all
 
         # Reset all the things that are uplink-dependent
         $users.clear

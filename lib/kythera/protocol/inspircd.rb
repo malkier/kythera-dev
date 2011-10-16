@@ -84,4 +84,23 @@ module Protocol::InspIRCd
 
         send_fmode(origin ? origin.uid : nil, channel, channel.timestamp, str)
     end
+
+    # Send a set of modes contained in a ChannelMode to the uplink
+    #
+    # @params [Protocol::ChannelMode] cmode the ChannelMode to process
+    #
+    def format_and_send_channel_mode(cmode)
+        #assert { { :cmode => ::Protocol::ChannelMode } }
+
+        modes, params = format_channel_mode(cmode)
+
+        modestr   = "#{modes} #{params}"
+        origin    = cmode.user.key
+        target    = cmode.channel.name
+        timestamp = cmode.channel.timestamp
+
+        send_fmode(origin, target, timestamp, modestr)
+
+        Protocol::ChannelMode.delete(cmode)
+    end
 end
