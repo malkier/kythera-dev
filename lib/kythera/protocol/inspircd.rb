@@ -49,7 +49,7 @@ module Protocol::InspIRCd
         end
 
         # Join the channel
-        send_fjoin(channel.name, channel.timestamp, user.uid)
+        ret = send_fjoin(channel.name, channel.timestamp, user.uid)
 
         # Keep state
         channel.add_user(user)
@@ -57,6 +57,8 @@ module Protocol::InspIRCd
         # FJOIN will automatically op them, keep state
         user.add_status_mode(channel, :operator)
         $eventq.post(:mode_added_on_channel, :operator, user, channel)
+
+        ret
     end
 
     # Send a set of modes contained in a ChannelMode to the uplink

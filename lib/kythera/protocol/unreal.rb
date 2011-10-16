@@ -45,7 +45,7 @@ module Protocol::Unreal
         end
 
         # Join the channel
-        send_sjoin(channel.name, channel.timestamp, user.nickname)
+        ret = send_sjoin(channel.name, channel.timestamp, user.nickname)
 
         # SJOIN automatically ops them, keep state
         user.add_status_mode(channel, :operator)
@@ -53,6 +53,8 @@ module Protocol::Unreal
 
         # Keep state
         channel.add_user(user)
+
+        ret
     end
 
     # Send a set of modes contained in a ChannelMode to the uplink

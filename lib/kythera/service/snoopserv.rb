@@ -68,7 +68,7 @@ class SnoopService < Service
 
         # Introduce our user in the burst
         $eventq.handle(:start_of_burst) do
-            modes = [:bot, :deaf, :invulnerable, :service]
+            modes = [:deaf, :invulnerable, :service]
 
             # Introduce our client to the network
             @user = introduce_user(@config.nickname, @config.username,

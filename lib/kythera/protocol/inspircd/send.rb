@@ -101,4 +101,11 @@ module Protocol::InspIRCd
             raw "FMODE #{target} #{timestamp} #{modestr}"
         end
     end
+
+    # :origin WALLOPS :message
+    def send_wallop(origin, message)
+        assert { { :origin => String, :message => String } }
+
+        raw ":#{origin} WALLOPS :#{message}"
+    end
 end

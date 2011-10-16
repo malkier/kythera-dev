@@ -70,8 +70,8 @@ class ShrikeService < Service
 
         # Introduce our user in the burst
         $eventq.handle(:start_of_burst) do
-            modes = [:bot,          :deaf,     :hidden_operator,
-                     :invulnerable, :operator, :service]
+            modes = [:deaf,     :hidden_operator, :invulnerable,
+                     :operator, :service]
 
             # Introduce our client to the network
             @user = introduce_user(@config.nickname, @config.username,

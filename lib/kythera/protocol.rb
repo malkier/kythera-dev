@@ -97,7 +97,7 @@ module Protocol
         @sendq << string
     end
 
-    # Sends an WALLOP
+    # Sends a WALLOP
     #
     # @param [String] origin the entity sending the message
     # @param [String] message the message to send
