@@ -208,7 +208,6 @@ module Protocol
             if length >= @config.max_modes
                 # Send it now, since we can only send 3 at a time
                 format_and_send_channel_mode(cmode)
-                post_channel_mode_events(cmode)
 
                 # Those modes are gone, so get a new blank one
                 cmode = ChannelMode.new(cmode.user, cmode.channel)
@@ -239,12 +238,10 @@ module Protocol
         if length >= @config.max_modes
             # Send it now, since we can only send 3 at a time
             format_and_send_channel_mode(cmode)
-            post_channel_mode_events(cmode)
         else
             # Set a timer so that we can stack additional modes if they come in
             cmode.timer = Timer.after(0.5) do
                 format_and_send_channel_mode(cmode)
-                post_channel_mode_events(cmode)
             end
         end
     end
@@ -332,6 +329,7 @@ module Protocol
 
         # Keep state
         cmode.channel.parse_modes(modes, params.dup)
+        post_channel_mode_events(cmode)
 
         # Format params
         params = params.join(' ')
