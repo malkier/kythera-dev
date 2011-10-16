@@ -183,7 +183,7 @@ module Protocol
     # @params [Array] params optional list of params for status/param modes
     #
     def channel_mode(origin, target, action, modes, params = [])
-        assert { { :target => Channel, :action => Symbol, :modes  => Array,
+        assert { { :target => Channel, :action => Symbol, :modes => Array,
                    :params => Array } }
 
         assert { { :origin => User } } if origin
@@ -208,6 +208,7 @@ module Protocol
             if length >= @config.max_modes
                 # Send it now, since we can only send 3 at a time
                 format_and_send_channel_mode(cmode)
+                post_channel_mode_events(cmode)
 
                 # Those modes are gone, so get a new blank one
                 cmode = ChannelMode.new(cmode.user, cmode.channel)
@@ -238,10 +239,12 @@ module Protocol
         if length >= @config.max_modes
             # Send it now, since we can only send 3 at a time
             format_and_send_channel_mode(cmode)
+            post_channel_mode_events(cmode)
         else
             # Set a timer so that we can stack additional modes if they come in
             cmode.timer = Timer.after(0.5) do
                 format_and_send_channel_mode(cmode)
+                post_channel_mode_events(cmode)
             end
         end
     end
@@ -261,10 +264,8 @@ module Protocol
 
         if action == :add
             user.add_status_mode(channel, mode)
-            $eventq.post(:mode_added_on_channel, mode, user, channel)
         elsif action == :del
             user.delete_status_mode(channel, mode)
-            $eventq.post(:mode_deleted_on_channel, mode, user, channel)
         end
 
         origin = origin ? origin.key : nil
@@ -273,6 +274,36 @@ module Protocol
     end
 
     private
+
+    def post_channel_mode_events(cmode)
+        #assert { { :cmode => ChannelMode } }
+
+        params = cmode.add_params.dup
+        cmode.add_modes.each do |mode|
+            param = nil
+
+            if Channel.param_modes.values.include?(mode) or
+               Channel.status_modes.values.include?(mode)
+
+                param = params.shift
+            end
+
+            $eventq.post(:mode_added_on_channel, mode, param, cmode.channel)
+        end
+
+        params = cmode.del_params.dup
+        cmode.del_modes.each do |mode|
+            param = nil
+
+            if Channel.param_modes.values.include?(mode) or
+               Channel.status_modes.values.include?(mode)
+
+                param = params.shift
+            end
+
+            $eventq.post(:mode_deleted_on_channel, mode, param, cmode.channel)
+        end
+    end
 
     # Process the given ChannelMode into a form suitable for IRC
     #
@@ -299,6 +330,10 @@ module Protocol
             modes  += "-#{dmodes}"
         end
 
+        # Keep state
+        cmode.channel.parse_modes(modes, params.dup)
+
+        # Format params
         params = params.join(' ')
 
         [modes, params]
