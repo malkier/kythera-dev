@@ -428,10 +428,6 @@ module Kythera::Configuration::Uplink
         self.sid = sid.to_s
     end
 
-    def max_modes(max)
-        self.max_modes = max
-    end
-
     def casemapping(mapping)
         self.casemapping_override = true
         self.casemapping = mapping.to_sym

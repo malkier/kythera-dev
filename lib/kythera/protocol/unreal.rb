@@ -69,7 +69,7 @@ module Protocol::Unreal
         target    = cmode.channel.name
         timestamp = cmode.channel.timestamp
 
-        send_mode(origin, target, modestr)
+        send_mode(origin, target, modestr, timestamp)
 
         Protocol::ChannelMode.delete(cmode)
     end

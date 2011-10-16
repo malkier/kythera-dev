@@ -220,12 +220,16 @@ module Protocol
                     cmode.del_modes << mode
                 end
 
-                if Channel.param_modes.values.include?(mode) or
-                   Channel.status_modes.values.include?(mode)
-
-                    if action == :add
+                if action == :add
+                    if Channel.status_modes.values.include?(mode)
                         cmode.add_params << params.shift
-                    else action == :del
+                    elsif Channel.param_modes.values.include?(mode)
+                        cmode.add_params << params.shift
+                    end
+                elsif action == :del
+                    if Channel.status_modes.values.include?(mode)
+                        cmode.del_params << params.shift
+                    elsif mode == :keyed
                         cmode.del_params << params.shift
                     end
                 end
@@ -296,9 +300,7 @@ module Protocol
         cmode.del_modes.each do |mode|
             param = nil
 
-            if Channel.param_modes.values.include?(mode) or
-               Channel.status_modes.values.include?(mode)
-
+            if Channel.status_modes.values.include?(mode)
                 param = params.shift
             end
 
