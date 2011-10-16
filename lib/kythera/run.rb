@@ -66,6 +66,7 @@ class Kythera
             $-w = true
             logging = true
             $config.me.logging = :debug
+            Thread.abort_on_exception = true
 
             puts "#{ME}: warning: debug mode enabled"
             puts "#{ME}: warning: all activity will be logged in the clear"

@@ -31,7 +31,8 @@ module Protocol
         attr_reader   :user, :channel
 
         def initialize(user, channel)
-            assert { [:user, :channel] }
+            assert { :channel }
+            assert { :user    } if user
 
             @user       = user
             @channel    = channel
@@ -181,9 +182,11 @@ module Protocol
     # @param [Array] modes the list of mode symbols
     # @params [Array] params optional list of params for status/param modes
     #
-    def cmode(origin, target, action, modes, params = [])
-        assert { { :origin => User,   :target => Channel, :action => Symbol,
-                   :modes  => Array,  :params => Array } }
+    def channel_mode(origin, target, action, modes, params = [])
+        assert { { :target => Channel, :action => Symbol, :modes  => Array,
+                   :params => Array } }
+
+        assert { { :origin => User } } if origin
 
         # Do we already have modes for this channel waiting to be sent?
         if cmode = ChannelMode.find_by_channel(target)
@@ -241,6 +244,32 @@ module Protocol
                 format_and_send_channel_mode(cmode)
             end
         end
+    end
+
+    # Toggle a status mode for a User on a Channel
+    #
+    # @param [User] user the User to perform the mode on
+    # @param [Channel] channel the Channel to perform the mode on
+    # @param [Symbol] mode the mode to toggle
+    # @param [String] origin optionally specify a setter for the mode
+    #
+    def toggle_status_mode(user, channel, mode, origin = nil)
+        assert { [:user, :channel] }
+        assert { { :mode => Symbol } }
+
+        action = user.has_mode_on_channel?(mode, channel) ? :del : :add
+
+        if action == :add
+            user.add_status_mode(channel, mode)
+            $eventq.post(:mode_added_on_channel, mode, user, channel)
+        elsif action == :del
+            user.delete_status_mode(channel, mode)
+            $eventq.post(:mode_deleted_on_channel, mode, user, channel)
+        end
+
+        origin = origin ? origin.key : nil
+
+        channel_mode(origin, channel, action, [mode], [user.key])
     end
 
     private
