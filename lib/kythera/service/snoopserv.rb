@@ -80,7 +80,7 @@ class SnoopService < Service
 
         # Listen for snoops
         $eventq.handle(:snoop) do |service, command, str|
-            snoop = "#{service.to_s.upcase}:#{command.to_s.upcase}: #{str}"
+            snoop = "#{str} [#{service}->#{command}]"
             privmsg(@user.key, @config.channel, snoop)
         end
 

@@ -272,6 +272,10 @@ module Protocol
 
     private
 
+    # Process the given ChannelMode to post suitable events
+    #
+    # @param [ChannelMode] cmode the ChannelMode to process
+    #
     def post_channel_mode_events(cmode)
         #assert { { :cmode => ChannelMode } }
 
