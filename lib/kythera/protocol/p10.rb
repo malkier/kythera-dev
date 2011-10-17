@@ -79,11 +79,10 @@ module Protocol::P10
         modes, params = format_channel_mode(cmode)
 
         modestr   = "#{modes} #{params}"
-        origin    = cmode.user ? cmode.user.key : nil
         target    = cmode.channel.name
         timestamp = cmode.channel.timestamp
 
-        send_opmode(origin, target, modestr, timestamp)
+        send_opmode(target, modestr, timestamp)
 
         Protocol::ChannelMode.delete(cmode)
     end

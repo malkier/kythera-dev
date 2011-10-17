@@ -225,9 +225,10 @@ class Kythera
         if $uplink
            $log.debug "current uplink failed, trying next"
 
-            curruli  = $config.uplinks.find_index($uplink.config)
-            curruli += 1
-            curruli  = 0 if curruli > ($config.uplinks.length - 1)
+            curruli   = $config.uplinks.find_index($uplink.config)
+            curruli ||= 0
+            curruli  += 1
+            curruli   = 0 if curruli > ($config.uplinks.length - 1)
 
             $eventq.clear
             $uplink = Uplink.new($config.uplinks[curruli])

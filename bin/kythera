@@ -145,11 +145,6 @@ configure do
         #     [A-Z][A-Z]
         #
         sid '1KS'
-
-        # How many modes does your IRCd support sending at once?
-        # This is AT LEAST 3, so if you don't know, use that.
-        #
-        max_modes 3
     end
 
     # Still reading... :)

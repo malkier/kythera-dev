@@ -32,6 +32,9 @@ module Protocol::P10
         desc = $config.me.description
         sid  = @config.sid
 
+        # Keep track of our own server, it counts!
+        Server.new(@config.sid, $config.me.name, $config.me.description)
+
         raw "SERVER #{n} 1 #{st} #{lt} J10 #{sid}]]] :#{desc}"
     end
 
@@ -106,12 +109,13 @@ module Protocol::P10
     end
 
     # <UID> OM <target> <modestr> <ts>
-    def send_opmode(uid, target, modestr, timestamp)
-        assert { { :uid       => String,
-                   :target    => String,
+    def send_opmode(target, modestr, timestamp)
+        assert { { :target    => String,
                    :modestr   => String,
                    :timestamp => Integer } }
 
-        raw "#{uid} #{Tokens[:opmode]} #{target} #{modestr} #{timestamp}"
+        origin = @config.sid
+
+        raw "#{origin} #{Tokens[:opmode]} #{target} #{modestr} #{timestamp}"
     end
 end

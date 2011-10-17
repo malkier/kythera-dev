@@ -49,6 +49,9 @@ class Uplink
 
         unless @config.casemapping_override
             case @config.protocol
+            when :p10
+                @config.max_modes   = 6
+                @config.casemapping = :rfc1459
             when :unreal
                 @config.max_modes   = 6
                 @config.casemapping = :ascii
