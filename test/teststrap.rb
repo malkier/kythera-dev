@@ -47,7 +47,6 @@ $_uplink_block = proc do
       send_password    :unit_tester
       receive_password :unit_tester
       network          :testing
-      max_modes        3
     end
   end
 end
