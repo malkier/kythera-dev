@@ -312,18 +312,6 @@ class Kythera
         Dir.chdir(wd)
     end
 
-    # Reload the configuration file
-    def rehash
-        $state.rehashing = true
-
-        begin
-            load File.expand_path("../../#{$0}", File.dirname(__FILE__))
-        rescue ScriptError => err
-            $log.error "error reloading configuration: #{err}"
-            $state.rehashing = false
-        end
-    end
-
     # Cleans up before exiting
     def exit_app
         $log.close if $log

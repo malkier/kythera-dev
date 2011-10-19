@@ -15,7 +15,7 @@ require 'kythera'
 #
 def configure(&block)
     # If we're already running, this is a rehash
-    return rehash(&block) if $state and $state.rehashing
+    return configure_rehash(&block) if $state and $state.rehashing
 
     # This is for storing random application states
     $state  = OpenStruct.new
@@ -67,7 +67,19 @@ def configure_test(&block)
 end
 
 # Reload the configuration file
-def rehash(&block)
+def rehash
+    $state.rehashing = true
+
+    begin
+        load File.expand_path("../../#{$0}", File.dirname(__FILE__))
+    rescue ScriptError => err
+        $log.error "error reloading configuration: #{err}"
+        $state.rehashing = false
+    end
+end
+
+# Reparse the configuration data
+def configure_rehash(&block)
     return unless $state.rehashing
 
     $log.info "reloading configuration file"
