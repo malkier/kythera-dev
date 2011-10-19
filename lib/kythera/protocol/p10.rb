@@ -69,21 +69,19 @@ module Protocol::P10
         ret
     end
 
-    # Send a set of modes contained in a ChannelMode to the uplink
+    # Abstracted way to send a mode change to a channel
     #
-    # @params [Protocol::ChannelMode] cmode the ChannelMode to process
+    # @param [nil, String] origin optional origin of mode
+    # @param [String] target channel to send mode to
+    # @param [Integer] timestamp the channel's timestamp
+    # @param [String] modestr the mode string
     #
-    def format_and_send_channel_mode(cmode)
-        #assert { { :cmode => ::Protocol::ChannelMode } }
+    def send_channel_mode(origin, target, timestamp, modestr)
+        assert { { :target    => String, :modestr => String,
+                   :timestamp => Integer } }
 
-        modes, params = format_channel_mode(cmode)
-
-        modestr   = "#{modes} #{params}"
-        target    = cmode.channel.name
-        timestamp = cmode.channel.timestamp
+        assert { { :origin    => String  } } if origin
 
         send_opmode(target, modestr, timestamp)
-
-        Protocol::ChannelMode.delete(cmode)
     end
 end

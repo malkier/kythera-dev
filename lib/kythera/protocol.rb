@@ -10,41 +10,6 @@
 require 'kythera'
 
 module Protocol
-    # A data class that represents a set of channel modes to perform
-    class ChannelMode
-        @@channel_modes = []
-
-        def self.delete(channel_mode)
-            assert { :channel_mode }
-
-            @@channel_modes.delete(channel_mode)
-            self
-        end
-
-        def self.find_by_channel(channel)
-            assert { :channel }
-
-            @@channel_modes.find { |cmode| cmode.channel == channel }
-        end
-
-        attr_accessor :add_modes, :del_modes, :add_params, :del_params, :timer
-        attr_reader   :user, :channel
-
-        def initialize(user, channel)
-            assert { :channel }
-            assert { :user    } if user
-
-            @user       = user
-            @channel    = channel
-            @add_modes  = []
-            @del_modes  = []
-            @add_params = []
-            @del_params = []
-
-            @@channel_modes << self
-        end
-    end
-
     # Removes the first character of the string
     REMOVE_FIRST = 1 .. -1
 
@@ -176,11 +141,17 @@ module Protocol
 
     # Sets channel modes, with mode stacking
     #
+    # @note Really, the only time to pass a param when deleting modes
+    #       is for status modes or :keyed. For :keyed, if passed a param, it's
+    #       used; if not passed a param, the key from the passed Channel
+    #       object is used. Some protocols require a param, some don't, but all
+    #       of them support sending one, so do it.
+    #
     # @param [User] origin the User setting the mode
     # @param [Channel] target the Channel to set the mode on
     # @param [Symbol] action :add or :del
     # @param [Array] modes the list of mode symbols
-    # @params [Array] params optional list of params for status/param modes
+    # @param [Array] params optional list of params for status/param modes
     #
     def channel_mode(origin, target, action, modes, params = [])
         assert { { :target => Channel, :action => Symbol, :modes => Array,
@@ -189,64 +160,11 @@ module Protocol
         assert { { :origin => User } } if origin
 
         # Do we already have modes for this channel waiting to be sent?
-        if cmode = ChannelMode.find_by_channel(target)
-            cmode.timer.stop
-            cmode.timer = nil
+        if mode_stack = ModeStacker.find_by_channel(target.name)
+            mode_stack.stack_modes(action, modes, params)
         else
             # No, we don't, so start a new one
-            cmode = ChannelMode.new(origin, target)
-        end
-
-        # Add modes one-at-a-time until we hit the max modes this protocol
-        # supports, then send them out. If we don't hit the max modes,
-        # set a timer to send them out in 500ms in case we get more modes
-        # to set in another call.
-        #
-        until modes.empty?
-            length = cmode.add_modes.length + cmode.del_modes.length
-
-            if length >= @config.max_modes
-                # Send it now, since we can only send 3 at a time
-                format_and_send_channel_mode(cmode)
-
-                # Those modes are gone, so get a new blank one
-                cmode = ChannelMode.new(cmode.user, cmode.channel)
-            else
-                mode = modes.shift
-
-                if action == :add
-                    cmode.add_modes << mode
-                elsif action == :del
-                    cmode.del_modes << mode
-                end
-
-                if action == :add
-                    if Channel.status_modes.values.include?(mode)
-                        cmode.add_params << params.shift
-                    elsif Channel.param_modes.values.include?(mode)
-                        cmode.add_params << params.shift
-                    end
-                elsif action == :del
-                    if Channel.status_modes.values.include?(mode)
-                        cmode.del_params << params.shift
-                    elsif mode == :keyed
-                        cmode.del_params << params.shift
-                    end
-                end
-            end
-        end
-
-        # Loop is over, modes are empty; either send or timer
-        length = cmode.add_modes.length + cmode.del_modes.length
-
-        if length >= @config.max_modes
-            # Send it now, since we can only send 3 at a time
-            format_and_send_channel_mode(cmode)
-        else
-            # Set a timer so that we can stack additional modes if they come in
-            cmode.timer = Timer.after(0.5) do
-                format_and_send_channel_mode(cmode)
-            end
+            ModeStacker.new(origin, target, action, modes, params)
         end
     end
 
@@ -275,73 +193,6 @@ module Protocol
     end
 
     private
-
-    # Process the given ChannelMode to post suitable events
-    #
-    # @param [ChannelMode] cmode the ChannelMode to process
-    #
-    def post_channel_mode_events(cmode)
-        #assert { { :cmode => ChannelMode } }
-
-        params = cmode.add_params.dup
-        cmode.add_modes.each do |mode|
-            param = nil
-
-            if Channel.param_modes.values.include?(mode) or
-               Channel.status_modes.values.include?(mode)
-
-                param = params.shift
-            end
-
-            $eventq.post(:mode_added_on_channel, mode, param, cmode.channel)
-        end
-
-        params = cmode.del_params.dup
-        cmode.del_modes.each do |mode|
-            param = nil
-
-            if Channel.status_modes.values.include?(mode)
-                param = params.shift
-            end
-
-            $eventq.post(:mode_deleted_on_channel, mode, param, cmode.channel)
-        end
-    end
-
-    # Process the given ChannelMode into a form suitable for IRC
-    #
-    # @param [ChannelMode] cmode the ChannelMode to process
-    #
-    def format_channel_mode(cmode)
-        #assert { { :cmode => ChannelMode } }
-
-        modes  = ''
-        params = []
-        imodes = Channel.cmodes.invert
-
-        # Do :add modes
-        unless cmode.add_modes.empty?
-            amodes  = cmode.add_modes.collect { |m| imodes[m] }.join('')
-            params += cmode.add_params
-            modes  += "+#{amodes}"
-        end
-
-        # Do :del modes
-        unless cmode.del_modes.empty?
-            dmodes  = cmode.del_modes.collect { |m| imodes[m] }.join('')
-            params += cmode.del_params
-            modes  += "-#{dmodes}"
-        end
-
-        # Keep state
-        cmode.channel.parse_modes(modes, params.dup)
-        post_channel_mode_events(cmode)
-
-        # Format params
-        params = params.join(' ')
-
-        [modes, params]
-    end
 
     # Finds a User and Channel or errors
     #
