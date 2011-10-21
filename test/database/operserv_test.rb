@@ -91,4 +91,9 @@ context :database do
       end
     end
   end
+
+  context 'cleaning up...' do
+    $db.run 'DELETE FROM account_fields'
+    $db.run 'DELETE FROM accounts'
+  end
 end

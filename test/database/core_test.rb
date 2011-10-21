@@ -393,4 +393,9 @@ context :database do
 
     asserts(:field_list).empty
   end
+
+  context 'cleaning up...' do
+    $db.run 'DELETE FROM account_fields'
+    $db.run 'DELETE FROM accounts'
+  end
 end

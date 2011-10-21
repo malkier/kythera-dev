@@ -98,8 +98,8 @@ module Database
 
                 channel = Channel.new
                 channel.name = name
-                channel.registered    = DateTime.now
-                channel.last_activity = DateTime.now
+                channel.registered    = Time.now
+                channel.last_activity = Time.now
                 channel.save
 
                 channel.grant(account, :founder)
