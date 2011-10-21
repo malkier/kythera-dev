@@ -20,14 +20,21 @@ check_timestamp = Proc.new do |timestamp, check|
   n == t or n == (t+1)
 end
 
-require 'logger'
-#$db.loggers << Logger.new($stdout)
-
 context :database do
   setup do
     $_daemon_block.call
     $_logger_setup.call
     configure_test { service :chanserv }
+
+    # XXX figure out how to test the on_succession callback
+    #@succession = {}
+    #
+    #if Database::ChannelService::SUCCESSION_HANDLERS.empty?
+    #  Database::ChannelService.on_succession do |account, channel|
+    #    @succession[account.email] ||= 0
+    #    @succession[account.email] += 1
+    #  end
+    #end
 
     $db.run 'DELETE FROM chanserv_flags'
     $db.run 'DELETE FROM chanserv_privileges'
@@ -55,15 +62,18 @@ context :database do
     channel = Database::ChannelService::Channel.register(rakaur, '#malkier')
 
     if founders
-      channel.grant(rakaur, :founder) || channel.grant(sycobuny, :founder)
+      channel.grant(rakaur, :founder)
+      channel.grant(sycobuny, :founder)
     end
 
     if successors
-      channel.grant(rintaun, :successor) || channel.grant(jufineath, :successor)
+      channel.grant(rintaun, :successor)
+      channel.grant(jufineath, :successor)
     end
 
     if regulars
-      channel.grant(andrew, :autoop) || channel.grant(xiphias, :autovoice)
+      channel.grant(andrew, :autoop)
+      channel.grant(xiphias, :autovoice)
     end
 
     Database::ChannelService::Channel.where(:name => '#malkier').first
@@ -291,8 +301,263 @@ context :database do
     end
   end
 
-  #context 'provides chanserv succession' do
-  #end
+  context 'drops channels with no founders and successors' do
+    setup { malkier(true, false, true) }
+
+    context 'from revocation' do
+      context 'after one' do
+        hookup do
+          sycobuny.cs.revoke(:founder, topic)
+        end
+
+        asserts('channel still exists') do
+          !! Database::ChannelService::Channel.resolve('#malkier')
+        end
+        denies('sycobuny is still a founder') do
+          sycobuny.cs.founder?(topic)
+        end
+        asserts('rakaur is still a founder') do
+          rakaur.cs.founder?(topic)
+        end
+        asserts('andrew is only autoop') do
+          (not andrew.cs.founder?(topic)) and
+          (not andrew.cs.successor?(topic)) and
+          andrew.cs.autoop?(topic)
+        end
+        asserts('xiphias is only autovoice') do
+          (not xiphias.cs.founder?(topic)) and
+          (not xiphias.cs.successor?(topic)) and
+          xiphias.cs.autovoice?(topic)
+        end
+      end
+
+      context 'after all' do
+        hookup do
+          sycobuny.cs.revoke(:founder, topic)
+          rakaur.cs.revoke(:founder, topic)
+        end
+
+        denies('channel still exists') do
+          !! Database::ChannelService::Channel.resolve('#malkier')
+        end
+      end
+    end
+
+    context 'from dropping' do
+      context 'after one' do
+        hookup do
+          Database::Account.admin_drop(sycobuny)
+        end
+
+        asserts('channel still exists') do
+          !! Database::ChannelService::Channel.resolve('#malkier')
+        end
+        denies('sycobuny exists') do
+          ! sycobuny.nil?
+        end
+        asserts('rakaur is still a founder') do
+          rakaur.cs.founder?(topic)
+        end
+        asserts('andrew is only autoop') do
+          (not andrew.cs.founder?(topic)) and
+          (not andrew.cs.successor?(topic)) and
+          andrew.cs.autoop?(topic)
+        end
+        asserts('xiphias is only autovoice') do
+          (not xiphias.cs.founder?(topic)) and
+          (not xiphias.cs.successor?(topic)) and
+          xiphias.cs.autovoice?(topic)
+        end
+      end
+
+      context 'after all' do
+        hookup do
+          Database::Account.admin_drop(sycobuny)
+          Database::Account.admin_drop(rakaur)
+        end
+
+        denies('channel still exists') do
+          !! Database::ChannelService::Channel.resolve('#malkier')
+        end
+      end
+    end
+  end
+
+  context 'promotes successors to founders' do
+    setup { malkier(true, true, true) }
+
+    context 'from revocation' do
+      context 'after one' do
+        hookup do
+          sycobuny.cs.revoke(:founder, topic)
+        end
+
+        asserts('channel still exists') do
+          !! Database::ChannelService::Channel.resolve('#malkier')
+        end
+        denies('sycobuny is still a founder') do
+          sycobuny.cs.founder?(topic)
+        end
+        asserts('rakaur is still a founder') do
+          rakaur.cs.founder?(topic)
+        end
+        # XXX figure out how to test the on_succession callback
+        #denies('succession events have been run') do
+        #  ! @succession.empty?
+        #end
+        denies('rintaun is a founder') do
+          rintaun.cs.founder?(topic)
+        end
+        denies('jufineath is a founder') do
+          jufineath.cs.founder?(topic)
+        end
+        asserts('rintaun is a successor') do
+          rintaun.cs.successor?(topic)
+        end
+        asserts('jufineath is a successor') do
+          jufineath.cs.successor?(topic)
+        end
+        asserts('andrew is only autoop') do
+          (not andrew.cs.founder?(topic)) and
+          (not andrew.cs.successor?(topic)) and
+          andrew.cs.autoop?(topic)
+        end
+        asserts('xiphias is only autovoice') do
+          (not xiphias.cs.founder?(topic)) and
+          (not xiphias.cs.successor?(topic)) and
+          xiphias.cs.autovoice?(topic)
+        end
+      end
+
+      context 'after all' do
+        hookup do
+          sycobuny.cs.revoke(:founder, topic)
+          rakaur.cs.revoke(:founder, topic)
+        end
+
+        asserts('channel still exists') do
+          !! Database::ChannelService::Channel.resolve('#malkier')
+        end
+        denies('sycobuny is still a founder') do
+          sycobuny.cs.founder?(topic)
+        end
+        denies('rakaur is still a founder') do
+          rakaur.cs.founder?(topic)
+        end
+        # XXX figure out how to test the on_succession callback
+        #asserts('rintaun succession event ran once') do
+        #  @succession['rintaun@projectxero.net'] == 1
+        #end
+        #asserts('jufineath succession event ran once') do
+        #  @succession['justin@othius.com'] == 1
+        #end
+        #asserts('jufineath succession event ran once') do
+        #  @succession['justin@othius.com'] == 1
+        #end
+        #asserts('only rintaun and jufineath events ran') do
+        #  @succession.keys.sort == %w(jufineath@othius.com rintaun@projectxero.net)
+        #end
+        asserts('rintaun is now a founder') do
+          rintaun.cs.founder?(topic)
+        end
+        asserts('jufineath is now a founder') do
+          jufineath.cs.founder?(topic)
+        end
+        denies('rintaun is still a successor') do
+          rintaun.cs.successor?(topic)
+        end
+        denies('jufineath is still a successor') do
+          jufineath.cs.successor?(topic)
+        end
+        asserts('andrew is only autoop') do
+          (not andrew.cs.founder?(topic)) and
+          (not andrew.cs.successor?(topic)) and
+          andrew.cs.autoop?(topic)
+        end
+        asserts('xiphias is only autovoice') do
+          (not xiphias.cs.founder?(topic)) and
+          (not xiphias.cs.successor?(topic)) and
+          xiphias.cs.autovoice?(topic)
+        end
+      end
+    end
+
+    context 'from dropping' do
+      context 'after one' do
+        hookup do
+          Database::Account.admin_drop(sycobuny)
+        end
+
+        asserts('channel still exists') do
+          !! Database::ChannelService::Channel.resolve('#malkier')
+        end
+        denies('sycobuny exists') do
+          ! sycobuny.nil?
+        end
+        asserts('rakaur is still a founder') do
+          rakaur.cs.founder?(topic)
+        end
+        denies('rintaun is a founder') do
+          rintaun.cs.founder?(topic)
+        end
+        denies('jufineath is a founder') do
+          jufineath.cs.founder?(topic)
+        end
+        asserts('rintaun is a successor') do
+          rintaun.cs.successor?(topic)
+        end
+        asserts('jufineath is a successor') do
+          jufineath.cs.successor?(topic)
+        end
+        asserts('andrew is only autoop') do
+          (not andrew.cs.founder?(topic)) and
+          (not andrew.cs.successor?(topic)) and
+          andrew.cs.autoop?(topic)
+        end
+        asserts('xiphias is only autovoice') do
+          (not xiphias.cs.founder?(topic)) and
+          (not xiphias.cs.successor?(topic)) and
+          xiphias.cs.autovoice?(topic)
+        end
+      end
+
+      context 'after all' do
+        hookup do
+          Database::Account.admin_drop(sycobuny)
+          Database::Account.admin_drop(rakaur)
+        end
+
+        asserts('channel still exists') do
+          !! Database::ChannelService::Channel.resolve('#malkier')
+        end
+        denies('rakaur exists') do
+          ! rakaur.nil?
+        end
+        asserts('rintaun is now a founder') do
+          rintaun.cs.founder?(topic)
+        end
+        asserts('jufineath is now a founder') do
+          jufineath.cs.founder?(topic)
+        end
+        denies('rintaun is still a successor') do
+          rintaun.cs.successor?(topic)
+        end
+        denies('jufineath is still a successor') do
+          jufineath.cs.successor?(topic)
+        end
+        asserts('andrew is only autoop') do
+          (not andrew.cs.founder?(topic)) and
+          (not andrew.cs.successor?(topic)) and
+          andrew.cs.autoop?(topic)
+        end
+        asserts('xiphias is only autovoice') do
+          (not xiphias.cs.founder?(topic)) and
+          (not xiphias.cs.successor?(topic)) and
+          xiphias.cs.autovoice?(topic)
+        end
+      end
+    end
+  end
 
   context 'cleaning up chanserv tests...' do
     setup do
