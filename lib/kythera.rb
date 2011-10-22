@@ -163,7 +163,7 @@ class Kythera
 end
 
 # Used to filter the input to the assert method
-STRIP_UNSAFE_VAR_NAMES = /[^a-z_]/i
+STRIP_UNSAFE_VAR_NAMES = /[^a-z0-9_]/i
 
 #
 # Asserts that arguments match a certain class, and raises errors if
@@ -232,7 +232,10 @@ def assert(&block)
 
     # turn :some_arg into SomeArg.
     to_class = lambda do |str|
-        Sequel::Model.send(:camelize, str.to_s.gsub(STRIP_UNSAFE_VAR_NAMES, ''))
+        str = str.to_s.split('::').collect do |s|
+            s.to_s.gsub(STRIP_UNSAFE_VAR_NAMES, '')
+        end.join('::')
+        Sequel::Model.send(:camelize, str)
     end
 
     # turn SomeClass into some_class.

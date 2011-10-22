@@ -19,6 +19,11 @@ Sequel.migration do
             String :memo,  :null => false
             TrueClass :unread, :null => false, :default => true
 
+            # XXX this should have a default in the DB, and not rely on the
+            # model to do it. not sure how to set current_timestamp as the
+            # default in a DB-agnostic way though.
+            DateTime :sent, :null => false
+
             primary_key [:to_id, :id]
             foreign_key [:from_id], :accounts
             foreign_key [:to_id],   :accounts

@@ -11,15 +11,6 @@
 require 'kythera'
 
 module Database
-    class Account
-        one_to_many :memoserv_memoranda_senders,
-                    :class_name => MemorandumService::Memorandum,
-                    :foreign_key => :from_id
-        one_to_many :memoserv_memoranda_recipients,
-                    :class_name => MemorandumService::Memorandum,
-                    :foreign_key => :to_id
-    end
-
     #
     # This module creates, reads, and deletes memorandums sent between users of
     # the system. It assumes everyone wants the ability to send and receive
@@ -42,7 +33,8 @@ module Database
 
         #
         # This is the class that drives most of the work on the database side of
-        # this service.
+        # this service. Note that it cannot be created with Memorandum.new, but
+        # only through the API specified here.
         #
         class Memorandum < Sequel::Model(:memoserv_memoranda)
             #
@@ -51,7 +43,19 @@ module Database
             # IRC with the sender's login ID (typically the length of an email
             # address).
             #
-            TOPICLEN = $config.memoserv.topic_length || (0..50)
+            TOPICLEN = (0..50)
+
+            #
+            # We do not want people to be able to just create arbitrary memos
+            # without going through our API.
+            #
+            private_class_method :new
+
+            #
+            # we set the ID ourselves, it's not just an arbitrarily-generated
+            # sequence from the DB.
+            #
+            unrestrict_primary_key
 
             many_to_one :from, :class_name => Account
             many_to_one :to,   :class_name => Account
@@ -67,9 +71,10 @@ module Database
             # @param [Account] to The account receiving the memo
             # @param [String] memo The memo text itself
             # @param [String] topic The optional topic of the memo
+            # @return [Memorandum] The newly sent memo
             # @example
-            #   from = 'rakaur@malkier.net'
-            #   to   = 'sycobuny@malkier.net'
+            #   from = Database::Account.resolve('rakaur@malkier.net')
+            #   to   = Database::Account.resolve('sycobuny@malkier.net')
             #   memo = <<-MEMO
             #     Hey, Steve. I just thought I'd let you know you were awesome.
             #     Cause you're pretty awesome.
@@ -77,17 +82,19 @@ module Database
             #   topic = 'How Awesome You Are'
             #   Memorandum.send(from, to, memo, topic)
             #
-            def self.send_memo(from, to, memo, topic = nil)
-                topic = memo unless topic
+            def self.send_memo(from, to, text, topic = nil)
+                assert { {:from => Account, :to => Account} }
+                topic = text unless topic
                 topic = topic[TOPICLEN]
 
                 memo = new
                 memo.from   = from
                 memo.to     = to
                 memo.topic  = topic
-                memo.memo   = memo
+                memo.memo   = text
                 memo.unread = true
-                memo.id     = self[:to => to].max + 1
+                memo.sent   = Time.now.to_s
+                memo.id     = filter { {:to => to} }.max(:id).to_i + 1
                 memo.save
 
                 memo
@@ -105,21 +112,22 @@ module Database
             #   Memorandum.delete_memos(account, 5)
             #
             def self.delete_memos(to, *ids)
-                transaction do
-                    to = Account.resolve(to)
+                 db.transaction do
+                    assert { {:to => Account} }
                     ids.collect! { |id| id.to_i }
-
-                    ds = self[:to => to, :id => ids]
+                   ds = self.filter { {:to => to, :id => ids} }
                     raise NoSuchMemoIDError unless ds.count == ids.length
 
                     ds.delete
 
                     min_affected = ids.sort[0]
-                    ds = self[:to => to].filter{ :id > min_affected }
+                    ds = self.filter({:to => to} & ((:id * 1) > min_affected))
+                    memos = ds.all
 
                     x = min_affected
-                    ds.each do |memo|
-                        memo.update(:id => x)
+                    memos.each do |memo|
+                        row = self.filter({:to => to, :id => memo.id})
+                        row.update(:id => x)
                         x += 1
                     end
                 end
@@ -138,7 +146,7 @@ module Database
             #   memo = Memorandum.read_memo(account, 5)
             #
             def self.read_memo(to, id)
-                memo = self[:to => to, :id => id].first
+                memo = self[:to => to, :id => id]
                 raise NoSuchMemoIDError unless memo
 
                 memo.read!
@@ -180,10 +188,11 @@ module Database
             # Iterates through the memos for the account and yields relevant
             # values to the block given. Values passed are the memo ID, the
             # account that sent the memo, the memo topic, whether the memo is
-            # unread, and the memo object itself.
+            # unread, when the memo was initially sent, and the memo object
+            # itself.
             #
             # @example
-            #   user.account.ms.preview_list do |id, from, topic, unread|
+            #   user.account.ms.preview_list do |id, from, topic, sent, unread|
             #     msg = unread ? "\002" : ''
             #     msg = "%2d. (%s) - %s" [id, from.login, topic]
             #
@@ -191,8 +200,9 @@ module Database
             #   end
             #
             def preview_list
-                Memorandum[:to => @account].order(:id).each do |memo|
-                    yield memo.id, memo.from, memo.topic, memo.unread, memo
+                Memorandum.filter(:to => @account).order(:id).each do |memo|
+                    yield memo.id, memo.from, memo.topic, memo.unread,
+                          memo.sent, memo
                 end
             end
 
@@ -215,7 +225,7 @@ module Database
             #   account.ms.send(to, memo, topic)
             #
             def send(to, memo, topic = nil)
-                Memorandum.send_memo(@account, to, memo,topic)
+                Memorandum.send_memo(@account, to, memo, topic)
             end
 
             #
@@ -255,7 +265,7 @@ module Database
             #   account.ms.mark_read(2)
             #
             def mark_read(id)
-                Memorandum[:account => @account, :id => id].read!
+                Memorandum[:to => @account, :id => id].read!
             end
 
             #
@@ -268,15 +278,24 @@ module Database
             #   account.ms.mark_unread(3)
             #
             def mark_unread(id)
-                Memorandum[:account => @account, :id => id].unread!
+                Memorandum[:to => @account, :id => id].unread!
             end
         end
 
         Account.before_drop do |account|
-            Memorandum[:to   => account].delete
-            Memorandum[:from => account].update(:from => nil)
+            Memorandum.filter(:to   => account).delete
+            Memorandum.filter(:from => account).update(:from_id => nil)
         end
 
         Account.helper [:memoserv, :ms], Helper
+    end
+
+    class Account
+        one_to_many :memoserv_memoranda_senders,
+                    :class_name => MemorandumService::Memorandum,
+                    :foreign_key => :from_id
+        one_to_many :memoserv_memoranda_recipients,
+                    :class_name => MemorandumService::Memorandum,
+                    :foreign_key => :to_id
     end
 end
