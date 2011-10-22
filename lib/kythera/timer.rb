@@ -25,7 +25,7 @@ class Timer
     # @param [Proc] block the code block to execute
     #
     def initialize(time, repeat = false, persist = false, &block)
-        @time    = time.to_i
+        @time    = time.to_f
         @timeout = Time.now.to_f + @time
         @repeat  = repeat
         @persist = persist
@@ -76,18 +76,19 @@ class Timer
         new(time, false, true, &block)
     end
 
-    # Stops all timers
-    def Timer.stop
-        @@timers.each { |t| t.stop }
-    end
-
     # Returns the Unix timestamp of the next time a timer should run
     #
     # @return [Fixnum] time until next timer needs to execute
     #
     def Timer.next_time
         return 0 if @@timers.empty?
-        @@timers.collect { |t| t.timeout }.min
+        time = @@timers.collect { |t| t.timeout }.min
+        time -= Time.now.to_f
+    end
+
+    # Stops all timers
+    def Timer.stop_all
+        @@timers.each { |t| t.stop }
     end
 
     # Kills the thread we're in

@@ -12,22 +12,39 @@ require 'kythera'
 class ShrikeService < Service
     private
 
+    # This command makes the entire application shut down.
+    def do_shutdown(user, params)
+        return unless is_sra?(user.nickname) # XXX account, not nickname
+
+        reason = params.join(' ')
+
+        wallop(@user.key, "shutdown requested by #{user}: #{reason}")
+
+        snoop(:shutdown, user)
+
+        $eventq.post(:exit, "#{user}: #{reason}")
+    end
+
     # This is dangerous, and is only here for my testing purposes!
     def do_raw(user, params)
         return unless is_sra?(user.nickname) # XXX account, not nickname
 
-        $uplink.raw(params.join(' '))
+        snoop(:raw, user)
+
+        raw(params.join(' '))
     end
 
     # Extremely dangerous, this is here only for my testing purposes!
     def do_eval(user, params)
-        #return unless is_sra?(user.nickname) # XXX account, not nickname
+        return unless is_sra?(user.nickname) # XXX account, not nickname
 
         code = params.join(' ')
 
         result = eval(code)
 
-        $uplink.privmsg(@user.key, @config.channel, "#{result.inspect}")
+        snoop(:eval, user)
+
+        privmsg(@user.key, @config.channel, "#{result.inspect}")
     end
 
     # Registers a username or channel

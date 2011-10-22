@@ -14,6 +14,34 @@ require 'rubygems'
 require 'kythera'
 require 'riot'
 
+# Set up Riot a little more explicitly
+Riot.verbose # use verbose error reporting (dump a callstack on errors)
+Riot.alone!  # require riot to be run manually, so we can do post-test cleanup
+
+# Require sequel, delete any old test db, and create the connection here. This
+# is done in a BEGIN block so it executes before the requires above.
+BEGIN {
+  require 'sequel'
+  File.delete('db/test.db') rescue nil
+  $db = Sequel.sqlite('db/test.db')
+
+  # Run the migrations here, and then the models will have them to load.
+  Sequel.extension :migration
+  Sequel::Migrator.run Sequel::Model.db, 'db/migrations'
+}
+
+# Run the tests after everything has been loaded up (variables defined etc), and
+# delete the test db afterwards (but only if KEEP_TEST_DB is not set).
+END {
+  status = Riot.run.success?
+
+  unless ENV['KEEP_TEST_DB'] == 'yes'
+    File.delete('db/test.db') rescue nil
+  end
+
+  exit(status)
+}
+
 # For all tests
 $config       = nil
 Log.logger    = Log::NilLogger.instance
@@ -37,7 +65,7 @@ $_daemon_block = proc do
 end
 
 $_uplink_block = proc do
-  next if $config and $config.uplinks and $config.uplinks[0]
+  next if $config and $config.uplinks and $config.uplinks.first
 
   configure_test do
     uplink '127.0.0.1', 6667 do

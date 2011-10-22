@@ -39,23 +39,29 @@ module Database
         # When a login is already registered and somone attempts to re-register
         # it, this error will be raised.
         #
-        class LoginExistsError      < Exception; end
+        class LoginExistsError          < Exception; end
 
         #
         # When a bad password is given, this error will be raised.
         #
-        class PasswordMismatchError < Exception; end
+        class PasswordMismatchError     < Exception; end
+
+        #
+        # When an attempt is made to authenticate on an Account object that is
+        # already authenticated, this error will be raised.
+        #
+        class AlreadyAuthenticatedError < Exception; end
 
         #
         # When a bad validation token is given, this error will be raised.
         #
-        class BadValidationError    < Exception; end
+        class BadVerificationError      < Exception; end
 
         #
-        # When someone attempts to perform a function on a bad login, this error
-        # will be raised.
+        # When someone attempts to resolve a value that can't be resolved, this
+        # error will be raised.
         #
-        class NoSuchLoginError      < Exception; end
+        class ResolveError              < Exception; end
 
         #
         # The list of resolve handlers which will be called by Account.resolve.
@@ -96,8 +102,8 @@ module Database
 
         #
         # Registers a resolve method to be run if normal resolution of the
-        # login is not possible. This allows something like a Nickname to be
-        # used to resolve an account, rather than their primary services login.
+        # account is not possible. This allows something like a Nickname to be
+        # used to resolve an account, rather than their primary services email.
         # Each block is run in the order added, and the first one to return a
         # result wins. They are passed the object that was requested to resolve.
         #
@@ -105,7 +111,7 @@ module Database
         # @example
         #   Account.register_resolver do |acct_to_resolve|
         #     if acct_to_resolve == 'rakaur'
-        #       Account[:login => 'rakaur@malkier.net']
+        #       Account[:email => 'rakaur@malkier.net']
         #     end
         #   end
         #
@@ -124,7 +130,7 @@ module Database
         # @param [Proc] block The code to run before dropping the account.
         # @example
         #   Account.before_drop do |account|
-        #     $my_logger.warn("Dropping #{account.login}!")
+        #     $my_logger.warn("Dropping #{account.email}!")
         #     MyRelatedClass[:account => account].delete
         #   end
         #
@@ -148,28 +154,29 @@ module Database
         #
         def self.helper(aliases, klass)
             aliases = *aliases
-            prime_alias = aliases.shift.to_sym
+            prime_alias = aliases[0].to_sym
 
-            define_method(prime_alias) do
-                @helpers[prime_alias] ||= klass.new(self)
+            aliases.each do |meth|
+                define_method(meth) do
+                    @helpers[prime_alias] ||= klass.new(self)
+                end
             end
-            aliases.each { |a| define_method(a.to_sym) { prime_alias } }
         end
 
         #
-        # Registers a user with a given login and password. The password should
+        # Registers a user with a given email and password. The password should
         # be plaintext; it is hashed by this library before storage in the
         # database.
         #
-        # @param [String] login The account's login ID
+        # @param [String] email The account's email (login ID)
         # @param [String] password The password to access the account
         # @return [Account] The newly-minted account
-        # @raise [LoginExistsError] If the login given already exists
+        # @raise [LoginExistsError] If the email given already exists
         # @example
         #   account = Account.register('rakaur@malkier.net', 'steveisawesome')
         #
-        def self.register(login, password)
-            raise LoginExistsError unless self.where(:login => login).empty?
+        def self.register(email, password)
+            raise LoginExistsError unless self.where(:email => email).empty?
 
             now  = Time.now
             salt = SecureRandom.base64(192)
@@ -177,7 +184,7 @@ module Database
             vt   = SecureRandom.base64(12)
 
             account = new
-            account.login        = login
+            account.email        = email
             account.salt         = salt
             account.password     = pass
             account.verification = vt
@@ -205,18 +212,18 @@ module Database
         #   account = Account.resolve('rakaur') # with registered handler
         #
         def self.resolve(acct_to_resolve)
-            return self if acct_to_resolve.kind_of?(self)
+            return acct_to_resolve if acct_to_resolve.kind_of?(self)
 
             if acct_to_resolve.kind_of?(Integer)
                 account = Account[acct_to_resolve] rescue nil
                 return account if account
             end
 
-            account = Account[:login => acct_to_resolve.to_s].first rescue nil
-            return acct if acct
+            account = Account[:email => acct_to_resolve.to_s] rescue nil
+            return account if account
 
             @@resolvers.each do |resolver|
-                account = resolver.call(acct_to_resolve) rescue nil
+                account = resolver.call(acct_to_resolve)
                 return account if account
             end
 
@@ -224,19 +231,19 @@ module Database
         end
 
         #
-        # Verifies a login against a given password. The password should be
+        # Verifies an email against a given password. The password should be
         # given as plaintext.
         #
-        # @param [Object] login The login (or resolvable object) to be logged in
+        # @param [Object] email The email (or resolvable object) to be logged in
         # @param [String] password The password for the login
         # @return [Account] The account that was verified
         # @raise [ResolveError] When no login matches what was requested
         # @raise [PasswordMismatchError] When the password is wrong
         # @example
-        #   account = Account.identify('rakaur', 'steveisawesome')
+        #   account = Account.authenticate('rakaur', 'steveisawesome')
         #
-        def self.identify(login, password)
-            account = resolve(login).authenticate(password)
+        def self.authenticate(email, password)
+            account = resolve(email).authenticate(password)
         end
 
         #
@@ -245,15 +252,15 @@ module Database
         # drop his or her own account. For further documentation, see the full
         # admin_drop method.
         #
-        # @param [Object] login The login (or resolvable object) to be dropped
+        # @param [Object] email The email (or resolvable object) to be dropped
         # @param [String] password The password for the login
         # @raise [ResolveError] When no login matches what was requested
         # @raise [PasswordMismatchError] When the password is wrong
         # @example
         #   Account.drop('rakaur', 'steveisawesome')
         #
-        def self.drop(login, password)
-            account = resolve(login).authenticate(password)
+        def self.drop(email, password)
+            account = authenticate(email, password)
             admin_drop(account)
         end
 
@@ -265,17 +272,17 @@ module Database
         # fail to remove all related data, then a mysterious Sequel Database
         # error of any given variety might be raised.
         #
-        # @param [Object] login The login (or resolvable object) to be dropped
+        # @param [Object] email The email (or resolvable object) to be dropped
         # @raise [ResolveError] When no login matches what was requested
         # @example
         #   Account.admin_drop('rakaur@malkier.net')
         #
-        def self.admin_drop(login)
-            account = resolve(login)
+        def self.admin_drop(email)
+            account = resolve(email)
             @@droppers.each { |dropper| dropper.call(account) }
             @@users.delete(account.id)
 
-            account.account_fields.delete
+            AccountField.filter{ {:account => account} }.delete
             account.delete
         end
 
@@ -287,7 +294,7 @@ module Database
         #
         # @return [True, False] Whether the account has authenticated
         #
-        #   account = Account.identify('rakaur', 'steveisawesome')
+        #   account = Account.authenticate('rakaur', 'steveisawesome')
         #   account.authenticated?  # true
         #   account2 = Account.resolve('rakaur')
         #   account2.authenticated? # false
@@ -318,16 +325,22 @@ module Database
         # Sets the account to authenticated if the password matches. Note that
         # this method also automatically resets account.failed_logins and
         # account.last_login. So, if these values are of use to you, you should
-        # retrieve them before calling this method.
+        # retrieve them before calling this method. This method will not allow
+        # a user to re-authenticate if they have already authenticated. If they
+        # wish to attempt to do so (for whatever reason), then the logout!
+        # method should be called first.
         #
         # @param [String] password The password to verify
         # @return [Account] The account object (self)
         # @raise [PasswordMismatchError] If the password did not match
+        # @raise [AlreadyAuthenticatedError] If there's an attempt to re-auth
         # @example
         #   account = Account.resolve('rakaur')
         #   account.authenticate('steveisawesome')
         #
         def authenticate(password)
+            raise AlreadyAuthenticatedError if authenticated?
+
             if authenticates?(password)
                 self.update(:last_login => Time.now, :failed_logins => 0)
                 @authenticated = true
@@ -343,7 +356,7 @@ module Database
         # Sets the account to no longer be authenticated.
         #
         # @example
-        #   account = Account.identify('rakaur', 'steveisawesome')
+        #   account = Account.authenticate('rakaur', 'steveisawesome')
         #   account.authenticated? # true
         #   account.logout!
         #   account.authenticated? # false
@@ -425,12 +438,10 @@ module Database
         #   account[:website] # 'http://www.malkier.net/'
         #
         def [](key)
-            super
+            return super if self.class.columns.include?(key)
 
             field = account_fields.find { |f| key.to_s == f.key }
             field ? field.value : nil
-
-            super
         end
 
         #
@@ -445,20 +456,21 @@ module Database
         # @param [String, #to_s] value The value to associate with the key
         # @return [String] The value that was stored
         # @example
-        #   account = Account.resolve('rakaur')
+        #   account = Account.resolve('rakaur@malkier.net')
         #   account[:website] = 'http://www.malkier.net/'
         #
         def []=(key, value)
-            super
+            return super if self.class.columns.include?(key)
+            return delete_field(key) unless value
 
             if field = account_fields.find { |f| key.to_s == f.key }
                 field.update(:value => value.to_s)
             else
                 field = AccountField.new
-                field.key   = key.to_s
-                field.value = value.to_s
-
-                account_fields << field
+                field.account = self
+                field.key     = key.to_s
+                field.value   = value.to_s
+                field.save
             end
 
             value.to_s
@@ -484,13 +496,19 @@ module Database
         # the database rather than simply updating it.
         #
         # @param [String, #to_s] key The key to delete
+        # @return [AccountField] The just-deleted field
         # @example
         #   account = Account.resolve('rakaur')
         #   account.delete_field(:love_for_steve) # should be an error but isn't
         #
         def delete_field(key)
-            returns unless field = account_fields.find { |f| key.to_s = f.key }
-            field.delete
+            return unless field = account_fields.find { |f| key.to_s == f.key }
+            ret = field.delete
+
+            # force reloading of the account fields
+            account_fields(true)
+
+            ret
         end
 
         #
@@ -503,7 +521,7 @@ module Database
         #
         # @return [Array] The list of active users of this account
         # @example
-        #   user.account = Account.identify('rakaur', 'steveisawesome')
+        #   user.account = Account.authenticate('rakaur', 'steveisawesome')
         #   user.account.users << user
         #   account = Account.resolve('rakaur')
         #   account.users # [user]
@@ -541,7 +559,7 @@ module Database
         # @return [String] The hashed password
         #
         def self.hash_password(salt, password)
-            saltbytes = salt.unpack('m')[0]
+            saltbytes = salt.unpack('m').first
             Digest::SHA2.hexdigest(saltbytes + password)
         end
 

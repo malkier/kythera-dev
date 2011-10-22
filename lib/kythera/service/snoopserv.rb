@@ -1,7 +1,7 @@
 # -*- Mode: Ruby; tab-width: 4; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
-# lib/kythera/service/shrike.rb: implements shrike's X
+# lib/kythera/service/snoopserv.rb: reports on services activity
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
 # Rights to this code are documented in doc/license.md
@@ -9,13 +9,10 @@
 
 require 'kythera'
 
-require 'kythera/service/shrike/commands'
-require 'kythera/service/shrike/configuration'
-
-# This service is designed to implement the functionality of Shrike IRC Services
-class ShrikeService < Service
+# This service reports various services activity to a designated channel
+class SnoopService < Service
     # Our name (for use in the config, etc)
-    NAME = :shrike
+    NAME = :snoopserv
 
     # For backwards-incompatible changes
     V_MAJOR = 0
@@ -37,7 +34,8 @@ class ShrikeService < Service
     # @return [True, False]
     #
     def self.verify_configuration(c)
-        unless c and c.nickname and c.username and c.hostname and c.realname
+        unless c and c.nickname and c.username and c.hostname and
+               c.realname and c.channel
             false
         else
             true
@@ -59,19 +57,18 @@ class ShrikeService < Service
         end
 
         @config = config
-        $log.debug 'shrike: configuration updated!'
+        $log.debug 'snoopserv: configuration updated!'
     end
 
     # This is all we do for now :)
     def initialize(config)
         @config = config
 
-        $log.debug "Shrike service loaded (version #{VERSION})"
+        $log.debug "Snoop service loaded (version #{VERSION})"
 
         # Introduce our user in the burst
         $eventq.handle(:start_of_burst) do
-            modes = [:deaf,     :hidden_operator, :invulnerable,
-                     :operator, :service]
+            modes = [:deaf, :invulnerable, :service]
 
             # Introduce our client to the network
             @user = introduce_user(@config.nickname, @config.username,
@@ -79,40 +76,48 @@ class ShrikeService < Service
         end
 
         # Join our configuration channel
-        $eventq.handle(:end_of_burst) do |delta|
-            join(@user.key, @config.channel) if @config.channel
-            wallop(@user.key, "finished synching to network in #{delta}s")
+        $eventq.handle(:end_of_burst) { join(@user.key, @config.channel) }
+
+        # Listen for snoops
+        $eventq.handle(:snoop) do |service, command, str|
+            snoop = "#{str} [#{service}->#{command}]"
+            privmsg(@user.key, @config.channel, snoop)
         end
 
         # When we're exiting, quit our user
         $eventq.handle(:exit) { |reason| quit(@user.key, reason) if @user }
     end
+end
 
-    public
-
-    # Determines if someone is an SRA
+# Contains the methods that do the config parsing
+module SnoopService::Configuration
+    # Adds methods to the parser from an arbitrary module
     #
-    # @param [String] nickname person to check
-    # @return [True, False]
+    # @param [Module] mod the module containing methods to add
     #
-    def is_sra?(nickname)
-        @config.sras.include?(nickname)
+    def use(mod)
+        self.extend(mod)
     end
 
-    # Posts snoops
-    def snoop(command, str)
-        $eventq.post(:snoop, :shrike, command, str)
+    private
+
+    def nickname(nick)
+        self.nickname = nick.to_s
     end
 
-    # Called by the protocol module to handle commands sent to us
-    def irc_privmsg(user, params)
-        cmd = params.delete_at(0)
-        meth = "do_#{cmd}".downcase.to_sym
+    def username(user)
+        self.username = user.to_s
+    end
 
-        if self.respond_to?(meth, true)
-            self.send(meth, user, params)
-        else
-            notice(@user.key, user.key, "Invalid command: \2#{cmd}\2")
-        end
+    def hostname(host)
+        self.hostname = host.to_s
+    end
+
+    def realname(real)
+        self.realname = real.to_s
+    end
+
+    def channel(channel)
+        self.channel = channel
     end
 end

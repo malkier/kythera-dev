@@ -69,32 +69,19 @@ module Protocol::P10
         ret
     end
 
-    # Toggle a status mode for a User on a Channel
+    # Abstracted way to send a mode change to a channel
     #
-    # @param [User] user the User to perform the mode on
-    # @param [Channel] channel the Channel to perform the mode on
-    # @param [Symbol] mode the mode to toggle
-    # @param [String] origin optionally specify a setter for the mode
+    # @param [nil, String] origin optional origin of mode
+    # @param [String] target channel to send mode to
+    # @param [Integer] timestamp the channel's timestamp
+    # @param [String] modestr the mode string
     #
-    def toggle_status_mode(user, channel, mode, origin = nil)
-        assert { [:user, :channel] }
-        assert { { :mode => Symbol } }
-        assert { { :origin => String } } if origin
+    def send_channel_mode(origin, target, timestamp, modestr)
+        assert { { :target    => String, :modestr => String,
+                   :timestamp => Integer } }
 
-        del = user.has_mode_on_channel?(mode, channel)
-        chr = Channel.status_modes.find { |flag, symbol| mode == symbol }[0]
-        str = "#{del ? '-' : '+'}#{chr} #{user.uid}"
+        assert { { :origin    => String  } } if origin
 
-        if del
-            user.delete_status_mode(channel, mode)
-            $eventq.post(:mode_deleted_on_channel, mode, user, channel)
-        else
-            user.add_status_mode(channel, mode)
-            $eventq.post(:mode_added_on_channel, mode, user, channel)
-        end
-
-        name, ts = channel.name, channel.timestamp
-
-        send_opmode(origin ? origin : @config.sid, name, str, ts)
+        send_opmode(target, modestr, timestamp)
     end
 end

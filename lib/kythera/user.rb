@@ -75,18 +75,20 @@ class User
         @param_modes  = {}
 
         # Do our user modes
-        unless umodes[0].chr == '+' or umodes[0].chr == '-'
-            umodes = "+#{umodes}"
+        unless umodes.empty?
+            unless umodes[0].chr == '+' or umodes[0].chr == '-'
+                umodes = "+#{umodes}"
+            end
+
+            # Pull the params off the mode string
+            modes, params = umodes.split(' ', 2)
+
+            # If we have params, tokenize them
+            params &&= params.split(' ')
+
+            # Now parse them
+            parse_modes(modes, params)
         end
-
-        # Pull the params off the mode string
-        modes, params = umodes.split(' ', 2)
-
-        # If we have params, tokenize them
-        params &&= params.split(' ')
-
-        # Now parse them
-        parse_modes(modes, params)
 
         # Add ourself to the users list and fire the event
         $users[key] = self
@@ -155,6 +157,14 @@ class User
     #
     def operator?
         @modes.include?(:operator)
+    end
+
+    # Is this user one a services pseudoclient?
+    #
+    # @return [True, False]
+    #
+    def service?
+        @server.name == $config.me.name
     end
 
     # Parses a mode string and updates user state

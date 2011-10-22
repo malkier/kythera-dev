@@ -41,6 +41,14 @@ class DNSBLService < Service
         end
     end
 
+    # This is called during a rehash to update our configuration
+    # We should check it over for changes to implement, etc. - XXX
+    #
+    def config=(config)
+        @config = config
+        $log.debug 'dnsblserv: configuration updated!'
+    end
+
     # Called by the daemon when we connect to the uplink
     def initialize(config)
         @config = config
@@ -59,9 +67,16 @@ class DNSBLService < Service
 
     private
 
+    # Posts snoops
+    def snoop(command, str)
+        $eventq.post(:snoop, :bl, command, str)
+    end
+
     # Add the user to our to-be-checked queue
     def queue_user(user)
-        return $state.bursting
+        return if $state.bursting # Don't scan if we're bursting
+        return if user.operator?  # Don't scan opers
+        return if user.service?   # Don't scan our users
 
         # Calculate our time delay for this check
         time = (@needs_checking * @config.delay) + @config.delay
@@ -73,9 +88,6 @@ class DNSBLService < Service
 
     # Does the actual DNSBL lookup
     def check_user(user)
-        return if $state.bursting
-        return if user.operator? # Don't scan opers
-
         # Reverse their IP bits
         m  = Resolv::IPv4::Regex.match(user.ip)
         ip = "#{m[4]}.#{m[3]}.#{m[2]}.#{m[1]}"
@@ -92,6 +104,7 @@ class DNSBLService < Service
                 next
             else
                 $log.info "dnsbl positive: #{check_addr}"
+                snoop(:check, "POSITIVE: #{check_addr}")
                 # XXX - set the kline!
 
                 # We don't need to check other lists since it's positive

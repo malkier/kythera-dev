@@ -22,8 +22,9 @@ class Kythera
         check_ruby_version
 
         # Handle some signals
-        trap(:INT)  { exit_app }
-        trap(:TERM) { exit_app }
+        trap(:HUP)  { rehash }
+        trap(:INT)  { $eventq.post(:exit, 'received interruption signal') }
+        trap(:TERM) { $eventq.post(:exit, 'received termination signal')  }
 
         # Some defaults for state
         logging  = true
@@ -65,6 +66,7 @@ class Kythera
             $-w = true
             logging = true
             $config.me.logging = :debug
+            Thread.abort_on_exception = true
 
             puts "#{ME}: warning: debug mode enabled"
             puts "#{ME}: warning: all activity will be logged in the clear"
@@ -96,14 +98,31 @@ class Kythera
 
         # Enter the main event loop
         begin
-            main_loop
+            exiting = catch(:exit) { main_loop }
         rescue Exception => err
-            $log.fatal("exception in main_loop: #{err}")
-            $log.fatal("backtrace: #{err.backtrace.join("\n\t\t\t")}")
+            # Make the backtrace prettier, even though the code is ugly
+            bt = err.backtrace.collect do |stacklevel|
+                li = stacklevel.split(File::SEPARATOR)
+
+                if li.include?('lib')
+                    li[(li.rindex('kythera') + 1) .. -1].join(File::SEPARATOR)
+                else
+                    li.join(File::SEPARATOR)
+                end
+            end
+
+            # Log the error and the full backtrace
+            $log.fatal("unhandled exception: #{err}")
+            $log.fatal("backtrace:\n\t\t\t#{bt.join("\n\t\t\t")}")
+
+            # Exit cleanly
             exit_app
         end
 
-        # If we get to here we're exiting (this is a normal termination)
+        # We only get here if something did a `throw :exit`
+        $log.info "shutting down: #{exiting}"
+
+        # Exit cleanly
         exit_app
     end
 
@@ -115,13 +134,22 @@ class Kythera
     # This makes sure we're connected and handles events, timers, and I/O
     #
     def main_loop
+        exiting = false
+
         loop do
             # If it's true we're connectED, if it's nil we're connectING
             connect until $uplink and $uplink.connected?
 
             # Run the event loop until it's empty
             begin
-                $eventq.run while $eventq.needs_run?
+                # Run the eventq to clear out socket events and bail
+                if exiting
+                    $eventq.run
+                    throw :exit, exiting
+                else
+                    # Keep an eye out for graceful exit
+                    exiting = catch(:exit) { $eventq.run }
+                end
             rescue Uplink::DisconnectedError => err
                 host = $uplink.config.host
                 port = $uplink.config.port
@@ -152,13 +180,13 @@ class Kythera
             # Ruby's threads suck. In theory, the timers should
             # manage themselves in separate threads. Unfortunately,
             # Ruby has a global lock and the scheduler isn't great, so
-            # this tells select() to timeout when the next timer needs to run.
+            # this tells select() to time out when the next timer needs to run.
             #
-            timeout = (Timer.next_time - Time.now.to_f).round
-            timeout = 1  if timeout == 0 # Don't want 0, that's forever
-            timeout = 60 if timeout  < 0 # Less than zero means no timers
+            timeout = Timer.next_time
+            timeout = 1 if timeout  < 0
+            timeout = 5 if timeout == 0
 
-            # Wait up to 60 seconds for our socket to become readable/writable
+            # Wait up to 5 seconds for our socket to become readable/writable
             ret = IO.select(readfds, writefds, [], timeout)
 
             if ret
@@ -186,7 +214,7 @@ class Kythera
     # Connects to the uplink
     def connect
         # Clear all non-persistent Timers
-        Timer.stop
+        Timer.stop_all
 
         # Reset all the things that are uplink-dependent
         $users.clear
@@ -197,9 +225,10 @@ class Kythera
         if $uplink
            $log.debug "current uplink failed, trying next"
 
-            curruli  = $config.uplinks.find_index($uplink.config)
-            curruli += 1
-            curruli  = 0 if curruli > ($config.uplinks.length - 1)
+            curruli   = $config.uplinks.find_index($uplink.config)
+            curruli ||= 0
+            curruli  += 1
+            curruli   = 0 if curruli > ($config.uplinks.length - 1)
 
             $eventq.clear
             $uplink = Uplink.new($config.uplinks[curruli])
@@ -207,7 +236,7 @@ class Kythera
             sleep $config.me.reconnect_time
         else
             $eventq.clear
-            $uplink = Uplink.new($config.uplinks[0])
+            $uplink = Uplink.new($config.uplinks.first)
         end
 
         begin

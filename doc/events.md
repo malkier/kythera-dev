@@ -9,6 +9,33 @@ List of Events
 Kythera has an event system for edge cases where it does not provide some other
 high level API to accomplish your task. This is a list of those events.
 
+Exit Event
+----------
+
+There is a somewhat special event, called `:exit`. It is special in the sense
+that the event queue runner looks specifically for it and runs every other
+event in the queue first, then runs the exit handlers, and then asks the main
+loop to exit. The exit event exits to allow you to clean things up (close
+files, save things, etc.). When the main loop is asked to exit, it makes a note
+of this request and goes ahead and runs through the IO loop one more time in
+order for any socket-dependent events added by exit handlers to run (such as
+sending data to the IRC uplink), and then will exit gracefully. This "one more
+loop" behavior is a special case, and is your last chance to run something.
+
+If you're going to handle this event, you should stop to think whether you
+should be using `EventQueue#handle` or `EventQueue#persistently_handle`. The
+former gets wiped out when the uplink gets disconnected, and the later never
+gets wiped out. If you're a service, you're instantiated every time the uplink
+reconnects, so if you add the exit handler in your initialize method, then
+using the former is just fine. If you're an extension (or something else not
+tied to the main loop), you want to use the latter.
+
+You're also free to post the :exit event, which will trigger the above series
+of events. Of course, you should only do this for a very good reason (usually,
+user input that has asked the application to shut down). If you post it, any
+params you post with it should respond to `to_s` and in general, there should
+only be one param--a `String`--that describes why we're exiting.
+
 IRC Command Events
 -------------------
 
@@ -91,7 +118,7 @@ User Events
     | user_parted_channel    | User, Channel          | User parted a Channel |
     | mode_added_to_user     | Symbol, param, User    | set +mode on User     |
     | mode_deleted_from_user | Symbol, param, User    | set -mode on User     |
-    | nickname_changed       | User, new nick         | user /nick'd          |
+    | nickname_changed       | User, old nick         | user /nick'd          |
     |------------------------+------------------------+-----------------------|
 
 Server Events

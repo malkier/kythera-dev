@@ -78,7 +78,7 @@ module Diakofti::CommandHandlers
             return
         end
 
-        data = args.payload.unpack('m')[0]
+        data = args.payload.unpack('m').first
         authzid, authcid, passwd = data.split("\000")
 
         # XXX - make this actually work, use a dummy for now
@@ -87,7 +87,7 @@ module Diakofti::CommandHandlers
         account = OpenStruct.new
         account.login = 'rakaur@malkier.net'
         account.salt  = "9nqrtDNxbElevqbTLaEqIott1GR5dyfV+dBEwv7wJZ8vPGeqxAH4XP6Eyttk53CMEnmP3ZxeXe18WffxKIqnUl8uMNqvRtPNKFvbKF4AKAzrKg9psYWV1M41CNiYumXGmVbX5Dz5v75Ge0TKbd5A/15k4J4ZaZxc0ru/3+oLz8jF3LSKb6wxQieeSyWkDiarYtbKsh1Tm9eCm/1MLz+m7sTECXVmRfanxLfp+M6AC41WjyinKT9cGfZ1szltcLvOK6YhKaT/5RzR1ProM1E2RyWmmlnqe7RuCAFKSmGVLyF07GEniw3PSvjywl7XFu2z8V5dfe5fGwqtgBLeeRq8oA=="
-        saltbytes = account.salt.unpack('m')[0]
+        saltbytes = account.salt.unpack('m').first
         account.password = Digest::SHA2.hexdigest(saltbytes + 'MyL33tP455')
 
         passwd = Digest::SHA2.hexdigest(saltbytes + passwd)

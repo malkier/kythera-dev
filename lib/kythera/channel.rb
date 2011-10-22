@@ -34,12 +34,19 @@ class Channel
                        't' => :topic_lock }
 
     # Attribute reader for `@@status_modes`
-    #
-    # @return [Hash] a list of all status modes
-    #
-    def self.status_modes
-        @@status_modes
-    end
+    def self.status_modes; @@status_modes; end
+
+    # Attribute reader for `@@list_modes`
+    def self.list_modes; @@list_modes; end
+
+    # Attribute reader for `@@param_modes`
+    def self.param_modes; @@param_modes; end
+
+    # Attribute reader for `@@bool_modes`
+    def self.bool_modes; @@bool_modes; end
+
+    # Attribute reader for `@@cmodes`
+    def self.cmodes; @@cmodes; end
 
     # The channel name, including prefix
     attr_reader :name
@@ -61,6 +68,7 @@ class Channel
         @members = IRCHash.new
 
         clear_modes
+        setup_cmodes
 
         $channels[name] = self
 
@@ -256,6 +264,13 @@ class Channel
     end
 
     private
+
+    # Sets up a list of all cmodes
+    def setup_cmodes
+        @@cmodes = [@@status_modes, @@list_modes, @@param_modes, @@bool_modes]
+        @@cmodes = @@cmodes.inject(:merge)
+        @@cmodes.update(@@cmodes.invert)
+    end
 
     # Deals with status modes
     #

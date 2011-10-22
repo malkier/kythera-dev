@@ -85,7 +85,7 @@ module Protocol::TS6
 
     # SJOIN <TS> <CHANNAME> +<CHANMODES> :<UIDS>
     def send_sjoin(target, timestamp, uid)
-        assert { { :origin => String, :timestamp => Integer, :uid => String } }
+        assert { { :target => String, :timestamp => Integer, :uid => String } }
 
         raw "SJOIN #{timestamp} #{target} + :@#{uid}"
     end

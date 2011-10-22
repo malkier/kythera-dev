@@ -62,7 +62,7 @@ module Protocol
         @sendq << string
     end
 
-    # Sends an WALLOP
+    # Sends a WALLOP
     #
     # @param [String] origin the entity sending the message
     # @param [String] message the message to send
@@ -106,12 +106,8 @@ module Protocol
     def part(origin, target, reason = 'leaving')
         assert { { :origin => String, :target => String, :reason => String } }
 
-        unless user = $users[origin]
-            $log.warn 'cannot part nonexistent user from channel'
-            $log.warn "#{origin} -> #{target}"
-
-            return
-        end
+        user, channel = find_user_and_channel(origin, target, :PART)
+        return unless user and channel
 
         # Part the chanel
         send_part(origin, target, reason)
@@ -141,6 +137,59 @@ module Protocol
         assert { { :origin => String, :target => String, :topic => String } }
 
         send_topic(origin, target, topic)
+    end
+
+    # Sets channel modes, with mode stacking
+    #
+    # @note Really, the only time to pass a param when deleting modes
+    #       is for status modes or :keyed. For :keyed, if passed a param, it's
+    #       used; if not passed a param, the key from the passed Channel
+    #       object is used. Some protocols require a param, some don't, but all
+    #       of them support sending one, so do it.
+    #
+    # @param [User] origin the User setting the mode
+    # @param [Channel] target the Channel to set the mode on
+    # @param [Symbol] action :add or :del
+    # @param [Array] modes the list of mode symbols
+    # @param [Array] params optional list of params for status/param modes
+    #
+    def channel_mode(origin, target, action, modes, params = [])
+        assert { { :target => Channel, :action => Symbol, :modes => Array,
+                   :params => Array } }
+
+        assert { { :origin => User } } if origin
+
+        # Do we already have modes for this channel waiting to be sent?
+        if mode_stack = ModeStacker.find_by_channel(target.name)
+            mode_stack.stack_modes(action, modes, params)
+        else
+            # No, we don't, so start a new one
+            ModeStacker.new(origin, target, action, modes, params)
+        end
+    end
+
+    # Toggle a status mode for a User on a Channel
+    #
+    # @param [User] user the User to perform the mode on
+    # @param [Channel] channel the Channel to perform the mode on
+    # @param [Symbol] mode the mode to toggle
+    # @param [String] origin optionally specify a setter for the mode
+    #
+    def toggle_status_mode(user, channel, mode, origin = nil)
+        assert { [:user, :channel] }
+        assert { { :mode => Symbol } }
+
+        action = user.has_mode_on_channel?(mode, channel) ? :del : :add
+
+        if action == :add
+            user.add_status_mode(channel, mode)
+        elsif action == :del
+            user.delete_status_mode(channel, mode)
+        end
+
+        origin = origin ? origin.key : nil
+
+        channel_mode(origin, channel, action, [mode], [user.key])
     end
 
     private

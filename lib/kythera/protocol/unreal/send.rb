@@ -68,7 +68,7 @@ module Protocol::Unreal
         raw str
 
         s = $servers[$config.me.name]
-        User.new(nil, nick, user, host, real, modes, ts)
+        User.new(s, nick, user, host, real, modes, ts)
     end
 
     # :server.name SJOIN timestamp channel +modes[ modeparams] :memberlist
@@ -79,13 +79,15 @@ module Protocol::Unreal
     end
 
     # :origin MODE target mode
-    def send_mode(origin, target, mode)
-        assert { { :origin => String, :target => String, :mode => String } }
+    def send_mode(origin, target, mode, timestamp = nil)
+        assert { { :target => String, :mode => String } }
+        assert { { :origin    => String  } } if origin
+        assert { { :timestamp => Integer } } if timestamp
 
         if origin
-            raw "MODE #{target} #{mode}"
-        else
             raw ":#{origin} MODE #{target} #{mode}"
+        else
+            raw "MODE #{target} #{mode} #{timestamp}"
         end
     end
 

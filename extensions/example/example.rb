@@ -10,9 +10,16 @@
 require 'kythera'
 
 class ExampleExtension
+    include Singleton
+
+    @@config = nil
+
+    def self.config=(config)
+        @@config = config
+    end
+
     # If you get here, you're loaded and ready to go
-    def initialize(config)
-        @config = config
+    def initialize
         puts "ExampleExtension has been initialized!"
     end
 end

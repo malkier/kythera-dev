@@ -20,7 +20,16 @@ class ExampleExtensionHeader < Extension
     #
     def self.initialize(config = nil)
         require 'extensions/example/example'
-        ExampleExtension.new(config)
+        ExampleExtension.config = config
+        ExampleExtension.instance
+    end
+
+    # Verify our configuration
+    #
+    # @return [True, False]
+    #
+    def self.verify_configuration(c)
+        true
     end
 
     # Our configuration methods

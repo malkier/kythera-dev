@@ -93,6 +93,11 @@ configure do
     #
     # You can have as many of these as you like.
     #
+    # If you remove the active uplink block during a rehash, the application
+    # will NOT disconnect automatically (in case you were simply changing
+    # the host, or what have you). You will have to force a disconnection
+    # using the operator service if you want to abandon the active uplink.
+    #
     uplink 'moridin.ericw.org', 6699 do
         # How important is this uplink vs other uplinks? Can be anything
         # Can be any number, positive or negative. If missing, it's
@@ -124,9 +129,6 @@ configure do
 
         # The protocol that your ircd speaks for server-to-server links.
         #
-        # While you can have multiple uplinks, you cannot have different
-        # protocols for different uplinks. Things will crash and burn.
-        #
         # :inspircd -- InspIRCd v1.2.8
         # :p10      -- ircu v2.10.12.14
         # :ts6      -- ircd-ratbox v2.2.9, charybdis v2.3.1
@@ -148,6 +150,22 @@ configure do
     # Still reading... :)
     # XXX abort "You really should read ALL of your configuration file!"
 
+    ###################
+    # S E R V I C E S #
+    ###################
+
+    #
+    # Services are loaded at runtime, when this file is executed, and they are
+    # instantiated upon connection to the uplink.
+    #
+    # You can enable an otherwise-disabled service by rehashing, but you
+    # cannot disable an otherwise-enabled one. Unfortunately, Ruby provides no
+    # mechanism to unload code, so once it's loaded, it's loaded. You'll have to
+    # restart to unload a service.
+    #
+    # Rehashing will also update a service's configuration data.
+    #
+
     # This section of the configuration describes the behavior of the Shrike
     # service. If it is not specified or is empty, shrike is disabled.
     #
@@ -167,6 +185,7 @@ configure do
         # The channel the client joins and sends certain messages to
         #
         # Comment to disable
+        #
         channel '#malkier'
 
         # The users that have special privileges with the service
@@ -210,20 +229,57 @@ configure do
         delay 2
     end
 
+    # This section of the configuration describes the behavior of the snoop
+    # service. The snoop service reports various activities of services to a
+    # particular channel so admin can monitor services activity.
+    #
+    service :snoopserv do
+        # The client's nickname on IRC
+        nickname :S
+
+        # The client's username (sometimes called ident) on IRC
+        username :service
+
+        # The client's hostname on IRC
+        hostname 'services.int'
+
+        # The client's realname (sometimes called gecos) on IRC
+        realname 'kythera irc services'
+
+        # The channel the client joins and sends messages to
+        channel '#malkier'
+    end
+
+    #######################
+    # E X T E N S I O N S #
+    #######################
+
+    #
+    # Extensions are loaded at runtime, when this file is executed, and they are
+    # instantiated immediately.
+    #
+    # You can enable an otherwise-disabled extension by rehashing, but you
+    # cannot disable an otherwise-enabled one. Unfortunately, Ruby provides no
+    # mechanism to unload code, so once it's loaded, it's loaded. You'll have to
+    # restart to unload an extension.
+    #
+    # Rehashing will also update an extensions's configuration data.
+    #
+
     # Do you want to enable the API server?
     #
     # This is used to integrate with external services, like a website. The
     # API specification is not yet complete, so this isn't really useful to
     # anyone yet. Keep an eye out though; it will be awesome.
     #
-    #extension :diakofti do
+    # extension :diakofti do
         # What port do you want to run the TCP server on?
-    #    port 3000
+        # port 3000
 
         # If you need to bind to a specific IP when connecting to the
         # uplink specify it here. You can also specify a local port.
         #
-    #    bind '127.0.0.1'
+        # bind '127.0.0.1'
 
         # The information we need for serving TLS/SSL
         #
@@ -239,14 +295,14 @@ configure do
         # Use the resulting "server.crt" file for ssl_certificate.
         # Use the resulting "server.key" file for ssl_private_key.
         #
-    #    ssl_certificate 'extensions/diakofti/server.crt'
-    #    ssl_private_key 'extensions/diakofti/server.key'
-    #end
+        # ssl_certificate 'extensions/diakofti/server.crt'
+        # ssl_private_key 'extensions/diakofti/server.key'
+    # end
 
     # This is an example configuration block for the example extension and
     # exists to serve as an educational tool for extension developers.
     #
-    #extension :example do
-    #    example_setting :example
-    #end
+    # extension :example do
+    #     example_setting :example
+    # end
 end

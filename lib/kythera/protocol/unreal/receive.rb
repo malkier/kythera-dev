@@ -92,7 +92,7 @@ module Protocol::Unreal
                 return
             end
 
-            $eventq.post(:nickname_changed, user, parv[0])
+            $eventq.post(:nickname_changed, user, user.nickname)
             $log.debug "nick change: #{user} -> #{parv[0]}"
 
             oldnick = user.nickname
@@ -259,16 +259,32 @@ module Protocol::Unreal
     # parv[-1] -> timestamp if origin is a server
     #
     def irc_mode(origin, parv)
+        # This is a umode
         if user = $users[parv[0]]
+            return unless user = $users[origin]
             user.parse_modes(parv[1])
-        else
-            channel = $channels[parv[0]]
-            return unless channel
+            return
+        end
 
+        # Otherwise it's a channel
+        return unless channel = $channels[parv[0]]
+
+        if server = $servers[origin]
+            their_ts = parv[-1].to_i
+            my_ts    = channel.timestamp
+        else
+            their_ts = 1
+            my_ts    = 1
+        end
+
+        # Simple TS rules
+        if their_ts <= my_ts
             modes  = parv[1]
             params = parv[GET_MODE_PARAMS]
 
             channel.parse_modes(modes, params)
+        else
+            $log.warn "invalid ts for #{channel} (#{their_ts} > #{my_ts})"
         end
     end
 

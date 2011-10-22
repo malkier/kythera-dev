@@ -75,14 +75,6 @@ class EventQueue
         #$log.debug "registered persistent handler for event: #{event}"
     end
 
-    # Does the queue need emptied?
-    #
-    # @return [True, False]
-    #
-    def needs_run?
-        @queue.empty? ? false : true
-    end
-
     # Clears non-persistent handlers
     def clear
         @handlers.clear
@@ -90,16 +82,39 @@ class EventQueue
 
     # Goes through the event queue and runs the handlers
     def run
+        exiting = false
+
         while e = @queue.shift
+            if e.event == :exit
+                exiting = e
+                next
+            end
+
             if @handlers[e.event]
                 #$log.debug "dispatching handlers for event: #{e.event}"
                 @handlers[e.event].each { |block| block.call(*e.args) }
-            elsif @persistents[e.event]
+            end
+
+            if @persistents[e.event]
                 #$log.debug "dispatching persistents for event: #{e.event}"
                 @persistents[e.event].each { |block| block.call(*e.args) }
-            else
-                next # No handlers
             end
+        end
+
+        # Now we can run the exit handlers, and then we bubble back up to the
+        # call to Kythera#main_loop for a graceful exit. Althought anything
+        # that registered to handle :exit will run here, no events they add will
+        # be run, and as a result no socket operations will work.
+        if exiting
+            if @handlers[:exit]
+                @handlers[:exit].each { |block| block.call(*exiting.args) }
+            end
+
+            if @persistents[:exit]
+                @persistents[:exit].each { |block| block.call(*exiting.args) }
+            end
+
+            throw :exit, *exiting.args
         end
     end
 end

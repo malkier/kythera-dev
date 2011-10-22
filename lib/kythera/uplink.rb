@@ -49,9 +49,14 @@ class Uplink
 
         unless @config.casemapping_override
             case @config.protocol
+            when :p10
+                @config.max_modes   = 6
+                @config.casemapping = :rfc1459
             when :unreal
+                @config.max_modes   = 6
                 @config.casemapping = :ascii
             else
+                @config.max_modes   = 4
                 @config.casemapping = :rfc1459
             end
         end
@@ -138,7 +143,7 @@ class Uplink
 
         # Passes every "line" to the block, including "\n"
         data.scan /(.+\n?)/ do |line|
-            line = line[0]
+            line = line.first
 
             # If the last line had no \n, add this one onto it.
             if @recvq[-1] and @recvq[-1][-1].chr !~ CR_OR_LF
