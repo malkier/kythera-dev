@@ -11,11 +11,6 @@
 require 'kythera'
 
 module Database
-    class Account
-        one_to_many :nickserv_nicknames,
-                    :class_name => NicknameService::Nickname
-    end
-
     #
     # This module creates and manages nicknames associated with accounts. It
     # assumes that it provides a central front-end to the core Account class,
@@ -63,7 +58,7 @@ module Database
         # this service.
         #
         class Nickname < Sequel::Model(:nickserv_nicknames)
-            many_to_one :account
+            many_to_one :account, :class_name => Account
 
             #
             # Registers a nickname to an account. This method also implicitly
@@ -88,18 +83,19 @@ module Database
             #
             def self.register(nick, password, account)
                 begin
-                    account = Account.identify(account, password)
-                rescue Account::NoSuchLoginError
+                    account = Account.authenticate(account, password)
+                rescue Account::ResolveError
                     account = Account.register(account, password)
+                rescue Account::AlreadyAuthenticatedError
                 end
 
                 if limit and
                    limit != :unlimited and
-                   Nickname[:account => account].count > limit
+                   filter(:account => account).count >= limit
                     raise ExceedsNickCountError
                 end
 
-                if Nickname[:nickname => nick].first
+                if Nickname[:nickname => nick]
                     raise NickExistsError
                 end
 
@@ -128,18 +124,22 @@ module Database
             #   Nickname.drop(nick, password, account)
             #
             def self.drop(nick, password, account)
-                account = Account.identify(account, password)
-                ds = Nickname[:account => account, :nickname => nick]
+                begin
+                    account = Account.authenticate(account, password)
+                rescue Account::AlreadyAuthenticatedError
+                end
+
+                ds = Nickname.filter(:account => account, :nickname => nick)
 
                 if ds.empty?
-                    msg = "#{nick} is not registered to #{account}"
+                    msg = "#{nick} is not registered to #{account.email}"
                     raise NickNotRegisteredError, msg
                 end
 
                 nickname = ds.first
                 nickname.delete
 
-                Account.admin_drop(account) if account.nicknames.empty?
+                Account.admin_drop(account) if account.nickserv_nicknames.empty?
             end
 
             #
@@ -178,6 +178,7 @@ module Database
             #   Nickname.enable_hold(account)
             #
             def self.enable_hold(account)
+                assert { :account }
                 account["#{PREFIX}.hold"] = true
             end
 
@@ -191,7 +192,8 @@ module Database
             #   Nickname.disable_hold(account)
             #
             def self.disable_hold(account)
-                account.delete_flag("#{PREFIX}.hold")
+                assert { :account }
+                account.delete_field("#{PREFIX}.hold")
             end
 
             #
@@ -252,7 +254,7 @@ module Database
             #   account.ns.enable_hold
             #
             def enable_hold
-                NicknameService.enable_hold(@account)
+                Nickname.enable_hold(@account)
             end
 
             #
@@ -263,7 +265,7 @@ module Database
             #   account.ns.disable_hold
             #
             def disable_hold
-                NicknameService.disable_hold(@account)
+                Nickname.disable_hold(@account)
             end
 
             #
@@ -275,7 +277,7 @@ module Database
             #   account.ns.hold?
             #
             def hold?
-                NicknameService.hold?(@account)
+                Nickname.hold?(@account)
             end
 
             #
@@ -287,7 +289,7 @@ module Database
             #   account.ns.nicknames
             #
             def nicknames
-                Nickname[:account => account].all.to_a
+                Nickname.filter(:account => @account).all
             end
 
             #
@@ -306,7 +308,7 @@ module Database
             #   account.ns.register('lanfear', 'steveisawesome')
             #
             def register(nick, password)
-                NicknameService.register(nick, password, @account)
+                Nickname.register(nick, password, @account)
             end
 
             #
@@ -325,14 +327,14 @@ module Database
             #   to that account
             #
             def drop(nick, password)
-                NicknameService.drop(nick, password, @account)
+                Nickname.drop(nick, password, @account)
             end
         end
 
         # Register a resolver so that `Account.resolve` can take a nickname.
         Account.register_resolver do |acct_to_resolve|
-            nick = Nickname[:nickname => acct_to_resolve.to_s].first
-            return nil unless nick
+            nick = Nickname[:nickname => acct_to_resolve.to_s]
+            next unless nick
 
             nick.account
         end
@@ -344,5 +346,10 @@ module Database
 
         # Register nickserv's helper with `nickserv` and `ns` methods.
         Account.helper [:nickserv, :ns], Helper
+    end
+
+    class Account
+        one_to_many :nickserv_nicknames,
+                    :class_name => NicknameService::Nickname
     end
 end

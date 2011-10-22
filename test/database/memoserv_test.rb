@@ -12,14 +12,6 @@ dir = File.dirname(__FILE__)
 require File.expand_path('../teststrap', dir)
 require File.expand_path('../../lib/kythera/service/memoserv/database', dir)
 
-check_timestamp = Proc.new do |timestamp, check|
-  n = (check || Time.now).to_i
-  t = timestamp.to_i
-
-  # close enough I guess, these tests should be all but instantaneous
-  n == t or n == (t+1)
-end
-
 context :memoserv_db do
   setup do
     $_daemon_block.call

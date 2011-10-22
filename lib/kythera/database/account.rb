@@ -58,12 +58,6 @@ module Database
         class BadVerificationError      < Exception; end
 
         #
-        # When someone attempts to perform a function on a bad login, this error
-        # will be raised.
-        #
-        class NoSuchLoginError          < Exception; end
-
-        #
         # When someone attempts to resolve a value that can't be resolved, this
         # error will be raised.
         #
