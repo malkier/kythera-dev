@@ -35,7 +35,7 @@ context :nickserv_db do
 
   context 'registers nicknames' do
     setup do
-      $config.nickserv.limit = 2
+      $state.srv_cfg[:nickserv].limit = 2
       klass.register('sycobuny', 'password', 'sycobuny@malkier.net')
     end
 
@@ -69,7 +69,7 @@ context :nickserv_db do
 
   context 'measures nickname limits' do
     setup do
-      $config.nickserv.limit = 3
+      $state.srv_cfg[:nickserv].limit = 3
       klass.register('sycobuny@malkier.net', 'password', 'sycobuny')
     end
 

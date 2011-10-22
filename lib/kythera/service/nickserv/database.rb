@@ -153,7 +153,9 @@ module Database
             #              "open nickname slots")
             #
             def self.limit
-                $config.nickserv.limit
+                # XXX this should be $nickserv.config.limit
+                # but the code isn't written yet.
+                $state.srv_cfg[:nickserv].limit
             end
 
             #
