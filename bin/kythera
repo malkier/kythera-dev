@@ -166,12 +166,14 @@ configure do
     # Rehashing will also update a service's configuration data.
     #
 
-    # This section of the configuration describes the behavior of the Shrike
-    # service. If it is not specified or is empty, shrike is disabled.
+    # This section of the configuration describes the behavior of the
+    # user service. If it is not specified or is empty, the service is disabled.
     #
-    service :shrike do
+    # The user service is mutually exclusive with: nickserv, shrike
+    #
+    service :userserv do
         # The client's nickname on IRC
-        nickname :X
+        nickname :UserServ
 
         # The client's username (sometimes called ident) on IRC
         username :service
@@ -187,10 +189,35 @@ configure do
         # Comment to disable
         #
         channel '#malkier'
+    end
+
+    # This section of the configuration describes the behavior of the Shrike
+    # service. If it is not specified or is empty, shrike is disabled.
+    #
+    # Shrike is mutually exclusive with: userserv, nickserv, chanserv, operserv
+    #
+    # service :shrike do
+        # The client's nickname on IRC
+        # nickname :X
+
+        # The client's username (sometimes called ident) on IRC
+        # username :service
+
+        # The client's hostname on IRC
+        # hostname 'services.int'
+
+        # The client's realname (sometimes called gecos) on IRC
+        # realname 'kythera irc services'
+
+        # The channel the client joins and sends certain messages to
+        #
+        # Comment to disable
+        #
+        # channel '#malkier'
 
         # The users that have special privileges with the service
-        sras :rakaur, :sycobuny
-    end
+        # sras :rakaur, :sycobuny
+    # end
 
     # This section of the configuration allows you to specify DNS blacklists to
     # check connecting users on the network against. These lists contain

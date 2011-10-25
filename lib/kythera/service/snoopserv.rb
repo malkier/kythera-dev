@@ -64,7 +64,7 @@ class SnoopService < Service
     def initialize(config)
         @config = config
 
-        $log.debug "Snoop service loaded (version #{VERSION})"
+        $log.info "Snoop service loaded (version #{VERSION})"
 
         # Introduce our user in the burst
         $eventq.handle(:start_of_burst) do

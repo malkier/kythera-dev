@@ -1,7 +1,7 @@
 # -*- Mode: Ruby; tab-width: 4; indent-tabs-mode: nil; -*-
 #
 # kythera: services for IRC networks
-# lib/kythera/service/chanserv.rb: provides services for channels
+# lib/kythera/service/chanserv.rb: implements the channel service
 #
 # Copyright (c) 2011 Eric Will <rakaur@malkier.net>
 # Rights to this code are documented in doc/license.txt
