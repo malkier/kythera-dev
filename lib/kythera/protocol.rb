@@ -42,7 +42,7 @@ module Protocol
 
         # Translate the mode symbols into an IRC mode string
         imodes = User.modes.invert
-        modes  = modes.sort.collect { |m| imodes[m] }.join('')
+        modes  = modes.collect { |m| imodes[m] }.join('')
 
         # Some protocols use NICK, some use UID, and I like DRY
         if respond_to?(:send_nick, true)
