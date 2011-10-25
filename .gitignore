@@ -5,3 +5,4 @@
 .yardoc
 var/*.log*
 db/*.db
+Gemfile.lock
