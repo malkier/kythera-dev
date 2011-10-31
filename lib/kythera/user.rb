@@ -30,6 +30,9 @@ class User
         @@modes
     end
 
+    # The user's Account
+    attr_accessor :account
+
     # A list of Channels we're on
     attr_reader :channels
 

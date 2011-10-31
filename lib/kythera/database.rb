@@ -14,7 +14,7 @@ require 'kythera'
 if defined?(JRUBY_VERSION)
     $db = Sequel.connect('jdbc:sqlite:db/kythera.db') unless $db
 else
-    $db = Sequel.connect('sqlite:db/kythera.db') unless $db
+    $db = Sequel.connect('sqlite://db/kythera.db') unless $db
 end
 
 #

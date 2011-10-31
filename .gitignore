@@ -3,6 +3,7 @@
 .rvmrc
 .bundle
 .yardoc
+yardoc/
 var/*.log*
 db/*.db
 Gemfile.lock

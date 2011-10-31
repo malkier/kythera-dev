@@ -27,5 +27,6 @@ class OperatorService < Service
     # String representation of our version..
     VERSION = "#{V_MAJOR}.#{V_MINOR}.#{V_PATCH}"
 
+    # Global privileges (XXX - these are placeholders)
     PRIVILEGES = [:akill, :sendpass, :shutdown, :restart]
 end

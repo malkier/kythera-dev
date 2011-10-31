@@ -91,7 +91,7 @@ class UserService < Service
 
     # Posts snoops
     def snoop(command, str)
-        $eventq.post(:snoop, :shrike, command, str)
+        $eventq.post(:snoop, :userserv, command, str)
     end
 
     public

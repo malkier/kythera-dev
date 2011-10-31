@@ -27,6 +27,9 @@ class ChannelService < Service
     # String representation of our version..
     VERSION = "#{V_MAJOR}.#{V_MINOR}.#{V_PATCH}"
 
-    PRIVILEGES         = [:recover, :drop, :mlock]
+    # Global privileges (XXX - these are placeholders)
+    PRIVILEGES = [:recover, :drop, :mlock]
+
+    # Channel privileges (XXX - these are placeholders)
     CHANNEL_PRIVILEGES = [:founder, :successor, :autoop, :autovoice]
 end

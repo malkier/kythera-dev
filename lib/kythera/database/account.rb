@@ -39,7 +39,7 @@ module Database
         # When a login is already registered and somone attempts to re-register
         # it, this error will be raised.
         #
-        class LoginExistsError          < Exception; end
+        class AccountExistsError        < Exception; end
 
         #
         # When a bad password is given, this error will be raised.
@@ -171,12 +171,12 @@ module Database
         # @param [String] email The account's email (login ID)
         # @param [String] password The password to access the account
         # @return [Account] The newly-minted account
-        # @raise [LoginExistsError] If the email given already exists
+        # @raise [AccountExistsError] If the email given already exists
         # @example
         #   account = Account.register('rakaur@malkier.net', 'steveisawesome')
         #
         def self.register(email, password)
-            raise LoginExistsError unless self.where(:email => email).empty?
+            raise AccountExistsError unless self.where(:email => email).empty?
 
             now  = Time.now
             salt = SecureRandom.base64(192)
@@ -527,7 +527,7 @@ module Database
         #   account.users # [user]
         #
         def users
-            @@users[id]
+            @@users[id] ||= []
         end
 
         #
