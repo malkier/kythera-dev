@@ -41,4 +41,12 @@ module TwitterService::Configuration
     def channel(channel)
         self.channel = channel
     end
+
+    def consumer_key(key)
+        self.consumer_key = key
+    end
+
+    def consumer_secret(secret)
+        self.consumer_secret = secret
+    end
 end

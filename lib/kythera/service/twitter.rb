@@ -8,6 +8,8 @@
 # Rights to this code are documented in doc/license.txt
 #
 
+require 'oauth'
+
 require 'kythera'
 
 require 'kythera/service/twitter/commands'
@@ -67,7 +69,10 @@ class TwitterService < Service
     def initialize(config)
         @config = config
 
-        $log.info "User service loaded (version #{VERSION})"
+        @request_tokens = {}
+        @access_tokens  = {}
+
+        $log.info "Twitter service loaded (version #{VERSION})"
 
         # Introduce our user in the burst
         $eventq.handle(:start_of_burst) do
@@ -93,6 +98,13 @@ class TwitterService < Service
     # Posts snoops
     def snoop(command, str)
         $eventq.post(:snoop, :twitter, command, str)
+    end
+
+    # Return the OAuth consumer object
+    def consumer
+        OAuth::Consumer.new(@config.consumer_key,
+                            @config.consumer_secret,
+                            :site => 'http://api.twitter.com')
     end
 
     public
