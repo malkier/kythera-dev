@@ -8,7 +8,14 @@
 # Rights to this code are documented in doc/license.txt
 #
 
-require 'oauth'
+begin
+    require 'oauth'
+    require 'twitter'
+rescue LoadError
+    puts "kythera: twitter service depends on oauth and twitter gems"
+    puts "kythera: gem install --remote oauth twitter"
+    abort
+end
 
 require 'kythera'
 
@@ -71,6 +78,7 @@ class TwitterService < Service
 
         @request_tokens = {}
         @access_tokens  = {}
+        @twitters       = {}
 
         $log.info "Twitter service loaded (version #{VERSION})"
 
@@ -117,7 +125,7 @@ class TwitterService < Service
         if self.respond_to?(meth, true)
             self.send(meth, user, params)
         else
-            notice(@user.key, user.key, "Invalid command: \2#{cmd}\2")
+            notice(@user.key, user.key, "Invalid command: \2#{cmd.upcase}\2")
         end
     end
 end
