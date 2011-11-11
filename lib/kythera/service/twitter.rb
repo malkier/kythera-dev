@@ -82,6 +82,11 @@ class TwitterService < Service
 
         $log.info "Twitter service loaded (version #{VERSION})"
 
+        Twitter.configure do |config|
+            config.consumer_key    = @config.consumer_key
+            config.consumer_secret = @config.consumer_secret
+        end
+
         # Introduce our user in the burst
         $eventq.handle(:start_of_burst) do
             modes = [:hidden_operator, :invulnerable, :operator, :service]

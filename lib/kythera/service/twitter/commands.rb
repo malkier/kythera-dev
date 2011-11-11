@@ -51,11 +51,8 @@ HELP
         who = "\2#{token.params[:screen_name]}\2"
         notice(@user.key, user.key, "You are now authorized as #{who}")
 
-        @twitters[user] = Twitter.new \
-            :consumer_key       => token.consumer.key,
-            :consumer_secret    => token.consumer.secret,
-            :oauth_token        => token.token,
-            :oauth_token_secret => token.secret
+        @twitters[user] = Twitter.new(:oauth_token        => token.token,
+                                      :oauth_token_secret => token.secret)
     rescue OAuth::Error => e
         notice(@user.key, user.key, "Error: #{e}")
     end
