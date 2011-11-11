@@ -84,12 +84,26 @@ class TwitterService < Service
 
         # Introduce our user in the burst
         $eventq.handle(:start_of_burst) do
-            modes = [:deaf,     :hidden_operator, :invulnerable,
-                     :operator, :service]
+            modes = [:hidden_operator, :invulnerable, :operator, :service]
 
             # Introduce our client to the network
             @user = introduce_user(@config.nickname, @config.username,
                                    @config.hostname, @config.realname, modes)
+        end
+
+        $eventq.handle(:irc_privmsg) do |origin, parv|
+            next unless $channels[parv[0]] # Is the target a channel?
+            user = $users[origin]
+            first, cmd, *params = parv[1].split(/ /)
+            if first == "#{@user.nickname}:"
+                meth = "do_#{cmd}".downcase.to_sym
+                if self.respond_to?(meth, true)
+                    self.send(meth, user, params)
+                else
+                    reply = "Invalid command: \2#{cmd.upcase}\2"
+                    notice(@user.key, user.key, reply)
+                end
+            end
         end
 
         # Join our configuration channel

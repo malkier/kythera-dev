@@ -16,7 +16,7 @@ class TwitterService < Service
     HELP_RESPONSE = <<HELP.strip.split("\n")
 \2LOGIN\2       Log into twitter
 \2AUTHORIZE\2   Authorize to twitter
-\2POST\2        Post something to twitter
+\2UPDATE\2      Post something to twitter
 HELP
 
     def do_help(user, params)
