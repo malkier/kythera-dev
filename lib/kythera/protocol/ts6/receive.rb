@@ -171,7 +171,7 @@ module Protocol::TS6
         their_ts = parv[0].to_i
 
         # Do we already have this channel?
-        if channel = $channels[parv[1]]
+        if channel = Channel[parv[1]]
             if their_ts < channel.timestamp
                 # Remove our status modes, channel modes, and bans
                 channel.members.each_value { |u| u.clear_status_modes(channel) }
@@ -268,7 +268,7 @@ module Protocol::TS6
     # parv[2] -> mode string
     #
     def irc_tmode(origin, parv)
-        return unless channel = $channels[parv[1]]
+        return unless channel = Channel[parv[1]]
 
         their_ts = parv[0].to_i
         my_ts    = channel.timestamp
@@ -306,7 +306,7 @@ module Protocol::TS6
     # parv[3] -> space-delimited list of hostmasks
     #
     def irc_bmask(origin, parv)
-        return unless channel = $channels[parv[1]]
+        return unless channel = Channel[parv[1]]
 
         their_ts = parv[0].to_i
         my_ts    = channel.timestamp

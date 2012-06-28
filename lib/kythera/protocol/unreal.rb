@@ -39,7 +39,7 @@ module Protocol::Unreal
             return
         end
 
-        unless channel = $channels[target]
+        unless channel = Channel[target]
             # This is a nonexistent channel
             channel = Channel.new(target)
         end

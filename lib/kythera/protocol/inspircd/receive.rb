@@ -128,7 +128,7 @@ module Protocol::InspIRCd
         their_ts = parv[1].to_i
 
         # Do we already have this channel?
-        if channel = $channels[parv[0]]
+        if channel = Channel[parv[0]]
             if their_ts < channel.timestamp
                 # Remove our status modes, channel modes, and bans
                 channel.members.each_value { |u| u.clear_status_modes(channel) }
@@ -197,7 +197,7 @@ module Protocol::InspIRCd
     # parv... -> mode parameters
     #
     def irc_fmode(origin, parv)
-        if channel = $channels[parv[0]]
+        if channel = Channel[parv[0]]
             their_ts = parv[1].to_i
             my_ts    = channel.timestamp
 

@@ -45,7 +45,7 @@ context :p10 do
     asserts('responds to irc_squit')  { topic.respond_to?(:irc_squit,  true) }
 
     asserts('users')    { $users.clear;    $users    }.empty
-    asserts('channels') { $channels.clear; $channels }.empty
+    asserts('channels') { Channel.channels.clear }.empty
     asserts('servers')  { $servers.clear;  $servers  }.empty
 
     asserts(:burst) { topic.instance_variable_get(:@recvq) }.size 222
@@ -53,7 +53,7 @@ context :p10 do
 
     asserts('has 10 servers')  { $servers .length == 10 }
     asserts('has 89 users')    { $users   .length == 89 }
-    asserts('has 96 channels') { $channels.length == 96 }
+    asserts('has 96 channels') { Channel.channels.length == 96 }
 
     context :servers do
       setup { $servers.values }
@@ -181,7 +181,7 @@ context :p10 do
     end
 
     context :channels do
-      setup { $channels.values }
+      setup { Channel.channels.values }
 
       denies_topic.empty
       asserts(:size) { topic.length }.equals 96
@@ -212,7 +212,7 @@ context :p10 do
       end
 
       context :squit do
-        setup { $channels['#ewnkzv'] }
+        setup { Channel['#ewnkzv'] }
         asserts_topic.nil
       end
     end

@@ -9,11 +9,11 @@
 
 require 'kythera'
 
-# A list of all channels; keyed by channel name by default
-$channels = IRCHash.new
-
 # This is just a base class; protocol module should subclass this
 class Channel
+    # A list of all channels; keyed by channel name by default
+    @@channels = IRCHash.new
+
     # Standard IRC status cmodes
     @@status_modes = { 'o' => :operator,
                        'v' => :voice }
@@ -32,6 +32,12 @@ class Channel
                        'p' => :private,
                        's' => :secret,
                        't' => :topic_lock }
+
+    # Look up a channel in the global list
+    def self.[](index); @@channels[index]; end
+
+    # Attribute reader for `@@channels`
+    def self.channels; @@channels; end
 
     # Attribute reader for `@@status_modes`
     def self.status_modes; @@status_modes; end
@@ -70,7 +76,7 @@ class Channel
         clear_modes
         setup_cmodes
 
-        $channels[name] = self
+        @@channels[name] = self
 
         $log.debug "new channel: #{@name}"
 
@@ -200,7 +206,7 @@ class Channel
         $eventq.post(:user_parted_channel, user, self)
 
         if @members.length == 0
-            $channels.delete(@name)
+            @@channels.delete(@name)
 
             $log.debug "removing empty channel #{self}"
 

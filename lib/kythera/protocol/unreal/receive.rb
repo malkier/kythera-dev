@@ -105,7 +105,7 @@ module Protocol::Unreal
             $users.delete(oldnick)
             $users[newnick] = user
 
-            $channels.values.each do |channel|
+            Channel.channels.values.each do |channel|
                 next unless channel.members[oldnick]
                 channel.members.delete(oldnick)
                 channel.members[newnick] = user
@@ -136,7 +136,7 @@ module Protocol::Unreal
         their_ts = parv[0].to_i
 
         # Do we already have this channel?
-        if channel = $channels[parv[1]]
+        if channel = Channel[parv[1]]
             if their_ts < channel.timestamp
                 # Remove our status modes, channel modes, and bans
                 channel.members.each_value { |u| u.clear_status_modes(channel) }
@@ -267,7 +267,7 @@ module Protocol::Unreal
         end
 
         # Otherwise it's a channel
-        return unless channel = $channels[parv[0]]
+        return unless channel = Channel[parv[0]]
 
         if server = $servers[origin]
             their_ts = parv[-1].to_i

@@ -218,7 +218,7 @@ class Kythera
 
         # Reset all the things that are uplink-dependent
         $users.clear
-        $channels.clear
+        Channel.channels.clear
         $servers.clear
         $services.clear
 

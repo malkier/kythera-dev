@@ -276,7 +276,7 @@ class User
     # @return [True, False]
     #
     def is_on?(channel)
-        channel = $channels[channel] if channel.kind_of?(String)
+        channel = Channel[channel] if channel.kind_of?(String)
 
         !! channel.members[key]
     end
@@ -290,7 +290,7 @@ class User
     def has_mode_on_channel?(mode, channel)
         assert { { :mode => Symbol } }
 
-        channel = $channels[channel] if channel.kind_of?(String)
+        channel = Channel[channel] if channel.kind_of?(String)
 
         return false unless @status_modes[channel]
 

@@ -42,7 +42,7 @@ module Protocol::TS6
             return
         end
 
-        unless channel = $channels[target]
+        unless channel = Channel[target]
             # This is a nonexistent channel
             channel = Channel.new(target)
         end

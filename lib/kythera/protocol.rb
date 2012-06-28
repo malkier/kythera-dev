@@ -207,7 +207,7 @@ module Protocol
             $log.error "got non-existent user in #{command}: #{origin}"
         end
 
-        unless channel = $channels[target]
+        unless channel = Channel[target]
             $log.error "got non-existent channel in #{command}: #{name}"
         end
 

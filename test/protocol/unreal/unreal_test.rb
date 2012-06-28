@@ -45,16 +45,16 @@ context :unreal do
     asserts('responds to irc_mode')   { topic.respond_to?(:irc_mode,   true) }
     asserts('responds to irc_squit')  { topic.respond_to?(:irc_squit,  true) }
 
-    asserts('users')    { $users.clear;    $users    }.empty
-    asserts('channels') { $channels.clear; $channels }.empty
-    asserts('servers')  { $servers.clear;  $servers  }.empty
+    asserts('users')    { $users.clear   }.empty
+    asserts('channels') { Channel.channels.clear }.empty
+    asserts('servers')  { $servers.clear }.empty
 
     asserts(:burst) { topic.instance_variable_get(:@recvq) }.size 230
     asserts('parses') { topic.send(:parse) }
 
     asserts('has 10 servers')   { $servers .length == 10  }
     asserts('has 89 users')     { $users   .length == 89  }
-    asserts('has 100 channels') { $channels.length == 100 }
+    asserts('has 100 channels') { Channel.channels.length == 100 }
 
     context :servers do
       setup { $servers.values }
@@ -193,7 +193,7 @@ context :unreal do
     end
 
     context :channels do
-      setup { $channels.values }
+      setup { Channel.channels.values }
 
       denies_topic.empty
       asserts(:size) { topic.length }.equals 100
@@ -231,7 +231,7 @@ context :unreal do
       end
 
       context :squit do
-        setup { $channels['#79'] }
+        setup { Channel['#79'] }
         denies_topic.nil
         asserts('channel #79 member count') { topic.members.length }.equals 41
       end
