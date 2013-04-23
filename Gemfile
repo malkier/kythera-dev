@@ -1,7 +1,7 @@
-source :rubygems
+source 'https://rubygems.org/'
 
 gem 'rake'
-gem 'sequel',  '~> 3.23'
+gem 'sequel',  '<= 3.28'
 
 platforms :jruby do
   gem 'activerecord-jdbcsqlite3-adapter', :require => false

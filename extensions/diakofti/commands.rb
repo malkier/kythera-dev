@@ -96,7 +96,7 @@ module Diakofti::CommandHandlers
             send_stanza_error('authenticate', 'not-authorized')
             return
         else
-            @state.sasl  = true
+            @state.sasl = true
             @uuid = SecureRandom.uuid
             send_authenticate({ authcid => @uuid })
             send_features

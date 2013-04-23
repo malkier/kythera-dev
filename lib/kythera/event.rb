@@ -102,7 +102,7 @@ class EventQueue
         end
 
         # Now we can run the exit handlers, and then we bubble back up to the
-        # call to Kythera#main_loop for a graceful exit. Althought anything
+        # call to Kythera#main_loop for a graceful exit. Although anything
         # that registered to handle :exit will run here, no events they add will
         # be run, and as a result no socket operations will work.
         if exiting

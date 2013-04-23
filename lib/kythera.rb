@@ -284,7 +284,7 @@ def assert(&block)
     else
         errstr = errors[0 ... -1].join(', ')
         errstr = [errstr, errors[-1]].join(' and ')
-        errstr = errstr[0].upcase + errstr[1 .. -1] + '.'
+        errstr = errstr[0].chr.upcase + errstr[1 .. -1] + '.'
     end
 
     # raise an ArgumentError in the calling scope, so we're a ghost in

@@ -15,7 +15,7 @@ Exit Event
 There is a somewhat special event, called `:exit`. It is special in the sense
 that the event queue runner looks specifically for it and runs every other
 event in the queue first, then runs the exit handlers, and then asks the main
-loop to exit. The exit event exits to allow you to clean things up (close
+loop to exit. The exit event exists to allow you to clean things up (close
 files, save things, etc.). When the main loop is asked to exit, it makes a note
 of this request and goes ahead and runs through the IO loop one more time in
 order for any socket-dependent events added by exit handlers to run (such as
@@ -24,7 +24,7 @@ loop" behavior is a special case, and is your last chance to run something.
 
 If you're going to handle this event, you should stop to think whether you
 should be using `EventQueue#handle` or `EventQueue#persistently_handle`. The
-former gets wiped out when the uplink gets disconnected, and the later never
+former gets wiped out when the uplink gets disconnected, and the latter never
 gets wiped out. If you're a service, you're instantiated every time the uplink
 reconnects, so if you add the exit handler in your initialize method, then
 using the former is just fine. If you're an extension (or something else not
