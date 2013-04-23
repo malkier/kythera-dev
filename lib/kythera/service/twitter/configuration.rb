@@ -49,4 +49,12 @@ module TwitterService::Configuration
     def consumer_secret(secret)
         self.consumer_secret = secret
     end
+    
+    def access_token(token)
+        self.access_token = token
+    end
+    
+    def access_token_secret(secret)
+        self.access_token_secret = secret
+    end
 end
