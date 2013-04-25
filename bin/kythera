@@ -33,7 +33,7 @@ Dir.chdir File.expand_path('..', File.dirname(__FILE__))
 # The `use` statements are an extensibility feature. They allow you to
 # pull an arbitrary Ruby module's methods into the main configuration
 # parser so that you can provide configuration options for extensions.
-# If you plan to do this check out the parser in `lib/kythera.rb` first.
+# If you plan to do this check out the parser in `lib/kythera/configure.rb`.
 #
 
 # The actual configuration begins here

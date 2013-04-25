@@ -146,11 +146,6 @@ module Kythera::Configuration
        puts "kythera: unknown configuration directive '#{meth}' (ignored)"
     end
 
-    # Prevent configuration from calling `Kythera.new`
-    def dry_run
-        self.dry_run = true
-    end
-
     # Load a service and parse its configuration
     #
     # The configuration will be placed at $config.name_of_service
