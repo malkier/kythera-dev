@@ -258,11 +258,7 @@ class Kythera
 
     # Checks to see if we're running on a decent Ruby version
     def check_ruby_version
-        if RUBY_VERSION < '1.9' and RUBY_VERSION < '1.8.7'
-            puts "#{ME}: requires at least Ruby version 1.8.7"
-            puts "#{ME}: you have #{RUBY_VERSION}"
-            abort
-        elsif RUBY_VERSION > '1.9' and RUBY_VERSION < '1.9.2'
+        if RUBY_VERSION > '1.9' and RUBY_VERSION < '1.9.2'
             puts "#{ME}: requires at least Ruby version 1.9.2"
             puts "#{ME}: you have #{RUBY_VERSION}"
             abort

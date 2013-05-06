@@ -137,12 +137,7 @@ require 'kythera/timer'
 require 'kythera/uplink'
 require 'kythera/user'
 
-# Try to load SecureRandom from the stdlib, fall back to vendored version
-begin
-    require 'securerandom'
-rescue LoadError
-    require 'kythera/securerandom'
-end
+require 'securerandom'
 
 # Contains all of the application-wide stuff
 class Kythera
